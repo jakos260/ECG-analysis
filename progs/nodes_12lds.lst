@@ -1,0 +1,19 @@
+9 4
+318  306  137  19 
+424  399  200  26
+114  111  222  65
+113  110  265  41 
+120  117  307  48
+529  245  349  54
+103  100    5   1 
+392  367  341   2
+ 39  649  232  56
+
+
+column 1:  nodes of pp15tor3a.tri
+       2:           pp15tor3aextended.tri
+       3:           franktank.tri
+       4:           gutor300.tri and all others in which the nim_electrode montage is implemented as the first 64 nodes
+                    here no signals are recorded by the nim_electrode montage; approximate by, e.g.,: (PHI(33,:)+PHI(34,:))/2
+        
+'V1  ' 'V2  ' 'V3  '  'V4  '  'V5  ' 'V6  ' 'VR  ' 'VL  ' 'VF  ';

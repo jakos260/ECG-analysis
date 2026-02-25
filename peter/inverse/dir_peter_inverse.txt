@@ -1,0 +1,64 @@
+ De volumenaam van station C is OS
+ Het volumenummer is E26E-C421
+
+ Map van C:\Users\Peter.Damp2\Documents\ECG_simulation\matlab\peter\inverse
+
+26-07-2012  14:58    <DIR>          .
+26-07-2012  14:58    <DIR>          ..
+28-01-2012  13:39             3.070 calcREPtims.m
+29-03-2011  10:33             3.758 calcREPtimsLR.m
+26-07-2012  14:58                 0 dir_peter_inverse.txt
+18-11-2010  09:33            23.114 ecginv.m
+17-09-2010  10:59            22.293 ecginv_atria.m
+17-09-2010  10:59            22.293 ecginv_atria_rep.m
+27-06-2009  21:05            25.500 ecginv_film.m
+28-04-2009  11:37            14.872 ecginv_nomon.m
+15-09-2010  21:54            22.585 ecginv_rep.m
+17-08-2009  18:33               225 fi.leads
+17-08-2009  18:33               225 fird.leads
+17-08-2009  18:33               220 gd.leads
+17-08-2009  18:33               221 gdrd.leads
+26-03-2012  14:18             2.228 getSmode.m
+27-12-2011  18:34             3.986 getSmodenew.m
+18-05-2009  14:30             1.702 getSvplateau.m
+10-03-2012  16:29             2.330 gettdompvd.m
+14-09-2009  15:27             1.108 initfi.m
+19-08-2009  19:37             1.018 initgd.m
+30-08-2009  10:50             1.295 initppd1.m
+22-08-2009  13:33                51 initppd1a.m
+04-09-2011  13:35             1.913 initRep.m
+19-08-2009  19:37               933 initwk.m
+19-08-2009  19:37             1.073 initwk0.m
+26-03-2012  13:46            21.928 inverse.m
+28-09-2011  08:37            20.917 inversetest.m
+05-09-2011  16:26            21.170 inversev12.m
+26-07-2012  10:50            17.655 invInit.m
+10-06-2012  22:06            17.225 invInitv12.m
+06-09-2011  09:25            12.562 invInit_anyLeadsys.m
+28-04-2012  10:34            16.859 invInit_old.m
+09-09-2011  11:20            12.658 invInit_v12.m
+02-09-2011  09:13            12.639 invInit_withADJ.m
+07-05-2012  14:49            21.701 multifociscan.m
+08-04-2011  09:42            14.501 multifociscan02.m
+28-01-2012  18:21            16.248 multifociscanAtria.m
+17-08-2009  18:27               807 multifociscanLeadselect.m
+15-02-2012  18:32            23.087 multifociscanppd.m
+30-06-2009  06:41            10.711 multifociscan_film.m
+20-03-2009  08:54             7.161 multifociscan_path.m
+03-03-2009  16:32             9.991 mymultifociscan.m
+15-08-2009  17:17               711 nrClusters.m
+01-08-2011  16:51            11.156 optimizeVeloDep.m
+17-08-2009  18:33               225 ppd1.leads
+17-08-2009  18:33               225 ppd1rd.leads
+15-03-2012  12:30             3.729 prepare_geom.m
+28-06-2011  13:26    <DIR>          prevs
+06-03-2012  11:12             2.070 quamin_pvd.m
+18-11-2010  14:07             2.148 rflogistprod_Tdom.m
+18-11-2010  14:07             2.523 rfunc_pvd.m
+20-01-2012  14:27               446 selectLeads.m
+23-06-2009  11:20             3.498 showInvCase.m
+01-04-2012  20:33             4.725 sqrAmpl.m
+17-08-2009  18:33               221 wk0.leads
+17-08-2009  18:33               223 wk0rd.leads
+              54 bestand(en)          445.733 bytes
+               3 map(pen)  90.445.352.960 bytes beschikbaar

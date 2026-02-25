@@ -1,0 +1,97 @@
+classdef QuaminOptimizer
+    properties
+        rep, dep
+    end
+    methods
+        function obj = QuaminOptimizer(rep, dep)
+            if nargin > 0
+                obj.rep = rep;
+                obj.dep = dep;
+            end
+        end
+
+        function [theta_opt, y_fit, final_error, iter] = run(obj, y_meas, t)
+
+            % Zakładam, że sygnał ma długość 500 (jak w generatorze)
+            if nargin < 2
+                t = 1:length(y_meas);
+            end
+        
+            % Długość na wszelki wypadek przycinamy do 500
+            % N = min(500, length(y_meas));
+            % t = t(1:N);
+            % y_meas = y_meas(1:N);
+            
+            for i = 1:length(t)
+                % wektor x do LM – użyjemy po prostu indeksów czasowych
+                x = t(i,:);            % kolumna // merg wszystkich wierszy
+                y = y_meas(i,:);       % kolumna // tylko jeden wiersz          
+        
+            % theta = [p3, p5]
+            theta0 = [-0.1, 0.1];   % startowa zgadywanka
+        
+            % Marquardt dla generatora
+            [theta_opt, iter] = quamin(x, y, theta0, @obj.rfunc);
+        
+            % Dopasowany sygnał
+            y_fit = twave_generator(theta_opt, t);
+        
+            % Ujednolicenie kształtu
+            y_fit = y_fit(:);
+            y = y(:);
+            M = min(length(y_fit), length(y));
+        
+            y_fit = y_fit(1:M);
+            y = y(1:M);
+        
+            % Błąd dopasowania (norma 2 reszty)
+            final_error = norm(y - y_fit);
+        end
+
+        function S = twave_gen(obj, theta, t)
+            p = [0.2, 0, theta(1), 0, theta(2)];
+            S = gets_v2(t, obj.dep, obj.rep, p, 5);
+        end
+
+        function [yest, G] = rfunc(obj, x, p, needG, ~)
+            % [yest, G] = rfunc_gen(x, p, needG, ~)
+            % Wrapper w stylu rfunc do użycia z quamin_em
+            % x    – wektor czasu (możesz tu podać np. 1:500)
+            % p    – wektor parametrów, u nas p == theta = [p3, p5, rep]
+            % needG – 1: licz G (Jacobian), 0: tylko yest
+            % ~    – placeholder dla funtype, żeby sygnatura była podobna
+            
+            % Upewniamy się, że t jest wierszem, bo generator przyjmuje t jako wiersz
+            t = x(:).';   % 1 x N
+        
+            % Model: wyjście generatora
+            y_model = obj.twave_gen(p, t);   % zakładamy, że zwraca wiersz 1 x N
+            yest = y_model(:);           % quamin pracuje na wektorze kolumnowym
+        
+            % Jeśli Jacobian nie jest potrzebny:
+            if nargout < 2 || needG == 0
+                G = [];
+                return;
+            end
+        
+            % Liczymy Jacobian numerycznie (centralne różniczkowanie)
+            eps = 1e-3; % 1e-4
+            npar = numel(p);
+            N = numel(yest);
+            G = zeros(N, npar);
+        
+            for k = 1:npar
+                dp = zeros(size(p));
+                dp(k) = eps;
+        
+                y_plus  = twave_gen(p + dp, t);
+                y_minus = twave_gen(p - dp, t);
+        
+                y_plus  = y_plus(:);
+                y_minus = y_minus(:);
+        
+                G(:, k) = (y_plus - y_minus) / (2 * eps);
+            end
+        end
+    end
+end

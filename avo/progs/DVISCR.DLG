@@ -1,0 +1,46 @@
+% dviscr 1.4b  02-Jan-2002  21:51
+%
+% Input file: fig4.eps
+%
+/uin
+/v2
+/r300/rf300
+/z-
+/2-
+/b*
+/e*
+/l1in
+/la0px
+/t1in
+/ta0px
+/h11in
+/w8.5in
+/tr0
+/fi
+/fl-1
+/fd2
+/fs1/p@\emtex\texinput
+/pdC:\PROGRA~1\emtex\doc
+/pfC:\PROGRA~1\emtex\texfonts\pixel.lj\pxl$s
+/pgC:\PROGRA~1\emtex\doc\gr$r
+/plC:\PROGRA~1\emtex\texfonts;lj_1500;lj_1643;lj_1800;lj_2160;lj_2592;lj_3110;lj_3732a;lj_3732b
+/ps
+/ptdviscr.dlg
+/pv
+/pw
+/cp1
+/cf1
+/ci1 /cx0in /cy0in
+/+
+/s3/o1/hx1in
+/hy1in
+/oa0
+/ocp2 /ocr1 /ocs2
+/os+
+/or-
+/oupt
+@
+
+
+*** Fatal error 2108: DVI file corrupted (bad preamble)
+

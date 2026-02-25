@@ -1,1 +1,4 @@
 /ecg\ analysis/data/
+*.tri
+*.mat
+*.jpg

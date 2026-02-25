@@ -1,0 +1,162 @@
+MAT = load('data/BSMUMC048_CARTOMAP_Allinfo/BSMUMC048_CARTOMAP_Allinfo.mat');
+M = MAT.Map2Copy2;
+MODEL = readGeomPeacsModel_prof('./data/PPD1_ECGSIM_NEW','PPD1_ECGSIM_NEW');
+
+%  Signal computation
+
+refPos = MODEL.GEOM.thorax.VER(38,:) - MODEL.GEOM.thorax.NORMV(38,:) * 20;
+HD = MODEL.VENTR.HEARTDIST;
+
+% ECG sim vertexes
+foci_1 = 263;      % left septal wall     
+foci_2 = 201;      % left septal wall
+foci_3 = 214;      % right septal wall              
+foci_4 = 95;       % right free wall                
+ 
+% FOCI AND FOCI ACT
+foci    = [foci_1,foci_2,foci_3,foci_4 ];    
+fociact = [6, 8, 13, 22];   
+foci_pos = MODEL.VENTR.geom.VER(foci,:);
+
+dep=[];
+for i=1:length(foci)
+    dep(i,:) = bsxfun(@plus, HD(foci(i),:), fociact(i));
+end
+dep = min(dep,[],1)';
+rep = 350 + mean(dep) - dep*0.6;
+
+% measured signal
+nV = size(MODEL.VENTR.VENTRICLES,1);
+chan_idx = [1:8,19:38];
+chan_names = M.channels(chan_idx);
+A = M.ECG_all;
+n_CH = length(chan_idx);
+
+BestR = -inf(1,n_CH);
+Corr = NaN(nV, n_CH); 
+BestVX = NaN(1, n_CH);
+
+posM = NaN(n_CH,1);   %positive peack of the measured signal
+negM = NaN(n_CH,1);   %negative peack of the measured signal
+AMP_M = NaN(n_CH,1);  %amplitude measured signal
+posS = NaN(n_CH,1);   %positive peack of the simulated signal
+negS = NaN(n_CH,1);   %negative peack of the simulated signal
+AMP_S = NaN(n_CH,1);  %amplitude simulated signal
+diff_AMP = NaN(n_CH,1);
+
+% compute the transmembrane potentials 
+start = 700;
+ending = 1800;
+maxt = ending-start;
+T = ones(length(dep),1)*(0:maxt);
+
+window = start:ending;
+[nn, nt] = size(T);
+
+theta(1) = -0.041;
+theta(2) = 0.082;
+
+q = QuaminOptimizer(rep, dep);
+for c = 1:n_CH
+    for i = 1:nt
+        printProgress((c-1)*nt + i, n_CH*nt, sprintf("channel %s\n", chan_names{1, c}));
+        yM = A{1}(chan_idx(c),window);
+        [theta_opt, y_fit, final_error, iter] = q.run(yM, T(:,i));
+    end
+end
+
+
+
+%% measured signal  
+
+nV = size(MODEL.VENTR.VENTRICLES,1);
+chan_idx = [1:8,19:38];
+chan_names = M.channels(chan_idx);
+A = M.ECG_all;
+n_CH = length(chan_idx);
+
+BestR = -inf(1,n_CH);
+Corr = NaN(nV, n_CH); 
+BestVX = NaN(1, n_CH);
+
+posM = NaN(n_CH,1);   %positive peack of the measured signal
+negM = NaN(n_CH,1);   %negative peack of the measured signal
+AMP_M = NaN(n_CH,1);  %amplitude measured signal
+posS = NaN(n_CH,1);   %positive peack of the simulated signal
+negS = NaN(n_CH,1);   %negative peack of the simulated signal
+AMP_S = NaN(n_CH,1);  %amplitude simulated signal
+diff_AMP = NaN(n_CH,1);
+
+wind = start:ending;
+for c = 1:n_CH
+    sig = A{1}(chan_idx(c),:);
+    yM = sig(wind);    % measured
+    yM = yM(:);
+    Lm = length(yM);
+
+
+    E1 = (MODEL.VENTR.VENTRICLES(vx,:)*S_nodes);    %simulated
+    yS = E1(:);
+
+    [~, iSd] = min(diff(yS));  
+    idxS = iSd + 1; 
+
+    % Temporal Shift 
+    lag = idxM - idxS;          
+    if lag > 0
+        yS_shift = [zeros(lag,1); yS(1:end-lag)];  %if >0 the simulated is brought forward
+    elseif lag < 0
+        k = abs(lag);
+        yS_shift = [yS(1+k:end); zeros(k,1)];      %if <0 the simulated is brought backward
+    else
+        yS_shift = yS;
+    end
+    
+    % Padding to have the same length of the signal
+    if length(yS_shift) < Lm
+        yS_shift = [yS_shift; zeros(Lm - length(yS_shift),1)];
+    else
+        yS_shift = yS_shift(1:Lm);
+    end
+
+    % correlation computation
+    C = corrcoef(yM(:), yS_shift(:));
+    r = C(1,2);
+    R_all(vx) = r;    % salva correlazione
+
+    % Update of the best
+    if ~isnan(r) && r > bestR
+        bestR  = r;
+        bestVX = vx;
+        bestYS = yS_shift;
+    end
+end
+fprintf('Best Vertex: vx = %d   (r = %.3f)\n', bestVX, bestR);
+
+%% plot
+
+E = MODEL.VENTR.VENTRICLES(bestVX,:)*S_nodes;
+figure 
+plot(sig,'r','LineWidth',1.5)
+hold on 
+plot(E,'k','LineWidth',1.5)
+xlabel('samples'); ylabel('Amplitude (mV)');
+legend('Measured (sig)', 'Simulated (E)', 'Location','best');
+
+figure; hold on; grid on;
+plot(yM, 'r', 'LineWidth', 1.5);
+plot(bestYS, 'k', 'LineWidth', 1.5);
+xlabel('samples'); ylabel('Amplitude (mV)');
+title(sprintf('Steepest downslope alignment  (r = %.3f)', bestR));
+legend('Measured (sig)', 'Simulated (E1)', 'Location','best');
+
+xline(idxM, '--r'); xline(idxM, '--k'); 
+
+[~, idx_min] = min(yM);
+r_QRS = corr(yM(1:idx_min), yS_shift(1:idx_min));
+disp('r_QRS')
+disp(r_QRS)
+
+r_REP = corr(yM(idx_min:end), yS_shift(idx_min:end));
+disp('r_REP')
+disp(r_REP)

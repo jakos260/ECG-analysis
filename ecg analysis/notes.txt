@@ -1,0 +1,9 @@
+leadv12(A) where A size is (12,x) - plot 12 lead ecg
+rms - root mean square
+clf - clear figure
+
+
+getTdom
+
+endo vs epi ventricle nodes
+for i=1:length(LVER), d=norm3d(bsxfun(@minus,VER,LVER(i,:)); ii=find(d==min(d); end

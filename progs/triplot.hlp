@@ -1,0 +1,1644 @@
+commands:
+  addsel     alpha      asciwrite  alias      beta       binwrite   center     
+  checkbreak chain      clear      cls        cmap       colormap   copy       
+  cross      ctext      delay      display    edge       elfile     elplot     
+  exit       file       for        frame      funcolor   funfile    funplot    
+  graphic    help       input      isofunplot isoplot    isolabel   loadsel    
+  lightcolor line       list       movie      mouse      mri        outfile    
+  parse      pause      plot       point      print      quit       record     
+  replay     reset      rowplot    rgb        savesel    set        shell      
+  stop       swap       sync       text       unalias    unset      update     
+  vecplot    3dplot     !          @          #          %
+  
+color parameters:
+  backcol     bgdcol      color      fillcol    funcolmin  funcolmax
+  lightcolmin lightcolmax isocolmin  isocolplus isocolzero symbolcol  textcol
+  
+other parameters:
+  autostop   aspect     back       bar        bold       boxclip    cdis       
+  clip       column     crossdis   diffuse    echo       filled     fixlight   
+  funscal    gamma      isoextr    isomarker  isorange   isoscal    light      
+  lightcolor lightedge  marker     mode       normal     path       obsdis     
+  origin     phi        philight   planeclip  raster     range      rowplotwin
+  scal       size       smartps    smooth     sphereclip step       symbol     
+  symbolscal theta      thetalight time       textfont   textrotate textscal   
+  vecorig    xpos       ypos 
+  
+other help items:
+  triplot.ini (initialization file)
+  -options (command line options)
+  $-variables
+  ^-functions
+  control-c
+  Xdefaults   
+  interactive mode
+  building your own commands
+
+  Type "help <item>" for more information on a specific <item>
+
+# oude_versie_default_help
+
+  Type "help commands" for a list of general commands
+  Type "help parameters" for a list of all parameters setting command
+  Type "help other" for a list of other 'helpable' items
+
+  Type "help <item>" for more information on a specific <item>
+
+  in the explanatory text the symbols | and [] are used.
+  |  indicates alternatives, like in     size landscape | portrait
+  [] indicates optional text, like in    plot [i[nteractive]]
+
+# commands:
+
+  alpha      asciwrite  alias      beta       binwrite   center     checkbreak 
+  chain      clear      cls        cmap       colormap   copy       cross      
+  ctext      delay      display    edge       elfile     elplot     exit       
+  file       for        frame      funcolor   funfile    funplot    graphic    
+  help       input      isofunplot isoplot    isolabel   lightcolor line       
+  list       movie      mouse      mri        outfile    parse      pause      
+  plot       point      print      quit       record     replay     reset      
+  rowplot    rgb        set        shell      stop       swap       sync       
+  text       unalias    unset      update     vecplot    3dplot     
+  !          @          #          %
+  
+  Type "help <item>" for more information on a specific <item>
+
+# parameters:
+
+color parameter setting commands:
+  backcol     bgdcol      color      fillcol    funcolmin  funcolmax
+  lightcolmin lightcolmax isocolmin  isocolplus isocolzero symbolcol  textcol
+  
+other parameters setting commands:
+  autostop   aspect     back       bar        bold       boxclip    cdis       
+  clip       column     crossdis   diffuse    echo       filled     fixlight   
+  funscal    gamma      isoextr    isomarker  isorange   isoscal    light      
+  lightcolor lightedge  marker     mode       normal     path       obsdis     
+  origin     phi        philight   planeclip  raster     range      rowplotwin
+  scal       size       smartps    smooth     sphereclip step       symbol     
+  symbolscal theta      thetalight time       textfont   textrotate textscal   
+  vecorig    xpos       ypos 
+  
+  Type "help <item>" for more information on a specific <item>
+
+# other help items:
+
+  triplot.ini (initialization file)
+  -options (command line options)
+  $-variables
+  ^-functions
+  control-c
+  Xdefaults   
+  interactive mode
+  building your own commands
+
+  Type "help <item>" for more information on a specific <item>
+
+# alpha angle
+
+  changes the angle parameter "gamma", "theta" and "phi" (see "gamma")
+  in such a way that in subsequent plots the geometry will be rotated over
+  <alpha> degrees downward around the horizontal screen axis in respect to 
+  the present plot.
+
+# beta angle
+
+  changes the angle parameter "gamma", "theta" and "phi" (see "gamma")
+  in such a way that in subsequent plots the geometry will be rotated over
+  <beta> degrees to the right around the vertical screen axis in respect to 
+  the present plot.
+
+# alias [name[=definition]]
+
+  Defines a Unix-style alias. For example, the command
+  
+  alias mycommand=~/bin/myinputfile
+  
+  makes "mycommand" equivalent to "~/bin/myinputfile".
+  The command
+  
+  alias txt=ctext 500,500,
+  
+  makes "txt sometext" equivalent to "ctext 500,500,sometekst".
+  commonly used alaises are best defined in triplot.ini.
+
+# unalias name
+
+  Undefines an alias; see "alias".
+
+# aspect value
+
+  Set the aspect ratio (i.e. the x-size of a pixel divided by its y-size)
+  of the display. The programs by default sets it to the appropriate value, 
+  but you can change it, if you know better.
+
+# autostop toggle
+
+  If "autostop" is false, triplot will ask for input from the console
+  if there are no longer commands available from a command file.
+  If "autostop" is true, triplot will terminate in this situation.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# back toggle
+
+  back determines whether the current geometry's backside is plotted
+  by plot, isoplot and funplot.
+  If back is true while fill is false, both back and front are plotted 
+  by "plot" (back in color "backcol" or dashed for monochrome displays).
+  In all other circumstances only the backside is plotted if back is true.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# bar hidden | toggle
+
+  If bar is true, a color bar will be plotted after each funplot command.
+  Furthermore the right 15% of the screen is allocated for the color bar.
+  Reset bar to use the complete screen.
+  
+  If bar is set to "hidden", plotting occurs as if bar was active
+  (i.e. a portion of the screen is reserved), but the color bar is not
+  plotted. This option is usefull for preventing different colorbars to
+  be plotted for different funplots with different scaling.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# bold number
+
+  Determines the boldness of the lines that the program draws. Number is
+  a floating point number; default is 1.0.
+  
+# clear
+
+  Resets program parameters to default values.
+
+# clip clip_min,clip_max
+  clip incl | excl
+  clip
+
+  If clipping is enabled, only triangles whose vertices are all between
+  clip_min and clip_max from the origin (in the observation direction)
+  are plotted. Clipping is enabled by supplying the values clip_min and
+  clip_max, and disabled by entering "clip" without parameters.
+  
+  If you specify "clip incl", triangles with some vertices within the
+  clipping range are included, if you specify "clip excl", they are
+  not (this is default).
+
+  When using clipping with "light on", it is advisable to set
+  "fixlight on" (see fixlight).
+
+# boxclip x_min,x_max,y_min,y_max,z_min,z_max
+  boxclip incl | excl | in | out
+  boxclip
+
+  If box clipping is enabled, only triangles whose vertices are all within
+  (or without) a clipping box in the object reference frame defined by 
+  the parameters are plotted. Box clipping is enabled by supplying the 
+  values x_min etc, and disabled by entering "boxclip" without parameters.
+  
+  If you specify "boxclip incl", triangles with some vertices within 
+  the clipping range are included, if you specify "boxclip excl", they 
+  are not (this is default).
+  
+  If you specify "boxclip in", triangles within the box are plotted
+  (default), if you specify "boxclip out" triangles without the box
+  are plotted.
+
+  When using clipping with "light on", it is advisable to set
+  "fixlight on" (see fixlight).
+
+# planeclip nx, ny, nz, d
+  planeclip nx, ny, nz, rx, ry, rz
+  planeclip incl | excl | in | out
+  planeclip
+
+  If plane clipping is enabled, only triangles whose vertices are closer to
+  (or further from) the origin than the plane defined by nx.x+ny.y+nz.z=d
+  (so the plane with normal (nx,ny,ny at distance d from the origin)
+  are plotted. In the second form of the planeclip command displayed above, 
+  the value of "d" is computed from "rx, ry, rz", which is interpreted as
+  a vector within the plane.
+
+  Plane clipping is enabled by supplying the values nx etc, and disabled by
+  entering "planeclip" without parameters.
+  
+  If you specify "planeclip incl", triangles with some vertices within 
+  the clipping range are included, if you specify "planeclip excl", they 
+  are not (this is default).
+  
+  If you specify "planeclip in", triangles closer to the origin are plotted
+  (default), if you specify "planeclip out" triangles further from the
+  origin are plotted.
+
+  When using clipping with "light on", it is advisable to set
+  "fixlight on" (see fixlight).
+
+# sphereclip x,y,z,r
+  sphereclip incl | excl | in | out
+  sphereclip
+
+  If sphere clipping is enabled, only triangles whose vertices are all within
+  (or without) a distance r from (x,y,z) in the object reference frame 
+  are plotted. Sphere clipping is enabled by supplying the values x,y,z,r,
+  and disabled by entering "sphereclip" without parameters.
+  
+  If you specify "sphereclip incl", triangles with some vertices within 
+  the clipping range are included, if you specify "sphereclip excl", 
+  they are not (this is default).
+  
+  If you specify "sphereclip in", triangles within the box are plotted
+  (default), if you specify "sphereclip out" triangles without the box
+  are plotted.
+
+  When using clipping with "light on", it is advisable to set
+  "fixlight on" (see fixlight).
+
+# checkbreak
+
+  During the execution of a loop, the loop is aborted if a mouse button is
+  pressed when the "checkbreak" command is active.
+
+# column number
+
+  Sets the active column, i.e. the column of the current funfile that
+  is to be used used in isoplot and funplot.
+
+# cdis number
+
+  Synonym of "crossdis", created on behalf of dr. Huiskamp (see "stop "),
+  who has difficulty with long words.
+  See "cross".
+
+# crossdis number
+
+  See "cross".
+
+# diffuse number
+
+  Set the diffusion fraction to "number".
+  See "light" for full explanation.
+
+# echo toggle
+
+  If echo is true, commands read from a "replay file" (see 'replay' or '@')
+  are echoed.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# funscal funmin[,funmax] |  | s | c | sc | cs | lin | log [n]
+
+  Sets the minimum and maximum function value for funplot.
+  If you enter "funscal" only (without a number), the minimum and maximum
+  values of the current funfile are taken.
+  If you give funscal with one value, the scale will be between zero
+  and that value.
+  If you "funscal s" symmetric values (around zero) are taken,
+  that enclose the minimum and maximum values of the current funfile.
+  If you enter "funscal c", the minimum and maximum values of the present
+  active column (see "column" command) are taken.
+  Options "s" and "c" can be combined.
+  If you enter "funscal lin" or "funscal log", the scaling will be
+  linear or logarithmic respectively. See "logfun" for full description of
+  logarithmic scaling.
+  
+  See "funplot" for full description.
+
+# logfun
+
+  logarithmic color scaling for funplot is enabled by the command
+  "funscal log [n]". In this case, prior to plotting the function value f
+  will be mapped to:
+  
+     sign(f) * log(1+s*abs(f))
+  
+  where s is a scaling factor defined as:
+   
+      s = n / max(abs(funmin),abs(funmax))
+
+  where n is the optional parameter in the command "funscal log [n]"
+  (default value 1000). The larger the value of n, the "sharper" the
+  mapping. For small values of n, the scaling approaches linear mapping.
+  For large values, it approaches linear mapping for large function
+  values.
+  Note that the mapping leaves the values 0 and +-max(abs(funmin),abs(funmax))
+  invariant; only intermediate values are effected.
+
+# fixlight toggle
+
+  If "fixlight" is false (default), the program will use the maximum
+  grey scale range in each plot when "light" is on, which may result 
+  in non-matching grey shades, especially when clipping (see "clip",
+  "boxclip" and "sphereclip"). 
+  If "fixlight" is true, true and constant grey shading is used.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+
+# funcolor <name>
+
+  If the present colormap contains colors named <name>min and <name>max
+  the color parameters funcolmin and funcolmax are set to these colors.
+  See "funplot" for the effect of these parameters, see "defcmap" for
+  colors defined in the default color map.
+
+# funcolmin color
+
+  The color used for values funmin in funplot.
+  See "cmap" for setting this parameter automatically, and see
+  "funplot" for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# funcolmax color
+
+  The color used for values funmax in funplot.
+  See "cmap" for setting this parameter automatically, and see
+  "funplot" for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# lightcolor <name>
+
+  If the present colormap contains colors named <name>min and <name>max
+  the color parameters lightcolmin and lightcolmax are set to these colors.
+  See "light" for the effect of these parameters, see "defcmap" for
+  colors defined in the default color map.
+
+# lightcolmin color
+
+  The color used as darkest color when "light" is on.
+  See "cmap" for setting this parameter automatically, and see
+  "light" for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# lightcolmax color
+
+  The color used as lightest color when "light" is on.
+  See "cmap" for setting this parameter automatically, and see
+  "light" for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# greycolmin color
+
+  synonym of lightcolmin.
+
+# greycolmax color
+
+  synonym of lightcolmax.
+
+# gamma angle
+
+  prior to plotting, the geometry is first rotated over "gamma" degrees around
+  the z (vertical) axis, then over "theta" degrees around the y axis (the
+  horizontal axis in the plane of the screen), and finally over "phi"
+  degrees around the z axis.
+
+# philight angle
+
+  Sets the angle parameter phi of the light source to "angle" degrees.
+  See "light" for full explanation.
+
+# filled toggle
+
+  If true, the triangles closest to the observer are plotted latest for 
+  "plot" and "isoplot", and the triangles are filled with the color "fillcol",
+  thus avoiding overlapping triangles.
+  If false, the triangles are not filled, so underlying triangles are visible.
+  See "back" for interference with the "back" toggle.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+
+# gif filename
+
+  Save the current image in the file "filename" in gif format. If the
+  current display is not an 8-bit display, the colormap is reduced
+  (smartly) to 256 colors.
+  The background color will be transparent.
+  For 8-bit displays the number of pixels in horizontal direction has 
+  to be a multiple of 4.
+
+# hidden toggle
+
+  The "hidden" parameter has been renamed to "filled". It can still be used 
+  for reasons of compatibility.
+
+# buttonkey [button] [key]
+
+  Change, in interactive mode, the function of a mouse button to that 
+  of <key> (see "interactive").
+  
+  The left button is represented by the number 1, and the middle button
+  by the number 2.
+
+# interactive [speed <number>]
+
+  Command modifier for plotting commands (like in "plot i[interactive]").
+  If this modifier is used, control does not return to the text window
+  after plotting. Instead, some plotting parameters can be changed interactive
+  by mouse and keyboard control, and the graphics screen is continuously
+  adapted. If the word interactive is followed by a number, subsequent columns
+  of the current funfile will be plotted by funplot and isoplot in a
+  movie-like fashion. <number> is the number of times the all columns are
+  plotted within a second (the "speed" of the movie). The default speed is 0.
+  
+  A set of commands can be made interactive by including them in an interactive
+  loop; see "for".
+
+  The mouse commands are:
+  left button:        rotate around horizontal/vertical axis
+  middle button:      translate in horizontal/vertical direction
+  right/both buttons: return control to text screen
+  
+  The mouse buttons can alternatively be assigned to the key function
+  listed below by using the "buttonkey" command.
+  
+  The keyboard commands are:
+  q:          quit = return control to text screen
+  r:          restore =  restore original parameters and return control
+  left/right: rotate around axis perpendicular to screen
+  up/down:    change crossdis
+  pg up/down: scale op/down
+  +/-:        move column index forward/back (keypad +/- are also accepted)
+  >/<:        move column index by larger steps
+  s:          toggle smooth on/off
+  l:          toggle light on/off
+  p:          plot
+  i:          isoplot
+  f:          funplot
+  e:          elplot
+  c:          cross
+  m:          perform command "mouse v m" (see "mouse")
+  0-9:        set speed to 0.1 * times 0-9
+  *//:        multiply/divide speed by sqrt(2)
+
+  In an interactive "for" loop +,-,> and < act on the column index if the
+  loop is invoked as 
+  
+      for interactive [speed <number>]
+
+  If the loop is invoked in the form
+
+      for interactive var=<x> to <y> [step <z>] [speed <number>]
+
+  the above key strokes work on the variable $var, where <x> and <y> are
+  the minimum and maximum value of $var, and <z> the step size between
+  subsequent values of $var (default 1). This feature is useful e.g. to
+  change the clipping range in an interactive way; in this example the
+  range may be set within the loop by "clip -100, $var".
+
+# light toggle
+
+  If true, the object will be plotted as if a light source at angle
+  (thetalight, philight) were present. Lightcolmin and lightcolmax determine
+  the colors used as grey values. The reflection consists of a diffuse 
+  part and a glimmering part. The ratio between the two is controlled
+  by the parameter "diffuse". 
+  If "fixlight" is false (default), the program will use the maximum
+  grey scale range in each plot, which may result in non-matching
+  grey shades, especially when clipping (see "clip"). If "fixlight" is
+  true, true and constant grey shading is used.
+
+  See "back" for interference with the "back" toggle.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+
+# lightedge toggle
+
+  If true, the edges of thwe triangles are plotted if light is true.
+  By default lightedge is false.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+
+# marker index/triangle/selected/none
+
+  If marker==index,    the index of each vertex plotted by the "plot" command.
+  If marker==triangle, the index of each triangle plotted by the "plot" command.
+  If marker==selected, the index of the selected triangles are plotted.
+  If marker==none,     no indexes are plotted.
+
+  The scale and color of the markers are contolled by "textscale" and 
+  "textcolor".
+
+# mode
+
+  This parameter determines which mode (i.e. or, xor, and, replace etc)
+  is used for plotting. Mode is not yet fully supported.
+
+# mri filename
+
+  Produces a dump of the display in mri pixel format. The resulting
+  file can be used as input by the program mri.
+
+# normal x, y, z
+
+  Sets theta and gamma in such a way that the viewing direction is allong
+  (x,y,z). Phi is set to zero.
+
+# obsdis number
+
+  Obsdis is the distance of the observer to the origin. When plotting,
+  the perspective is taken into consideration.
+  Obsdis is a floating point number. If you enter obsdis on a line
+  by itself, the default value (infinity) is restored.
+
+# origin x,y,z
+
+  Before plotting, the geometry is shifted in such a way that the point
+  (x,y,z) is in the origin.
+  "origin" can be abrevated to "org".
+
+# outfile [filename]
+
+  This command opens a file, to which the output of some commands are written.
+  The file is closed by entering "outfile" without parameter.
+  
+  The commands that write to the output file are:
+  mouse.
+
+# phi angle
+
+  see "gamma".
+
+# range min,max
+
+  Only the triangles in the ranges from min to max are plotted. When a new
+  geometry file is read, min is set to 1 and max is set to the number of
+  triangles in the geometry. Omitting the parameters min and max resets
+  the full range.
+
+# rowplot number [first] [last] [mark]
+
+  Plots row <number> of the present function (see "funfile") as a function of 
+  time within the rowplot window (see "rowplotwin"). If the parameters <first>
+  and <last> are present, only the columns between <first> and <last>
+  will be plotted. If the command is followed by the text "mark", a vertical 
+  line in will be drawn at the position corresponding to the present column 
+  (see "column").
+  The plot is in "color", the marker in "textcolor".
+  
+# rowplotwin left, top, right, bottom
+
+  Set the window in which rows are plotted (see "rowplot"). Values are relative
+  to the screen size; default is 0.1, 0.8, 0.2, 0.9. Column 1 will be at
+  <left>, column $ncolumn at <right>, funmin at <bottom> and funmax at
+  <top>.
+
+# vecplot [[first] [last [mark]] [arrow]
+
+  Plots the vector loop of the present function (see "funfile"), provided
+  it contains three rows. The origin of the loop is controlled by
+  "vecorig". The scale of the loop is controlled by "funscal".
+
+  If the parameters <first> and <last> are present, only the columns between
+  <first> and <last> will be plotted. If the command is followed by the
+  text "mark", The position corresponding to the present column (see "column")
+  will be marked by a symbol (see "symbol").  The plot is in "color", the 
+  marker in "symbolcolor".
+  
+  "vecplot arrow" draws a arrow from "vecorig" to the position corresponding 
+  to the present column.
+  
+# vecorig x,y,z | x,y
+
+  Sets the origin of vector plot (see "vecplot"). 
+  
+  In the first form, x,y,z are plot-coordinates. The origin of the vector 
+  loop will be fixed to the geometry.
+
+  In the first form, x,y,z are text-coordinates. The origin of the vector 
+  loop will be fixed to screen.
+  
+# scale number
+
+  "scal" controls the plotting scale. If scal==r, a sphere of radius r will
+  fill the screen as complete as possible, given the aspect ratio.
+  If you enter just "scal" (without a number), the scale is set such that the
+  current geometry fits closely within the display.
+  Scal is a floating point number.
+
+# center
+
+  "center" changes the values of "scal" and "origin" such, that the current
+  triangle file using the current plot parameters fills the window as much as
+  possible.
+
+# size nx, ny  [ cm | inch ]
+  size landscape | portrait
+
+  In the first form the display size is changed to nx,ny. For display file 
+  of type "ps:" or "cps:" the display is plotted in landscape mode if nx>2200
+  and in portrait mode in any other case. If you add units (cm or inch),
+  triplot will try to set the display to nx x ny in those units.
+  
+  In the second form the display size is changed to nx=max(nx,ny),
+  ny=min(nx,ny) for "landscape", and vise versa for "portrait".
+
+# smartps toggle
+
+  If smartps is true, filling of triangles with varying colors or grey values
+  is done by the program interpreter. This makes the resulting postscript file
+  much smaller. When using a printer with a slow interpreter, smartps is better
+  turned of. 
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# smooth toggle
+
+  If smooth is true, the grey shades used by plot when light is true
+  and the colors used by funplot are interpolated over each triangle.
+  If smooth is false, each triangle has a constant grey value / color.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# step number | log | lin [base]
+
+  Step is the function value interval between isofunction lines for the
+  "isoplot" command. Step is a floating point number.
+  
+  "step log" switches to logarithmically scaled isofunction lines; the
+  optional value "base" is the base number of the log-scaling (default 2).
+  "step lin" switches back no linear scaling.
+
+  If you just enter "step" (without a number), the step is set to
+  about 1/10 of the difference between the extremes of the current funfile.
+
+# theta angle
+
+  See "gamma".
+
+# thetalight angle
+
+  Sets the angle parameter theta of the lightsource to "angle" degrees.
+  See "light" for full explanation.
+
+# time number
+
+  Synonym to "column". The time parameter is added for historic reasons.
+
+# textscal number
+
+  Determines the size of the text plotted by "plot". The default value is 1.0.
+  The implementation is system and screen dependent.
+
+# textfont string
+
+  Set the text font to type "string". Possible values are:
+  
+  normal/default
+  bold
+  unbold
+  symbol
+  helvetica
+  
+  Not all fonts are available at all display types. The effect of text scaling
+  may not be the same for all fonts on vga type displays.
+
+# textrotate number
+
+  Rotate all subsequent text over <number> degrees.
+  
+  Text rotation is not available on X display types.
+  On vga display types, the only possible values are 0 or 90.
+
+# vms toggle
+
+  If true, the programs assumes that all input files are ASCII files in the 
+  terrible "VMS" file structure. This toggle was added in order to persuade
+  Geertjan Huiskamp into using this program.
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+
+# xpos n,m
+
+  The screen is logically divided into m equal segments in the x-direction,
+  and the n-th segment is used in further plotting command. Output is not
+  clipped within this segment.
+
+# ypos n,m
+
+  The screen is logically divided into m equal segments in the y-direction,
+  and the n-th segment is used in further plotting command. Output is not
+  clipped within this segment.
+
+# symbol name
+
+  Determines what symbol is used by the command "point".
+  Valid names are: 
+  point, plus, cross, horline, verline, rectangle, diamond, circle,
+  larrow, rarrow, uarrow, darrow.
+
+# symbolscal number
+
+  Determines the size of the symbols used by "point", the default value is 1.
+  Note that when reading points from a file the size of the symbols can also
+  be controlled by the date in the file; see "point".
+
+# backcol color
+
+  The color used for drawing triangles directing away from the observer.
+  See "back".
+  
+  Type "help color" for instructions how to set a color value.
+
+# bgd color
+
+  The background color used by cls and init as default color for clearing the
+  screen.
+
+  Type "help color" for instructions how to set a color value.
+
+# color number/name
+
+  Sets the color used for plotting triangles.
+  
+  A color may be set by a number "n", in which case it is set to the n-th color
+  in the present colormap (counting from 0), or by a name "color", in which
+  case it is set to the color index for which "color" is defined in the
+  colormap (see "cmap").
+
+# isocolzero color
+
+  The color used for zero isofunction lines.
+  See isoplot for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# isocolmin color
+
+  The color used for negative isofunction lines.
+  See isoplot for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# isocolplus color
+
+  The color used for positive isofunction lines.
+  See isoplot for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# isorange min, max
+
+  Set the range of isofunction lines to (min, max).
+
+# isoextr toggle
+
+  Determines wether the extreme values of the function are marked
+  separately in "isoplot" and "isofunplot".
+
+  Type "help toggle" for instructions how to set or reset a toggle.
+  
+# isomarker value
+
+  Set the density of numbers plotted on isofunction lines.
+  If zero, no numbers are plotted.
+  From 1 onward, the larger the value, the fewer numbers are plotted.
+  
+  Wether or not a fill-colored box is drawn around the numbers, is
+  controlled by "text fill" or "text nofill".
+
+# isoscal number
+
+  Determines the size of the text plotted by "isoplot". The default value is 
+  1.0. The implementation is system and screen dependent.
+
+# fillcol color
+
+  The color used for filling triangles.
+  See "fill" for full description.
+
+  Type "help color" for instructions how to set a color value.
+
+# symbolcol color
+
+  The color of symbols plotted by the "point" command.
+
+  Type "help color" for instructions how to set a color value.
+
+# textcol color
+
+  The color of text plotted by various commands.
+
+  Type "help color" for instructions how to set a color value.
+
+# cmap filename
+
+  The present colormap is replaced by the colormap defined in "filename".
+  The first line of this file should contain the number of colors in this map.
+  The next lines should each contain one color definition, consisting of
+  the values for red, green and blue. After the color definition a name
+  can be added; the color can than be referred to by this name. In any case
+  a color can be referred to by its number, starting from zero, in the
+  colormap.
+  If the names "funcolmin", "funcolmax", "lightcolmin" or "lightcolmax" are
+  defined in the colormap, the color parameters funcolmin, funcolmax,
+  lightcolmin and lightcolmax are set to these colors respectively.
+  If you omit the filename, the default palet will be loaded.
+  See "defcmap" for colors defined in the default color map.
+
+# defcmap
+
+  On 8 bit-per-pixel displays the default colormap contains the following
+  colors:
+
+  black  red        lightred   white   green        lightblue  grey    cyan
+  blue   slideblue  lightgrey  yellow  lightyellow  darkgrey   purple  flesh
+
+  and the following color ranges (see "funcolor" and "lightcolor"):
+  
+  pot    grey
+
+  On 15, 16 and 24 bit-per-pixel displays the default colormap contains in
+  addition the following color ranges:
+  
+  hsv    tim    red    green  blue  flesh  lightred  heart
+
+  If the default colormap is active on an 8 bpp display the request of a color
+  range that is not present in that colormap, but is present in the 15+ bpp
+  colormap, results in the substition of the pot- or light- color range
+  in the colormap by the requested range.
+
+# colormap
+
+  synonym to "cmap"
+
+# copy filename
+
+  Creates a copy of the display to printer or file. What actually happens
+  is display dependent:
+  
+  tx:     a Tektronix file is created (default name triplot.plt).
+  xm:     a postscript dump is created (default name triplot.ps).
+  xw:/xf: a greyscale postscript dump is created (default name triplot.ps).
+  win:    not yet implemented.
+  vga:    the program prtscr.exe is executed, with command line '1 filename'.
+
+  If the environment variable "TRIPLOT_COPY" is defined, the value of
+  this variable is used to print the file. For example, if
+  "TRIPLOT_COPY='lpr -s -h -Pprt1'", and you enter the command
+  "copy myfile.ps", triplot will copy the display to "myfile.ps" and
+  subsequently print it by means of the system command
+  "lpr -s -h -Pprt1 myfile.ps".
+
+  If TRIPLOT_COPY is defined and you don't supply a filename,
+  a random filename will be generated, and the file will be removed
+  after printing is ready (by using the option "-r" in the lpr system
+  command).
+
+  a color copy (if possible) is created by ccopy; ccopy uses the
+  environment variable "TRIPLOT_CCOPY".
+  
+# ccopy filename
+
+  Creates a color copy of the display to printer or file. 
+  
+  For details see "copy".  
+
+# cross [i[nteractive]]
+
+  Draws the cross section of the current geometry (rotated and shifted
+  according to the parameter settings) and the plane x=crossdis, i.e.
+  the plane parallel to the screen at crossdis from the origin ( (0,0,0);
+  not the origin defined by the "origin"command) towards the observer.
+
+  See "interactive" for the use of the interactive mode.
+
+# delay msec
+
+  Pause for <msec> milliseconds.
+
+# sync msec
+
+  wait until <msec> milliseconds have passed since the previous time the
+  sync command was given. This is particularly useful in creating animations.
+  In a loop, subsequent frames often take a different amount of time to
+  construct, resulting in an animation with a speed that is not constant.
+  By including "sync t" in the loop, with t the duration in ms of the slowest 
+  frame in the loop, the animation is synchronized.
+
+# pause
+
+  Pause until a key is pressed or a mouse button is clicked.
+
+# display displayfile
+
+  Set the display to "displayfile". Displayfile consists of a device and
+  an optional filename, like "dev:name". The device controls the type of
+  output. The following devices are supported:
+  
+        ps: postscript file. The default filename is "triplot.ps". The default
+            size is 3300x2200. The size can be changed by using the command
+            "size".
+
+        cps: color postscript file.  Defaults as for ps:.
+
+        tk: tektronix output to file. The default filename is "laser.plt"
+
+        tx: tektronix output to xterm tek-subwindow.
+
+  Atari ST only: low:, med:, high: (default).
+  
+      Unix only: xw: (default), xm:, xf: (see 'help xw:').
+      
+     MsDos only: vga: (default), svga: (see 'help vga:').
+
+   Windows only: win: (default) (see 'help win:').
+  
+# xw: unix display
+
+        xw: x window. The window size is controlled by the display file
+            name. E.g.: "display xw:400x400" creates a 400x400 window. The 
+            default size is 600x500. The window position is optionally 
+	    controlled by the display file name. E.g. 
+	    "display xw:400x400+0+0" creates a window in the upper left
+	    corner of the screen.
+
+        xm: line xw, but forces monochrome display.
+
+        xf: full screen x window. The window size is controlled by the
+            display file name. "display xw:400x400" creates a 400x400 window. 
+            The default size is the screen size. When plotting, the display
+            window is raised. After plotting the program waits until a key 
+	    or button is pressed within the window and then lowers the window.
+
+# win: Windows display
+
+       win: MS-Windows window display type. The window size is controlled 
+            by the display file name. E.g.: "display win:400x400" creates 
+	    a 400x400 window. The default size is 600x500. The window 
+	    position is optionally controlled by the display file name. E.g. 
+	    "display xw:400x400+0+0" creates a window in the upper left
+	    corner of the screen.
+
+      winf: full screen MS-Windows window. The window size is controlled by the
+            display file name. "display win:400x400" creates a 400x400 window. 
+            The default size is the screen size. When plotting, the display
+            window is raised. After plotting the program waits until a key 
+	    or button is pressed within the window and then lowers the window.
+
+# vga: MsDos display
+
+      vga: standard 2-page medium resolution (640x350; 16 colors) VGA.
+           page 0 is used for text, page 1 is used for graphics.
+	   
+     svga: Super vga (640x480, 800x600 (default) or 1024x768; 256 colors). 
+           The size of the display is controlled by the display file
+           name. E.g: "display svga:1024x768" sets the video to the
+           1024x768 resolution. If "NxM" does not match one of the
+           standard video modes, the nearest mode above those values
+           is taken.
+           In this mode there is only one page. Therefore the text page is 
+           confined to a one-line window at the top of the display. Messages 
+           are not displayed.
+
+# edge [i[nteractive]]
+
+  Draws the geometry's edge, i.e. the boundary between triangles
+  directed towards the observer and those averted from the observer.
+
+  See "interactive" for the use of the interactive mode.
+
+# elfile filename
+
+  Reads an electrode description file. The electrode description can be
+  either in "index" style or in "lambda-mu" style". Each line in the file can
+  optionally be followed by "!name", in which "name" is the name of the
+  electrode. The electrode positions can be plotted using the elplot command.
+  
+# elplot [i[nteractive]]
+
+  Plots the electrode positions as defined by the elfile command. If 
+  marker==index (see marker command), the name of the electrode (or the
+  index, if the name is undefined) is added.
+
+  See "interactive" for the use of the interactive mode.
+  
+# exit
+
+  While recording, exit closes the present record file.
+  Otherwise exit stops the program.
+
+# file filename
+
+  Reads the geometry from "filename". The file can be either ASCII or
+  binary. If ASCII, the file have the following format:
+  
+  number_of_vertices
+  for (i=1; i<=number_of_vertices, i++)
+    i x_i y_i z_i
+  number_of_triangles
+  for (i=1; i<=number_of_triangles, i++)
+    i index_1_i index_2_i index_3_i
+    
+  In this index_j_i is the vertex index of vertex j of triangle i.
+  
+# for var=x to y [step z]
+    ..
+    ..
+    end
+    
+  Repeats the commands between "for" and "end" y-x+1 times. 
+  var is a string, x, y and z are integers. z has a default value of 1.
+  In the first run through the loop, var is set to x (see "set" command),
+  in the second run to x+z, etc.
+  
+  A useful use of the for-loop would be:
+  
+  for i=1 to $ncolumn
+    column $i
+    isoplot
+    end
+
+  "for" without parameters defines an infinite loop that can only be stopped
+  by ^C or by responding "cancel" to the user input command (see "input").
+
+  "for interactive" allows mouse interaction during the loop;
+  see "interactive".
+
+  Entering "cancel" while defining the loop cancels it.
+  
+  A loop can be aborted during execution by using the "checkbreak" command;
+  see "checkbreak".  
+  
+
+# input [text]
+
+  prompts for user input; mainly useful in loops (see "for"). Any
+  text after "input" is presented to to user, and can be editted.
+
+# frame
+
+  draws a frame in the plotting color around the present (xpos, ypos) window.
+
+# funfile filename
+
+  Reads function values from file "filename". The file can be either ASCII or
+  binary. If ASCII, the file have the following format:
+  
+  number_of_rows number_of_columns
+  for (i=1; i<=number_of_rows; i++)
+    for (j=1; j<=number_of_rows; j++)
+      value(i,j)
+      
+  To vertex i of the geometry row i of function values is assigned. These
+  function values are used in isoplot and funplot. Trailing rows are ignored;
+  missing rows are set to zero.
+
+  If the funfile contains an ascii-tail with a set of lines of the following
+  format:
+  
+  geometry [file[s]]
+  f1-l1: name1
+  f2-l2: name2
+  ...
+  
+  and name<i> corresponds to the present triangle file, the rows f<i>
+  to l<i> are taken to correspond to the vertices of the present triangle file.
+  If the triangle file is changed, the funfile is retained, and if the
+  new name is available in the tail, corresponding action is taken.
+  
+# funplot [i[nteractive]]
+
+  Plots the function defined by column "column" of the present "funfile"
+  in a color scale. Values of "funmin" (see "funscal") or less are given 
+  color "funcolmin", values of "funmax" or more are given color "funcolmax", 
+  and intermediate colors are given a linearly interpolated color if
+  linear funscaling is active, or a logarithmic interpolated color if
+  logarithmic funscaling is active (see "funscal" and "logfun").
+
+  See "gamma", "origin", "fill", "smooth", "obsdis" and "back" 
+  for the effect of these parameters.
+  See "interactive" for the use of the interactive mode.
+
+# graphic
+
+  Shows the display window. You can return to the command window by pressing
+  any key.
+  This command is only useful for display devices for which the display
+  window and the command window cannot be shown simultaneously.
+
+# help item
+
+  Gives information about "item".
+  
+  If the information does not fit within the text screen, the program will
+  pause to prevent scrolling of unread text. This is indicated by the
+  prompt "--more--". In response you can press "space" to scroll up one page,
+  "Q" or "Esc" to abort, or any other key to scroll up one line.
+
+# init [color]
+
+  Clears the display window. If color is specified, the display is given that
+  color; otherwise "bgdcol" is used.
+
+  Type "help color" for instructions how to set a color value.
+
+# cls [color]
+
+  Clears the display window. If color is specified, the display is given that
+  color; otherwise "bgdcol" is used.
+
+  Type "help color" for instructions how to set a color value.
+
+# isoplot [i[nteractive]]
+
+  Plots isofunction lines as defined by column "column" of the present 
+  "funfile". The lines are drown at "step" intervals. The intervals
+  may be scaled linearly or logarithmic; see "step".
+  The Isofunction lines are marked by text indicating the value of that
+  line. The number of markers and the size of the text are controlled by
+  "isomarker" and "isoscal" respectively.
+  On a monochrome display, negative lines are short dashed, zero lines are 
+  long dashed and positive lines are solid. On a color display negative, 
+  zero and positive lines have colors "isocolmin", "isocolzero" and 
+  "isocolplus" respectively.
+  If "isocolzero" is negative, the isofunction lines are drawn in a 
+  color scale. Values of "funmin" or less are given color "funcolmin",
+  values of "funmax" or more are given color "funcolmax", and intermediate
+  colors are given a linearly interpolated color.
+
+  See "gamma", "origin", "fill", "obsdis", "bold" and "back" for the effect
+  of these parameters.
+  See "interactive" for the use of the interactive mode.
+
+# isolabel
+
+  Plots the labels of isofunctions plotted by isoplot. In most modes, isoplot
+  plots labels only if they fit within the triangles. If the triangles are
+  small, few or no labels will be shown. In other modes the labels may
+  partially be covered by isofunction lises drawn at a later stage.
+  The command isolabel gives the opportunity to plot the labels afterwards.
+
+# isofunplot
+
+  This command combines the "isoplot" and "funplot" commands. The present
+  function is plotted in both a color representation and isofunction lines.
+  The color of all isofunction lines is "color".
+
+  See "gamma", "origin", "fill", "obsdis", "bar" and "back" for the effect
+  of these parameters.
+
+# line x1,y1,z1,x2,y2,z2 | x1,y1,x2,y2 | @filename [f,l]
+
+  In the first form, a line is plotted between (x1,y1,z1) and (x2,y2,z2)
+  (interpreted as plot-coordinates; see "text").
+
+  In the second form, a line is plotted between (x1,y1) and (x2,y2)
+  (interpreted as text-coordinates; see "text").
+
+  In the third form the coordinates are read from "filename". This file
+  can either be a standard ascii point file (see "point"), or a standard
+  ascii or binary matrix file (see "funfile") containing three columns for
+  x,y and z.
+  if <f> and <l> are included, only points between index <f> and <l> are
+  plotted.
+    
+  The color is controlled by "color".
+
+# list
+
+  List the current values of the most important parameters.
+
+# movie speed
+
+  The current display window is displayed as a "movie".
+  The colors between funcolmin and funcolmax are filled in by fillcolor
+  at the start of each "frame", and gradually filled in by the proper
+  colors. Speed is the number of frames per second.
+  If you hit one of the keys 0-9, the speed is changed to 0.1 times
+  the key value.
+  At speed zero the control is manual; small steps by arrow up/down
+  and large steps by page up/down.
+
+# mouse [ cross | triangle | vertex | lambda | fun | text ] [ varname ]
+
+  Display coordinates of points clicked at on display.
+
+  mouse cross:     coordinates in 'crossdis' plane
+  mouse triangle:  index of triangle
+                   "mouse tf" will also flip the triangle
+                   "mouse ts" will also select the triangle
+  mouse vertex:    index of closest vertex
+                   if a funfile is defined, the function value (for the
+		   active column) at that vertex will also be given
+  mouse lambda:    index of triangle and 'lambda' an 'mu' parameters
+                    (see "elfile")
+  mouse fun:       local function value for active column of function file
+                   "mouse fp" will plot a label (see isolabel) at the site
+		   of the mouseclick. The value printed will be modulo
+		   the isofunction ste size (see step)
+  mouse text:      screen text coordinates (see "text")
+  mouse:           coordinates of projection of mouse on surface
+		    
+  A click on the middle button generates a symbol.
+  Abort by clicking the right button.  
+  
+  If an "outfile" is open, the data will also be written to that file.
+
+  If a variable name is present in the command line, the data
+  is stored in the variable instead of being displayed, and the
+  command returns immediately after the mouse click.
+
+# plot [i[nteractive]]
+
+  Plots the geometry.
+  
+  See "gamma", "origin", "fill", "obsdis", "bold", "light", "smooth"
+  and "back" for the effect of these parameters.
+  See "interactive" for the use of the interactive mode.
+
+# 3dplot [i[nteractive]]
+
+  Like plot, but plots simultaneously a "left-eye" version in shades
+  of red and a "right-eye" version in green in order to create a 3d
+  effect when viewed with red/green glasses.
+  
+  Use the command "colorblind yes" to adjust for the reduced sensitivity
+  to red when you are color blind (an affliction suffered by the author
+  of triplot and many of its most prominent users).
+
+# raster 0 | 1 | 2
+
+  When raster is set to 1, only half of the pixels (defined by a check board
+  pattern) are actually drawn. When it is set to 2, the other half of the
+  pixels are drawn. When set to 0, all pixels are drawn.
+  
+  This can be used to create some special effects. For instance:
+  
+  raster 0
+  file geo1
+  plot
+  raster 1
+  file geo2
+  plot
+  
+  will create the illusion of geo2 being seen through the transparant surface
+  of geo1.
+  Triplot uses raster internally in commands like 3dplot, and funplot
+  when light is on.
+
+# point x,y,z / @filename [lines]
+
+  In the first form, a symbol is plotted at (x,y,z).  The symbol type, size 
+  and color are controlled by "symbol", "symbolsc"  and "symbolcol" 
+  respectively.
+  In the second form the coordinates are read from "filename". This file
+  should be ASCII and have the following format:
+
+  number_of_points
+  for (i=1; i<=number_of_points, i++)
+    i x y z [o_1, o_2, 0_3]
+    
+  If there are three optional values o_1 .. o_3 are present, they are 
+  interpreted as three "strength" components f_x, f_y and f_z, and the size 
+  of the symbol will be equal to "symbolscal" * norm(f).
+
+  If there are two optional values o_1 and o_2 are present, they are 
+  interpreted as a direction (similar to theta and phi) in degrees,
+  and a line from the center of the symbol into that direction will be
+  drawn
+
+  If the point command is followed by the word "lines", the points are 
+  connected by lines.
+  If marker is set to "point" (see marker command), the index of the point in
+  the file is plotted instead of a symbol.
+
+  See "gamma", "origin", "bold" and "obsdis" for the effect of these
+  parameters.
+
+# quit
+
+  Quits the program.
+
+# record filename
+
+  The file "filename" is opened, and all commands entered are written to this
+  file for later use in "replay". You can stop recording by entering "stop" or
+  "exit". 
+  Recordings can be nested; if the command "record filename " is given while
+  recording, "replay filename" is written to the old record file, and new
+  commands will be written to the new record file. After "stop" or "exit",
+  the commands are again written to the old record file.
+
+# replay filename
+
+  Commands are read from "filename", rather than from the keyboard. On end of
+  file control is returned to the keyboard. Replays can be nested.
+  See also "building your own commands".
+
+  See also "record".
+
+# chain filename
+
+  If the program is reading input from a file instead of from the keyboard,
+  chain redirects the input to another file, and closes the previous one.
+  The difference with nesting of the replay command is that the input will not
+  return to the previous file on end of file of the new one.
+
+  See also "record" and "replay".
+
+# clear
+
+  Resets program parameters to default values.
+
+# reset
+
+  Resets program parameters to default values.
+
+# rgb <color>, r, g, b, [<string>]
+
+  Change the rgb-value of <color> (indicated by name or number; see color
+  command) to (r,g,b). If <string> is provided, this will be the new name of
+  the color; else it will be unnamed.
+
+# shell
+
+  Spawn to the system command shell (not implemented on all systems).
+
+# stop
+
+  While recording, stop closes the present record file.
+  Otherwise stop stops the program.
+
+# swap
+
+  Shows the display window. You can return to the command window by pressing
+  any key.
+  This command is only useful for display devices for which the display
+  window and the command window cannot be shown simultaneously.
+
+# ctext [x,y,string]
+
+  "ctext" is similar to "text", the only difference being that the text
+  is centered horizontally. See "text" for full documentation.
+
+# text [x,y[,z],string] | [ screen | world | fill | nofill ]
+
+  The string "string" is plotted at position x,y[,z], centered vertically 
+  in respect to y. 
+  If the current mode is "screen", x and y run from 0 to 1000, independent of 
+  the actual screen size. The upper left corner has coordinates (0,0), the 
+  lower right (1000,1000). This is default.
+  If the current mode is "world", (x,y,z) is interpretted as a 3D point
+  in space. The location of that point on the screen is determined
+  by scale, origin etc. in the same way as other 3D objects.
+  
+  variable expansion is particularly usefull in text; see "help $" and
+  "help ^" for more detail.
+
+  If you enter "text" without parameters, you enter text-mode, designated by
+  the prompt "plot|text>". In text mode, you can enter text commands
+  without preceeding "text" command.  You can leave text mode by entering 
+  an empty line.
+
+  The background of the text can be filled with "fillcolor", by
+  enabling the "fill" mode. 
+
+# loadsel name
+
+  Loads a set of selected triangles, selected by "mouse ts" in an earlier
+  session, from the file "name".
+
+# addsel name
+
+  Adds a set of selected triangles, selected by "mouse ts" in an earlier
+  session, from the file "name", to the current selection.
+
+# savesel name
+
+  Save the selected triangles (selected by "mouse ts") to the file "name".
+
+# set [name[=value]]
+
+  "set" by itself generates a list of all user variables presently defined
+  (see "help $-variables").
+  
+  "set name" displays the value of variable <name>.
+  
+  "set name=value" assignes <value> to the variable <name>. <value> may be
+  any string, containing spaces, commas etc. The end of the line is the
+  end of the string.
+
+# unset name
+
+  Deletes the variable <name>; see "set".
+
+# update
+
+  Force update of display. While executing loops, the display is only
+  updated at the end of the loop (in order to optimize speed). Use this
+  command at the point where you want to have the screen updated during
+  a loop.
+
+# parse <command line>
+
+  If you enter a command, the command line interpreter will search the command
+  line for occurences of '$' and '^'. The word following these characters is
+  interpreted as a variable or a function name respectively, and the word
+  is replaced by the appropriate value (see $-variables and ^-functions).
+  
+  Examples:
+  text 100,100,$file    will print the name of the current file at (100,100)
+  point ^vertex(10)     will put a marker at vertex 10
+  
+  "parse <command line>" will expand the command line, and print the
+  result on the text screen. The command will not be executed.
+  
+# print <command line>
+
+  The "print" command is synonymous to "parse".
+
+# $-variables
+
+  If you enter a command that contains the  string "$name", the command line 
+  interpreter will substitute $name by the value of a variable called "name".
+
+  There are two types of variables:
+  
+  - user variables; they are set by using the "set" command (see "help set").
+
+  - system variables; they are set automatically by the program, and cannot
+    be changed by the "set" command. The system variables are:
+  
+    file       the name of the present triangle file
+    funfile    the name of the present function file
+    step       the step size in isoplot
+    column     the column of function file displayed by funplot/isoplot
+    ncolumn    the number of columns in the present function file
+    funmin     the minimum value set by funscal
+    funmax     the maximum value set by funscal
+    phi        the current value of "phi"
+    theta      the current value of "theta"
+    gamma      the current value of "gamma"
+
+  See also ^-functions and the parse command.
+
+# ^-functions
+
+  If you enter a command that contains the string "^name(param)", the command 
+  line interpreter will substitute ^name(param) by the value returned by a
+  call to the function "name" with parameters "param".
+
+  The functions that can be used are:
+  
+    center(indx)            coordinates of the center of mass of triangle indx
+    triangle(indx1, indx2)  vertex indx2 of triangle indx1
+    vertex(indx)            coordinates of vertex indx
+    el(indx)                coordinates of electrode indx
+    norm(x, y, z)           sqrt(x*x+y*y+z*z)
+    fun(r, c)               function value at row (vertex) r and column c
+    x(x, y, z)              x
+    y(x, y, z)              y
+    z(x, y, z)              z
+    add(i1, i2)             i1 + i2
+    sub(i1, i2)             i1 - i2
+    mul(i1, i2)             i1 * i2
+    div(i1, i2)             i1 / i2
+
+    In the latter 4 functions 2 additional parameters may be supplied; e.g.
+    add(i1, i2, min, max)   min + {(i1+i2-min) mod (max-min)}
+                            i.e. the result is allways between min and max.
+
+  ^-functions can be nested ( e.g. ^vertex(^triangle(10,2)) ).
+  If you want to use the ^ character (e.g. in text), use ^^. This is replaced
+  by a single ^, and the command line interpreter will not look for a function
+  call to replace the substring with.
+
+  See also $-variables and the parse command.
+
+# binwrite filename
+
+  Write the present file in binary format. The command "file" reads binary
+  as well as ASCII files.
+
+# toggle
+
+  Many program parameters are toggles, i.e. they have either the value true 
+  or false. The toggle "parameter" is set by any of the commands:
+  
+  parameter y[es]
+  parameter t[rue]
+  parameter s[et]
+  parameter on
+  parameter 1
+  
+  It is reset by any of the commands:
+
+  parameter n[o]
+  parameter f[alse]
+  parameter r[eset]
+  parameter off
+  parameter 0
+
+# @filename
+
+  Commands are read from "filename", rather than from the keyboard. On end of
+  file control is returned to the keyboard. Replays can be nested.
+  See also "building your own commands".
+
+  On Unix systems ~ is expanded to the home directory of the current user, 
+  and ~<somebody> is expanded to the home directory of <somebody>.
+
+  See also "record".
+
+# !command
+
+  execute the system command "command".
+
+# #
+
+  lines starting with # or % are considered comment.
+
+# %
+
+  lines starting with % are # considered comment.
+
+# path <path>
+
+  If command files (see "building your own commands") are not present in
+  the current directory, they are searched in the directories listed in
+  a search path. By default the search path is empty. This command sets
+  it to <path>. The directories in <path> should be separated by colons (':')
+  for unix and by semicolons (';') for dos/windows.
+  
+  On Unix systems ~ is expanded to the home directory of the current user, 
+  and ~<somebody> is expanded to the home directory of <somebody>.
+  
+  Common use is to create a directory containing common command files
+  (say '~/trp'), and to create a triplot.ini file (see "triplot.ini")
+  in a directory within the environment PATH, that contains the command
+  'path ~/trp'.
+  
+# triplot.ini
+
+  If the file triplot.ini is found within the path, the commands in this
+  file are executed. Command line option (see "-option"), prior to the
+  first "@file" on the command line, are executed first, then the commands 
+  in triplot.ini, and finally the rest of the command options (starting
+  the "@file").
+
+# -options
+
+  A number of parameters can be set by using the command line option
+  "-parameter value". The parameters you can see this way are: 
+  cmap, display, elfile, funfile, and @.
+  Some toggles (see "toggle") can be set in the reverse of their defaults
+  values by using the command line option "-toggle". This is valid for
+  the toggles autostop and vms.
+  Variable x can be set to the value y by the command line option
+  "-s x=y" (see "set" command).
+  
+  An option without - is interpreted as a file containing triplot commands
+  (see "@") if the filename has extension .trp, or if <filename>.trp exists.
+  Otherwise it is interpreted as the name of a geometry to be read.
+  
+# options
+
+  A number of parameters can be set by using the command line option
+  "-parameter value".
+  The parameters you can see this way are: autostop, cmap, display, funfile,
+  hidden, vms and @.
+  Also, you can set variable x to the value y by the command line option
+  "-s x=y" (see "set" command).
+  
+  An option without - is interpreted as a file containing triplot commands
+  (see "@") if the filename has extension .trp, or if <filename>.trp exists.
+  Otherwise it is interpreted as the name of a geometry to be read.
+  
+# control-c
+
+  In Unix systems commands may be aborted by pressing control-C. If a loop
+  is active (see "help for"), it is aborted. If commands are read from a file
+  (see "help replay" or "help @"), reading from file is aborted and control
+  is returned to standard input.
+
+# Xdefaults
+
+  For X systems the default values of the following program parameters are 
+  taken from the server's .Xdefaults:
+  plot.hlp	directory and name of the helpfile
+  plot.disf	display	(display device and file)
+  plot.hidden	hidden  (t/f)
+  plot.vms	vms     (t/f)
+  
+# building your own commands
+
+  command [p1 p2 p3 ...]
+
+  If a command is entered that is not an internal command of triplot, the
+  program will look for the file <command>.trp in the current directory, and
+  read subsequent commands from that file. If the file is not found in the
+  current directory, the path defined by the command "path" will be searched.
+
+  On Unix systems ~ is expanded to the home directory of the current user, 
+  and ~<somebody> is expanded to the home directory of <somebody>.
+
+  If the command line contains additional parameters p1, p2, ..., the system 
+  variables $1, $2, ... will be set to those parameters for use in 
+  <command>.trp. $1, $2, ... will be set to empty lines for "missing" 
+  parameters. 
+  $* is set to the concatination of $1, $2, ... 
+  $0 is set to the name of the command file that is executed.
+

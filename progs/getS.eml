@@ -1,0 +1,618 @@
+X-Account-Key: account1
+X-UIDL: 8409-1236421882
+X-Mozilla-Status: 0001
+X-Mozilla-Status2: 00000000
+X-Mozilla-Keys:                                                                                 
+X-MSK: HYD=0.511257005
+Return-path: <peter.van.dam@peacs.nl>
+Received: from mx16.tb.mail.iss.as9143.net ([212.54.42.143])
+ by mta4z1.tb.mail.iss.as9143.net
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1G00MS593KZ200@mta4z1.tb.mail.iss.as9143.net> for
+ avo-linden@home.nl; Sun, 23 Feb 2014 13:52:32 +0100 (CET)
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21])
+ by mx16.tb.mail.iss.as9143.net with esmtp (Exim 4.71)
+ (envelope-from <peter.van.dam@peacs.nl>)
+ id 1WHYXn-0007EX-CD	for avo-linden@home.nl; Sun, 23 Feb 2014 13:52:32 +0100
+Received: from damp2laptop (a83-163-167-68.adsl.xs4all.nl [83.163.167.68])
+ (authenticated bits=0)	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8)
+ with ESMTP id s1NCqU5w002459
+ (version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NO)
+ for <avo-linden@home.nl>; Sun,
+ 23 Feb 2014 13:52:31 +0100 (CET envelope-from peter.van.dam@peacs.nl)
+Date: Sun, 23 Feb 2014 13:52:30 +0100
+From: Peter van Dam <peter.van.dam@peacs.nl>
+Subject: getS
+In-reply-to:
+To: avo-linden@home.nl
+Reply-to: peter.van.dam@peacs.nl
+Message-id: <012a01cf3096$1d109f50$5731ddf0$@peacs.nl>
+Organization: Peacs
+MIME-version: 1.0
+X-Mailer: Microsoft Outlook 14.0
+Content-type: multipart/mixed;
+ boundary="----=_NextPart_000_012B_01CF309E.7ED5F1B0"
+Content-language: nl
+Thread-index: AQLbKWOM3HQB0WKeti0b5jTRAhlTd5iq1PrQ
+X-Virus-Scanned: by XS4ALL Virus Scanner
+X-Ziggo-spamsetting: Instelling=Gemiddeld Scorelimiet=14
+X-Ziggo-spambar: /
+X-Ziggo-spamscore: 0.1
+X-Ziggo-spamreport:
+ BAYES_20=-0.001,HTML_MESSAGE=0.001,MIME_QP_LONG_LINE=0.001,RCVD_IN_DNSWL_NONE=-0.0001,TW_PN=0.077
+X-Ziggo-Spam-Status: No
+X-Spam-Flag: No
+References:
+Original-recipient: rfc822;avo-linden@home.nl
+X-Spam-Status: No
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_012B_01CF309E.7ED5F1B0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_012C_01CF309E.7ED5F1B0"
+
+
+------=_NextPart_001_012C_01CF309E.7ED5F1B0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Een C versie van getS met hakkel preventie
+
+ 
+
+Eerst dus even in matlab:
+
+>> mex getSp.c
+
+ 
+
+ 
+
+ 
+
+A = graphdist(ITRI);
+
+ 
+
+node = 1;% dep only
+
+mode = 2;% ecgsim met hakkel preventie
+
+mode = 3;% cumsum met hakkel preventie
+
+ 
+
+maxt = size(T,2);
+
+ 
+
+% transponeneren is nodig aan het einde
+
+S = getSp(mode,maxt,A,dep,rep,[initial_slope, plateau_slope, repslope] )';
+
+ 
+
+Tot morgen,
+
+Peter
+
+ 
+
+
+------=_NextPart_001_012C_01CF309E.7ED5F1B0
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
+http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii"><meta name=3DGenerator content=3D"Microsoft Word 14 =
+(filtered medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+span.EmailStyle18
+	{mso-style-type:personal-reply;
+	font-family:"Calibri","sans-serif";
+	color:#1F497D;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-size:10.0pt;}
+@page WordSection1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue =
+vlink=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>Een C =
+versie van getS met hakkel preventie<o:p></o:p></span></p><p =
+class=3DMsoNormal style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>Eerst =
+dus even in matlab:<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'>&gt;&gt; mex getSp.c<o:p></o:p></span></p><p =
+class=3DMsoNormal style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>A =3D =
+graphdist(ITRI);<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>node =
+=3D 1;% dep only<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>mode =
+=3D 2;% ecgsim met hakkel preventie<o:p></o:p></span></p><p =
+class=3DMsoNormal style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>mode =
+=3D 3;% cumsum met hakkel preventie<o:p></o:p></span></p><p =
+class=3DMsoNormal style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>maxt =
+=3D size(T,2);<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span lang=3DNL =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>% =
+transponeneren is nodig aan het einde<o:p></o:p></span></p><p =
+class=3DMsoNormal style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>S =3D =
+getSp(mode,maxt,A,dep,rep,[initial_slope, plateau_slope, repslope] =
+)';<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier New";color:black'>Tot =
+morgen,<o:p></o:p></span></p><p class=3DMsoNormal =
+style=3D'text-autospace:none'><span =
+style=3D'font-size:10.0pt;font-family:"Courier =
+New";color:black'>Peter</span><span =
+style=3D'font-size:12.0pt;font-family:"Courier =
+New"'><o:p></o:p></span></p><p class=3DMsoNormal><span =
+style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span></p></div></body></html>
+------=_NextPart_001_012C_01CF309E.7ED5F1B0--
+
+------=_NextPart_000_012B_01CF309E.7ED5F1B0
+Content-Type: text/plain;
+	name="getSp.c"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="getSp.c"
+
+/*************************** getsp.c    =
+***********************************/=0A=
+/*                                                                       =
+  */           =0A=
+/* This program calculates the shortest paths between one vertex and all =
+  */=0A=
+/* the other vertices of a triangulated object.                          =
+  */=0A=
+/* The program creates matrix of 1 by number of vertices.				   */=0A=
+/* Input:  An adjaceny matrix (file) with the distances between the      =
+  */=0A=
+/*         adjacent vertices                                             =
+  */=0A=
+/* Output: A matrix with all shortest paths between the all vertices.    =
+  */=0A=
+/*                                                                       =
+  */=0A=
+/* 20-2-14   Peter van Dam                                               =
+  */=0A=
+/*			  Peacs						                                   */  =0A=
+/*                                                                       =
+  */=0A=
+/************************************************************************=
+***/=0A=
+=0A=
+#include <mex.h>=0A=
+#include <math.h>=0A=
+=0A=
+/************************* Definitions and global =
+**************************/=0A=
+=0A=
+int		mNpnt		=3D 0;=0A=
+int 	mMaxt		=3D 0;=0A=
+int 	mMode		=3D 1;=0A=
+int 	mSourceVersion  =3D 0;=0A=
+int    *mNeighDep	=3D NULL;=0A=
+double *mS  		=3D NULL;=0A=
+const double *mADJ		=3D NULL;=0A=
+const double *mDep		=3D NULL;=0A=
+const double *mRep		=3D NULL;=0A=
+const double *mRepParams	=3D NULL;=0A=
+=0A=
+=0A=
+/************************************************************************=
+***/=0A=
+void showHelp(void)=0A=
+{=0A=
+    mexPrintf("getSp \n compute the source strength\n");=0A=
+    mexPrintf("SYNTAX\n");=0A=
+    mexPrintf("S =3D getSp(dep, rep, maxt,ADJ,mode,repparams) \n");=0A=
+=0A=
+    mexPrintf("DESCRIPTION\n");=0A=
+    mexPrintf("S =3D getSp(dep, rep, maxt,ADJ,mode,repparams),  \n");=0A=
+	mexPrintf("mode: 1) dep only \n");=0A=
+	mexPrintf("		 2) S according to ECGsim, requires plateau slope and rep =
+slope\n");=0A=
+	mexPrintf("		 3) S using the cumsum (avo), requires a) initial =
+repslope, b) plateau slope and c)rep slope\n");=0A=
+	mexPrintf("maxt: maximum time, is the number of columns of S \n");=0A=
+    mexPrintf("dep : the depolarization time \n");=0A=
+	mexPrintf("ADJ : adjacency matrix with graphdist(ITRI) \n");=0A=
+	mexPrintf("rep : the depolarization time \n");=0A=
+	mexPrintf("repparams: This depends on the mode \n");=0A=
+	mexPrintf("		  mode =3D=3D 2	 plateau slope and rep slope \n");=0A=
+	mexPrintf("		  mode =3D=3D 3	 initial repslope, b) plateau slope and =
+c)rep slope \n");=0A=
+}=0A=
+=0A=
+=0A=
+int outofmem(void)=0A=
+{=0A=
+    mexErrMsgTxt("Out of memory.");=0A=
+    return 1;=0A=
+}=0A=
+=0A=
+void computedSrowDep(int ir,double * rowS )=0A=
+{=0A=
+	int i, ti, curDepI, maxToZeroT,mint,maxt;=0A=
+	int Nneigh;=0A=
+	double t, slope,factor; =0A=
+	const double *rowAdj;=0A=
+    =0A=
+	rowAdj 		=3D &mADJ[ir * mNpnt];=0A=
+	=0A=
+	curDepI =3D floor( mDep[ir] + 0.499 );=0A=
+	maxToZeroT 	=3D curDepI;=0A=
+=0A=
+	Nneigh =3D 0;=0A=
+	for (i=3D0; i < mNpnt; i++ )=0A=
+	{			=0A=
+		if ( rowAdj[i] > 0 )=0A=
+		{=0A=
+			mNeighDep[Nneigh] =3D floor( mDep[i] + 0.4999);=0A=
+=0A=
+			if ( mNeighDep[Nneigh] > maxToZeroT )=0A=
+			{=0A=
+				maxToZeroT =3D mNeighDep[Nneigh];=0A=
+			}=0A=
+			Nneigh++;=0A=
+		}		=0A=
+	}=0A=
+	if ( maxToZeroT >=3D mMaxt )=0A=
+	{=0A=
+		maxToZeroT =3D mMaxt - 1;=0A=
+	}=0A=
+	=0A=
+    for (ti =3D 0; ti <=3D maxToZeroT; ti++ )=0A=
+    {=0A=
+        rowS[ti] =3D 0;=0A=
+    }=0A=
+	for ( ; ti < mMaxt; ti++ )=0A=
+	{=0A=
+		rowS[ti] =3D 1.0;=0A=
+	}=0A=
+=0A=
+    factor =3D 1.0 / (double) Nneigh;=0A=
+    for (i =3D 0; i < Nneigh; i++ )=0A=
+    {=0A=
+		mint =3D ( curDepI < mNeighDep[i] ) ? curDepI : mNeighDep[i];=0A=
+		if ( mint < mMaxt )=0A=
+		{=0A=
+			maxt =3D ( curDepI > mNeighDep[i] ) ? curDepI : mNeighDep[i];=0A=
+			if ( maxt > mMaxt )=0A=
+			{=0A=
+				maxt =3D mMaxt;=0A=
+			}=0A=
+=0A=
+			slope =3D factor / (double)(maxt - mint);=0A=
+			t =3D 0;        =0A=
+			for ( ti =3D mint; ti < maxt; ti++, t +=3D 1.0 )=0A=
+			{=0A=
+				rowS[ti] +=3D slope * t;            =0A=
+			}=0A=
+=0A=
+			for ( ; ti <=3D maxToZeroT; ti++)=0A=
+			{=0A=
+				rowS[ti] +=3D factor;=0A=
+			}=0A=
+		}=0A=
+    }=0A=
+}=0A=
+=0A=
+=0A=
+=0A=
+void getS( )=0A=
+{     =0A=
+	int t, ir;=0A=
+	double tdep, trep, maxAmpl, sumY, vali;=0A=
+	double *rowS;=0A=
+	double *y;=0A=
+=0A=
+	y =3D mxCalloc(mMaxt, sizeof(double));	y || outofmem();=0A=
+	=0A=
+	mNeighDep =3D mxCalloc(mNpnt, sizeof(int));	mNeighDep || outofmem();=0A=
+	=0A=
+    for ( ir =3D 0; ir < mNpnt; ir++ )=0A=
+    {		=0A=
+        rowS =3D &mS[ ir * mMaxt ];=0A=
+		=0A=
+        tdep    =3D -mDep[ir];=0A=
+        trep    =3D -mRep[ir];=0A=
+        maxAmpl =3D -1e6;=0A=
+=0A=
+        if ( 0 ) // will create a spiky signal due to the steep upslope=0A=
+        {=0A=
+            for ( t =3D 0; t < mMaxt; t++, tdep +=3D 1.0, trep +=3D 1.0 )=0A=
+            {=0A=
+                rowS[t] =3D 1.0 /( 1.0 +  exp(-2.0  * tdep ) );=0A=
+            }=0A=
+            tdep    =3D -mDep[ir];=0A=
+        }=0A=
+        else=0A=
+        {		=0A=
+            computedSrowDep( ir, rowS );=0A=
+        }=0A=
+=0A=
+        if ( mMode > 1 )=0A=
+        {=0A=
+            if ( mSourceVersion =3D=3D 1 )=0A=
+            {=0A=
+                for ( t =3D 0; t < mMaxt; t++, tdep +=3D 1.0, trep +=3D =
+1.0 )=0A=
+                {=0A=
+                    vali =3D( 1.0 / ( 1.0 + exp( mRepParams[0] * trep ) =
+) ) *=0A=
+                          ( 1.0 / ( 1.0 + exp( mRepParams[1]     * trep =
+) ) );=0A=
+=0A=
+                    rowS[t] =3D vali * rowS[t];=0A=
+=0A=
+                    vali *=3D 1.0 /( 1.0 +  exp(-2.0 * tdep ) );=0A=
+                    maxAmpl =3D maxAmpl > vali ? maxAmpl : vali;=0A=
+                }=0A=
+            }=0A=
+            else // mSourceVersion =3D=3D 0=0A=
+            {=0A=
+                sumY =3D 0;=0A=
+=0A=
+                tdep    =3D -mDep[ir];=0A=
+                trep    =3D -mRep[ir];=0A=
+=0A=
+                for ( t =3D 0; t < mMaxt; t++, tdep +=3D 1.0, trep +=3D =
+1.0 )=0A=
+                {=0A=
+                    sumY +=3D   mRepParams[0] +=0A=
+                                ( 1 / ( 1 + exp( mRepParams[1] * trep ) =
+) ) *=0A=
+                                ( 1 / ( 1 + exp( mRepParams[2]     * =
+trep ) ) );=0A=
+=0A=
+                    y[t] =3D sumY; // 1 - cumsum=0A=
+                }=0A=
+                for (t=3D0; t < mMaxt; t++ )=0A=
+                {=0A=
+                    rowS[t] *=3D 1- (y[t]/sumY);      // scale between 0 =
+- 1=0A=
+                                                    // multiply dep and =
+rep S =3D S * (1-Y)=0A=
+                    maxAmpl =3D maxAmpl > rowS[t] ? maxAmpl : rowS[t];=0A=
+                }=0A=
+=0A=
+=0A=
+            }=0A=
+            // For the future when dealing with ischemic areas=0A=
+            //        maxAmpl *=3D ampl.at(ir);// devide by maxAmpl to =
+normalize=0A=
+            for (t=3D0; t < mMaxt; t++ ) // scale between 0 - 1=0A=
+            {=0A=
+                rowS[t] /=3D maxAmpl;=0A=
+            }=0A=
+        }=0A=
+    }=0A=
+=0A=
+	mxFree( y );=0A=
+	mxFree( mNeighDep );=0A=
+}=0A=
+=0A=
+/************************************************************************=
+***/=0A=
+=0A=
+/* mexFunction is the gateway routine for the MEX-file. */ =0A=
+void mexFunction( int nlhs, mxArray *plhs[],=0A=
+                  int nrhs, const mxArray *prhs[] )=0A=
+{		=0A=
+    /* Check input arguments */=0A=
+    if (nrhs < 4)=0A=
+    {=0A=
+        showHelp();=0A=
+		mexErrMsgTxt("at least 4 input arguments required (mode =3D=3D1)");=0A=
+        return;=0A=
+    }=0A=
+    if( nrhs > 6 )=0A=
+    {=0A=
+        showHelp();=0A=
+        mexErrMsgTxt("maximum 6 input arguments required");=0A=
+    }=0A=
+    if(nlhs > 1)=0A=
+    {=0A=
+        showHelp();=0A=
+        mexErrMsgTxt("only one output arguments is defined. ");=0A=
+    }=0A=
+	=0A=
+	// mode=0A=
+	if( mxGetM(prhs[0]) * mxGetN(prhs[0]) !=3D 1 )=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("mode is a single number 1: dep only, 2,3: dep and rep");=0A=
+	}=0A=
+	mMode =3D (int)mxGetScalar(prhs[0]);	=0A=
+	=0A=
+	// maxt=0A=
+	if( mxGetM(prhs[1]) > 1  || mxGetN(prhs[1]) > 1 )=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("maxt is a single number");=0A=
+	}=0A=
+	mMaxt =3D (int)mxGetScalar(prhs[1]);=0A=
+	=0A=
+// ADJ=0A=
+		if ( mxGetN(prhs[2]) =3D=3D mxGetM(prhs[2]) ) //ADJ=0A=
+		{=0A=
+			mADJ =3D mxGetPr(prhs[2]);=0A=
+			mNpnt =3D (int)mxGetM(prhs[2]);=0A=
+		}=0A=
+        else=0A=
+        {=0A=
+            showHelp();=0A=
+            mexErrMsgTxt("size ADJ =3D [n, n]");=0A=
+        }=0A=
+=0A=
+	// dep=0A=
+	if( !(mxIsDouble(prhs[3])) && =0A=
+		 (int)(mxGetM(prhs[3]) * mxGetN(prhs[3])) !=3D mNpnt )=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("dep(n,1) of type double");=0A=
+	}=0A=
+	mDep  =3D mxGetPr(prhs[3]);=0A=
+				=0A=
+	if ( mMode > 1 && nrhs !=3D 6 )=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("number of parameters does not match with the selected =
+mode");=0A=
+	}=0A=
+=0A=
+	// rep=0A=
+	if( (!mxIsDouble(prhs[4]) && (int)(mxGetM(prhs[4]) * mxGetN(prhs[4])) =
+!=3D mNpnt) )=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("rep(n,1) of type double when mode not =3D=3D 1");=0A=
+	}=0A=
+	mRep  =3D mxGetPr(prhs[4]);=0A=
+			=0A=
+        =0A=
+		=0A=
+	if ( mMode =3D=3D 1 )=0A=
+	{=0A=
+		// no rep params required=0A=
+	}=0A=
+	else if ( mMode =3D=3D 2 )=0A=
+	{=0A=
+		mSourceVersion =3D 1; // ECGsim=0A=
+		if ( mxGetN(prhs[5]) * mxGetM(prhs[5]) =3D=3D 2 &&=0A=
+			 mxIsDouble(prhs[5]) ) =0A=
+		{=0A=
+			mRepParams =3D mxGetPr(prhs[5]);		=0A=
+		}			=0A=
+		else=0A=
+		{=0A=
+			showHelp();=0A=
+			mexErrMsgTxt("not the right repolarization parameters");=0A=
+		}=0A=
+	}=0A=
+	else if ( mMode =3D=3D 3 )=0A=
+	{=0A=
+		mSourceVersion =3D 0; // AVO=0A=
+		if ( mxGetN(prhs[5]) * mxGetM(prhs[5]) =3D=3D 3 &&=0A=
+			 mxIsDouble(prhs[5]) ) =0A=
+		{=0A=
+			mRepParams =3D mxGetPr(prhs[5]);		=0A=
+		}			=0A=
+		else=0A=
+		{=0A=
+			showHelp();=0A=
+			mexErrMsgTxt("not the right repolarization parameters");=0A=
+		}=0A=
+	}=0A=
+	else=0A=
+	{=0A=
+		showHelp();=0A=
+		mexErrMsgTxt("no repolarization parameters or the wrong mode");=0A=
+	}					=0A=
+		        =0A=
+	plhs[0] =3D mxCreateDoubleMatrix(mMaxt,mNpnt,mxREAL);					=0A=
+	mS =3D mxGetPr( plhs[0] );=0A=
+	getS();=0A=
+}=0A=
+=0A=
+/**************************** End of distgraph.c =
+*****************************/=0A=
+=0A=
+=0A=
+
+------=_NextPart_000_012B_01CF309E.7ED5F1B0
+Content-Type: text/plain;
+	name="getSpc.m"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="getSpc.m"
+
+function S =3D getSpc(T,dep,rep,SPECS,mode,ADJneigh)
+
+% S =3DgetSp(dep,rep,size(T,2),ADJneigh,mode, SPECS)';
+if mode =3D=3D 1
+    S =3DgetSp(1,size(T,2),ADJneigh, dep,rep,[SPECS.initialSlope =
+SPECS.plateauslope SPECS.repslope] )';
+else
+    S =3DgetSp(3,size(T,2),ADJneigh, dep,rep,[SPECS.initialSlope =
+SPECS.plateauslope SPECS.repslope] )';
+end
+------=_NextPart_000_012B_01CF309E.7ED5F1B0--
+
+

@@ -1,0 +1,107 @@
+X-Account-Key: account3
+X-UIDL: 2504-1236421882
+X-Mozilla-Status: 0001
+X-Mozilla-Status2: 00000000
+X-Mozilla-Keys:                                                                                 
+Return-path: <t.oostendorp@donders.ru.nl>
+Received: from smtp10.gn.mail.iss.as9143.net ([212.54.34.141])
+ by mta1z1.gn.mail.iss.as9143.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTP id <0LQ200D7VHKANV60@mta1z1.gn.mail.iss.as9143.net> for
+ avo-linden@home.nl; Wed, 17 Aug 2011 12:09:46 +0200 (CEST)
+Received: from mx4.gn.mail.iss.as9143.net ([212.54.34.103])
+ by smtp10.gn.mail.iss.as9143.net with esmtp (Exim 4.71)
+ (envelope-from <t.oostendorp@donders.ru.nl>)
+ id 1Qtd4B-0004az-F8	for avo-linden@home.nl; Wed, 17 Aug 2011 12:09:43 +0200
+Received: from smeltpunt.science.ru.nl ([131.174.16.143])
+ by mx4.gn.mail.iss.as9143.net with esmtp (Exim 4.71)
+ (envelope-from <t.oostendorp@donders.ru.nl>)
+ id 1Qtd4A-0004Nr-Cc	for avo-linden@home.nl; Wed, 17 Aug 2011 12:09:42 +0200
+Received: from macius.azn.nl (macius.azn.nl [131.174.220.86]) (authen=thom)
+ by smeltpunt.science.ru.nl (8.13.7/5.31) with ESMTP id p7HA9dEZ011308; Wed,
+ 17 Aug 2011 12:09:39 +0200 (MEST)
+Date: Wed, 17 Aug 2011 12:09:39 +0200
+From: Thom Oostendorp <t.oostendorp@donders.ru.nl>
+Subject: nieuwe qtriplot
+To: Inge van Schie <I.vanSchie-Gerrits@cns.umcn.nl>,
+ Peter van Dam <P.vanDam@donders.ru.nl>, avo van Oosterom <avo-linden@home.nl>
+Message-id: <99CCD99E-118A-44A8-B89D-17B40B4561AE@donders.ru.nl>
+MIME-version: 1.0 (Apple Message framework v1084)
+X-Mailer: Apple Mail (2.1084)
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: quoted-printable
+X-ZiggoMX-MailScanner-Information: Please contact the ISP for more information
+X-ZiggoMX-MailScanner-ID: 1Qtd4A-0004Nr-Cc
+X-ZiggoMX-MailScanner: Found to be clean
+X-ZiggoMX-MailScanner-SpamCheck: geen spam
+X-ZiggoMX-MailScanner-From: t.oostendorp@donders.ru.nl
+X-ZiggoSMTP-MailScanner-Information: Please contact the ISP for more information
+X-ZiggoSMTP-MailScanner-ID: 1Qtd4B-0004az-F8
+X-ZiggoSMTP-MailScanner: Found to be clean
+X-ZiggoSMTP-MailScanner-SpamCheck: geen spam, SpamAssassin (niet cached,
+	score=-2.888, vereist 5, autolearn=not spam, BAYES_00 -1.90,
+	RP_MATCHES_RCVD -0.99)
+X-ZiggoSMTP-MailScanner-From: t.oostendorp@donders.ru.nl
+Original-recipient: rfc822;avo-linden@home.nl
+X-Spam-Status: No
+
+Beste mensen,
+
+Er staat op http://www.ecgsim.org/qtriplot een nieuwe qtriplot klaar. =
+Dit zijn de nieuwe dingen:
+
+- De default kleurenmap heeft weer groen precies in het midden (maar hij =
+is nog steeds een stuk mooier dan de oude).
+
+- je kunt de blokjes waarmee points worden weergegeven groter maken:
+
+pointsize 10
+
+de defaultgrootte is 5.
+
+- je kunt punten ook een beetje naar je toe trekken, om te voorkomen dat =
+ze gedeeltelijk binnen het oppervlak komen:
+
+pointoffset 0.1
+
+Ze komen dan 0.1 * gemiddelde riblengte naar je toe. Default staat die =
+op 0.
+
+- ten behoeve van consistentie heb ik de kleur van punten nu in dit =
+commando gezet:
+
+pointcolor white
+
+Vroeger ging dat met "point white". Dat werkt nog steeds, maar kleuren =
+kun je ook opgeven met rbg waarden (pointcolor 1,0.5,0.5). Dat geeft =
+natuurlijk een probleem met point, omdat hij het dan als coordinaten =
+opvat.
+
+- de truc met offset kan ook voor labels:
+
+offset 0.1
+
+met name fijn voor vertex indices, die nogal eens in het object prikken.
+
+- als je
+
+funscale symmetric
+
+typt, wordt de funscale geschaald naar de data, maar dan zo dat funmin =3D=
+ -funmax
+
+- Verder is er een bug opgelost die er voor zorgde dat shift-links-klik =
+misging als back true was.
+
+Groeten,
+
+Thom
+
+--
+dr. T.F. Oostendorp			126 Dept. of Cognitive =
+Neuroscience
+t.oostendorp@donders.ru.nl	Geert Grooteplein 21  6525 EZ Nijmegen
+Donders Center Neuroscience	University of Nijmegen, the Netherlands
+voice: +31 24 3614240		fax: +31 24 3541435
+
+

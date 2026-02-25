@@ -1,0 +1,54 @@
+ De volumenaam van station C is OS
+ Het volumenummer is E26E-C421
+
+ Map van C:\Users\Peter.Damp2\Documents\ECG_simulation\matlab\peter\external
+
+26-07-2012  14:59    <DIR>          .
+26-07-2012  14:59    <DIR>          ..
+05-09-2007  10:16            24.606 Copy_of_graphdist.c
+21-10-2007  08:39             9.598 crc_check.c
+20-10-2007  20:39             4.096 crc_check.mexw32
+22-10-2007  09:11             8.571 crc_check1.c
+21-10-2007  10:17             4.608 crc_check1.mexw32
+26-07-2012  14:59                 0 dir_peter_external.txt
+05-03-2008  13:22             2.546 f50.c
+05-03-2008  13:22             8.704 f50.mexw32
+03-08-2011  23:03             8.643 focipaths.c
+03-08-2011  23:04             9.728 focipaths.mexw32
+03-02-2002  13:00             5.367 get2Drimbs.c
+06-02-2002  11:43             8.192 get2Drimbs.dll
+06-02-2002  11:43             8.192 get2Drimbs.dll.old
+12-09-2007  20:41             6.144 get2Drimbs.mexw32
+24-07-2003  13:39             5.367 get2Drims.c
+24-07-2003  13:39             7.680 get2drims.dll
+24-07-2003  13:39             7.680 get2Drims.dll.old
+12-09-2007  20:40             6.144 get2Drims.mexw32
+29-06-2011  09:11            10.279 getfrom.c
+03-07-2011  08:15            12.800 getfrom.mexw32
+21-09-2005  08:55            10.978 getroute.c
+24-04-2007  22:22            10.240 getroute.mexw32
+12-03-2012  10:34            28.990 graphdist.c
+12-03-2012  10:34            19.456 graphdist.mexw32
+04-01-2011  12:02            24.023 graphdistnew.c
+10-06-2011  20:53            10.123 graphdistone.c
+11-06-2011  08:12            12.288 graphdistone.mexw32
+24-04-2010  17:56            11.004 graphdistone_more.c
+24-04-2010  17:57            12.288 graphdistone_more.mexw32
+24-04-2010  17:56            25.399 graphdist_more.c
+24-04-2010  17:57            20.480 graphdist_more.mexw32
+05-06-2010  14:25            12.369 linetrisect.c
+18-04-2005  09:13            24.576 linetrisect.dll.old
+05-06-2010  14:25            13.312 linetrisect.mexw32
+31-10-2003  12:43             2.487 logist.c
+31-10-2003  12:44             6.656 logist.dll
+09-04-2010  21:26             6.701 pnttridist.c
+03-03-2010  20:42             9.216 pnttridist.mexw32
+04-08-2011  01:52    <DIR>          results
+18-03-2009  10:54             8.194 splitgraph.asv
+05-03-2012  10:49             9.541 splitgraph.c
+18-03-2009  10:55            10.752 splitgraph.mexw32
+10-09-2007  10:29             1.545 testn.m
+18-04-2005  09:11            17.154 tri2graph.c
+18-04-2005  09:11            24.576 tri2graph.dll
+              44 bestand(en)          491.293 bytes
+               3 map(pen)  90.445.340.672 bytes beschikbaar
