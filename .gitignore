@@ -1,4 +1,8 @@
-/ecg\ analysis/data/
+data
+Python/ecg_project_venv
+__pycache__
+*.pyc
 *.tri
 *.mat
 *.jpg
+*.asv
