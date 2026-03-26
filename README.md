@@ -48,7 +48,7 @@ To use the Python utilities, it is recommended to set up an isolated virtual env
    pip install -r requirements.txt
    ```
 
-### Environment Variables (.env)
+5. **Environment Variables:**
 
 The project relies on specific absolute paths to locate data and external software. You need to create a `.env` file in your working directory and define the following variables:
 
