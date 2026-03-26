@@ -19,6 +19,22 @@ The repository is organized into the following main directories:
 
 ## ⚙️ Environment Setup
 
+### MATLAB Configuration
+
+To run the MATLAB scripts correctly without tracking local paths in version control, you need to set up an untracked local configuration file.
+
+1. **Create a local paths file:**
+   Navigate to the `Matlab/ecg_analysis/` directory and create a new file named `local_paths.m` (this file is intentionally ignored by Git).
+
+2. **Define your local data directory:**
+   Add the following line to `local_paths.m`, replacing the path with the absolute path to your local `data` directory:
+   ```matlab
+   % local_paths.m
+   dir_name = 'C:\path\to\your\Data';
+   ```
+   
+The `startup.m` script is already configured to automatically detect and run this file, injecting the `dir_name` variable into your workspace.
+
 ### Python Configuration
 
 To use the Python utilities, it is recommended to set up an isolated virtual environment. Follow these steps:
