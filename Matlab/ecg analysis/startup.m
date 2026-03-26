@@ -1,5 +1,11 @@
-% dir_name = '/Users/jan/Documents/ecg project/Matlab_scripts';
-dir_name    = 'C:\Users\Admin\Documents\Projects\ecg project\Scripts\Matlab\';
+if exist('local_paths.m', 'file')
+    run('local_paths.m');
+    disp(['Working directory is: ', dir_name]);
+else
+    warning('File local_paths.m not found! Define the variable "dir_name".');
+    dir_name = ''; % fallback
+end
+
 
 addpath (append(dir_name, 'sim'))
 addpath (append(dir_name, 'pnet_dir'))

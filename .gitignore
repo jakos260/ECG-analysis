@@ -1,4 +1,5 @@
 data
+Matlab/ecg analysis/local_paths.m
 Python/ecg_project_venv
 __pycache__
 *.pyc
@@ -6,3 +7,4 @@ __pycache__
 *.mat
 *.jpg
 *.asv
+*.log
