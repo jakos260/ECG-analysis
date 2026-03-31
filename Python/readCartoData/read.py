@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))                         # add helpers
 from qtripy.qtripy import QTripy
-from Carto3Reader.CartoMap import CartoMap
+from carto3reader.CartoMap import CartoMap
 
 load_dotenv()
 
@@ -23,9 +23,12 @@ measurement_name = '1-VT' # 114 points
 # measurement_name = '2-1-ReAT LV'
 # measurement_name = '1-1-1-PATTERN-STYMU'
 # measurement_name = '1-1-PATTERN BEZ STYMU'
-carto_map = CartoMap(sample_data_path, measurement_name)
+electrodes_name = 'CS'
 
+carto_map = CartoMap(sample_data_path, measurement_name)
 data = carto_map.load_mesh()
+
+cs_electrodes = carto_map.load_electrodes(electrodes_name)
 
 v = data['vertices']
 t = data['triangles']
@@ -114,13 +117,19 @@ q.gradient_bins(10)
 # q.transparency(0.3)
 
 q.property_on_mouse_click('coor')
-q.text(f"Carto3Data {measurement_name} - {map_type}", pos=(0.25, 0.95))
+q.text(f"Carto3Data {measurement_name} - {map_type} {electrodes_name}", pos=(0.15, 0.95))
 # q.background_color("white")
-q.markers([(p.X, p.Y, p.Z) for p in points.itertuples()], color='red', r=1)
+q.markers([(
+    cs_electrodes[lead_key]['x'][0],
+    cs_electrodes[lead_key]['y'][0],
+    cs_electrodes[lead_key]['z'][0]
+    ) for lead_key in cs_electrodes.keys()], color='red', r=1)
+
+
+carto_map.ecg_reader.plot()  # Plot ECG data if available
 
 input("Press Enter to close QTriplot...")
 q.close()
-
 # fig = go.Figure()
 # if v is not None and t is not None:
 #     fig.add_trace(go.Mesh3d(
