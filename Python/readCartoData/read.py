@@ -23,12 +23,13 @@ measurement_name = '1-VT' # 114 points
 # measurement_name = '2-1-ReAT LV'
 # measurement_name = '1-1-1-PATTERN-STYMU'
 # measurement_name = '1-1-PATTERN BEZ STYMU'
-electrodes_name = 'CS'
 
 carto_map = CartoMap(sample_data_path, measurement_name)
 data = carto_map.load_mesh()
 
-cs_electrodes = carto_map.load_electrodes(electrodes_name)
+cs = carto_map.load_electrodes('CS')
+mc = carto_map.load_electrodes('MCC_DX')
+qd = carto_map.load_electrodes('QUAD_A')
 
 v = data['vertices']
 t = data['triangles']
@@ -39,26 +40,9 @@ color_names = data['color_names']
 
 # Drop columns with zero standard deviation
 if colors_mesh is not None and color_names:
-    # stds = np.nanstd(colors_mesh, axis=0)
     valid_indices = np.min(colors_mesh, axis=0) != np.max(colors_mesh, axis=0)
     colors_mesh = colors_mesh[:, valid_indices]
     color_names = [name for name, valid in zip(color_names, valid_indices) if valid]
-
-# Plot histograms for all color types on a single chart with transparency
-# if colors_mesh is not None and color_names:
-#     fig = go.Figure()
-    
-#     for i, name in enumerate(color_names):
-#         values = colors_mesh[:, i]
-#         valid_values = values[~np.isnan(values)]
-#         if len(valid_values) > 0:
-#             fig.add_trace(go.Histogram(x=valid_values, nbinsx=30, name=name, opacity=0.5))
-    
-#     fig.update_layout(
-#         title_text="Histograms of Mesh Color Values for All Types",
-#         barmode='overlay'
-#     )
-#     fig.show()
 
 def choose_color_type(color_names, default='Unipolar'):
     if not color_names:
@@ -101,7 +85,6 @@ def choose_color_type(color_names, default='Unipolar'):
 
 map_type = choose_color_type(color_names, default='Unipolar')
 mesh = colors_mesh[:, color_names.index(map_type)] if (map_type is not None and map_type in color_names) else None
-# unipolar_mesh = np.where(unipolar_mesh < 20, unipolar_mesh, 10)  # drop values above 20mV (likely noise) to 0 for better visualization
 
 q = QTripy()
 q.begin()
@@ -117,47 +100,19 @@ q.gradient_bins(10)
 # q.transparency(0.3)
 
 q.property_on_mouse_click('coor')
-q.text(f"Carto3Data {measurement_name} - {map_type} {electrodes_name}", pos=(0.15, 0.95))
+q.text(f"Carto3Data {measurement_name} - {map_type}", pos=(0.15, 0.95))
 # q.background_color("white")
-q.markers([(
-    cs_electrodes[lead_key]['x'][0],
-    cs_electrodes[lead_key]['y'][0],
-    cs_electrodes[lead_key]['z'][0]
-    ) for lead_key in cs_electrodes.keys()], color='red', r=1)
+
+cs_points = [(cs[lead_key][0][1], cs[lead_key][0][2], cs[lead_key][0][3]) for lead_key in cs.keys()]
+mc_points = [(mc[lead_key][0][1], mc[lead_key][0][2], mc[lead_key][0][3]) for lead_key in mc.keys()]
+qd_points = [(qd[lead_key][0][1], qd[lead_key][0][2], qd[lead_key][0][3]) for lead_key in qd.keys()]
+
+q.markers(cs_points, color='red', r=1)
+q.markers(mc_points, color='blue', r=1)
+q.markers(qd_points, color='green', r=1)
 
 
-carto_map.ecg_reader.plot()  # Plot ECG data if available
+# carto_map.ecg_reader.plot()  # Plot ECG data if available
 
 input("Press Enter to close QTriplot...")
 q.close()
-# fig = go.Figure()
-# if v is not None and t is not None:
-#     fig.add_trace(go.Mesh3d(
-#         x=v[:, 0], y=v[:, 1], z=v[:, 2],
-#         i=t[:, 0], j=t[:, 1], k=t[:, 2],
-#         color='lightgray',
-#         opacity=0.3, # Półprzezroczystość, żeby było widać wewnątrz
-#         name='Anatomia'
-#     ))
-
-# fig.add_trace(go.Scatter3d(
-#     x=df['X'], y=df['Y'], z=df['Z'],
-#     mode='markers',
-#     marker=dict(
-#         size=5,
-#         color=df['Bipolar'],
-#         colorscale='Jet',
-#         colorbar=dict(title="Woltaż [mV]"),
-#         cmin=0, cmax=1.5, # Zazwyczaj w Carto granica zdrowej tkanki to > 1.5mV
-#         opacity=0.9
-#     ),
-#     text="ID: " + df['ID'].astype(str) + "<br>V: " + df['Bipolar'].astype(str) + " mV",
-#     name='Punkty Mapowania',
-#     hoverinfo='text'
-# ))
-
-# fig.update_layout(
-#     scene=dict(bgcolor='black', xaxis_visible=False, yaxis_visible=False, zaxis_visible=False),
-#     title="Model 3D - Lewa Komora (Carto 3)"
-# )
-# fig.show()

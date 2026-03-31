@@ -247,10 +247,6 @@ class CartoMapModel:
             if not os.path.exists(path):
                 continue
 
-            # each file corresponds to requested type, so use electrode_type as group key
-            if electrode_type not in electrode_data:
-                electrode_data[electrode_type] = {}
-
             with open(path, 'r', encoding='utf-8', errors='replace') as f:
                 for line in f:
                     line = line.strip()
@@ -270,7 +266,7 @@ class CartoMapModel:
                     except ValueError:
                         continue
 
-                    key_data = electrode_data[electrode_type].setdefault(eid, [])
+                    key_data = electrode_data.setdefault(eid, [])
                     key_data.append((t, x, y, z))
 
         return electrode_data
