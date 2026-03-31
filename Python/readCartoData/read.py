@@ -11,17 +11,21 @@ from dotenv import load_dotenv
 root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))                         # add helpers
 from qtripy.qtripy import QTripy
-from CartoMap import CartoMap
+from Carto3Reader.CartoMap import CartoMap
 
 load_dotenv()
 
 data_path = Path(os.getenv("ENV_DATA_PATH")).resolve()
 sample_data_path = os.path.join(data_path, 'Carto3Data', 'Patient 2025_10_20', 'VT1', 'Export_VT1-02_02_2026-12-24-27')
 
-measurement_name = '2-AT LV'
-carto_map = CartoMap(os.path.join(sample_data_path, f'{measurement_name}_Points_Export.xml'))
+measurement_name = '1-VT' # 114 points
+# measurement_name = '2-AT LV'
+# measurement_name = '2-1-ReAT LV'
+# measurement_name = '1-1-1-PATTERN-STYMU'
+# measurement_name = '1-1-PATTERN BEZ STYMU'
+carto_map = CartoMap(sample_data_path, measurement_name)
 
-data = carto_map.load_mesh(os.path.join(sample_data_path, f'{measurement_name}.mesh'))
+data = carto_map.load_mesh()
 
 v = data['vertices']
 t = data['triangles']
@@ -36,7 +40,6 @@ if colors_mesh is not None and color_names:
     valid_indices = np.min(colors_mesh, axis=0) != np.max(colors_mesh, axis=0)
     colors_mesh = colors_mesh[:, valid_indices]
     color_names = [name for name, valid in zip(color_names, valid_indices) if valid]
-    print(f"Kept {len(color_names)} color types with non-zero std: {color_names}")
 
 # Plot histograms for all color types on a single chart with transparency
 # if colors_mesh is not None and color_names:
@@ -54,21 +57,56 @@ if colors_mesh is not None and color_names:
 #     )
 #     fig.show()
 
+def choose_color_type(color_names, default='Unipolar'):
+    if not color_names:
+        return None
 
-lat_mesh = colors_mesh[:, color_names.index('LAT')] if 'LAT' in color_names else None
-bipolar_mesh = colors_mesh[:, color_names.index('Bipolar')] if 'Bipolar' in color_names else None
-unipolar_mesh = colors_mesh[:, color_names.index('Unipolar')] if 'Unipolar' in color_names else None
+    print("Available colorings:")
+    for i, name in enumerate(color_names, start=1):
+        marker = " (default)" if name == default else ""
+        print(f"  {i}. {name}{marker}")
+
+    default_index = color_names.index(default) + 1 if default in color_names else 1
+    prompt = f"Choose color index [1-{len(color_names)}] (default {default_index}): "
+
+    try:
+        import msvcrt
+        print("Press number key or Enter to select default.")
+        while True:
+            ch = msvcrt.getwch()
+            if ch in ('\r', '\n'):
+                return default if default in color_names else color_names[0]
+            if ch.isdigit():
+                idx = int(ch)
+                if 1 <= idx <= len(color_names):
+                    print(ch)
+                    return color_names[idx - 1]
+                else:
+                    print(f"Invalid choice {ch}, expected 1-{len(color_names)}")
+    except Exception:
+        # Fallback for non-Windows or if msvcrt can't be used
+        choice = input(prompt).strip()
+        if not choice:
+            return default if default in color_names else color_names[0]
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(color_names):
+                return color_names[idx - 1]
+        print("Invalid selection, using default.")
+        return default if default in color_names else color_names[0]
+
+
+map_type = choose_color_type(color_names, default='Unipolar')
+mesh = colors_mesh[:, color_names.index(map_type)] if (map_type is not None and map_type in color_names) else None
 # unipolar_mesh = np.where(unipolar_mesh < 20, unipolar_mesh, 10)  # drop values above 20mV (likely noise) to 0 for better visualization
 
 q = QTripy()
 q.begin()
 q.reset()
 # q.set_panels_number(2,1)
-q.surface(v, t)
-q.transparency(0.3)
-# q.values(unipolar_mesh)
-# q.values(bipolar_mesh)
-q.values(unipolar_mesh)
+q.surface(v, t, set_max_distance=True)
+q.transparency(0.5)
+q.values(mesh)
 q.gradient_bins(10)
 
 # q.set_active_panel(2,1)
@@ -76,8 +114,9 @@ q.gradient_bins(10)
 # q.transparency(0.3)
 
 q.property_on_mouse_click('coor')
-q.text(f"ECGsim {measurement_name} - {'unipolar'}", pos=(0.25, 0.95))
+q.text(f"Carto3Data {measurement_name} - {map_type}", pos=(0.25, 0.95))
 # q.background_color("white")
+q.markers([(p.X, p.Y, p.Z) for p in points.itertuples()], color='red', r=1)
 
 input("Press Enter to close QTriplot...")
 q.close()

@@ -60,6 +60,7 @@ class QTripy(QTripyCmd):
         self.minmax_values = None
         self.min_time_before_next_cmd = 0.0  # debouncing: minimum time between surface/values commands in seconds
         self.last_cmd_time = 0.0  # timestamp of the last surface/values command
+        self.max_distance = None  # clean/cutoff mesh outside this radius
 
     def __start_qtriplot(self, port):
         for host in ["127.0.0.1", "::1", "localhost"]:
@@ -70,7 +71,6 @@ class QTripy(QTripyCmd):
             except Exception:
                 continue
 
-        print("Starting QTriplot...")
         self._proc = subprocess.Popen([self.qtriplot_path, "-p", str(port)])
 
         for _ in range(50):
@@ -131,30 +131,137 @@ class QTripy(QTripyCmd):
         """Disable debouncing (allow all commands through)."""
         self.min_time_before_next_cmd = 0.0
 
-    def marker(self, pos, color, r, name=None):
+    def _place_marker(self, pos, color, r, name=None, set_active=True, set_color=True):
         VER, ITRI = self.__make_sphere(nref=3)
         P = np.asarray(pos, dtype=float).reshape(1, 3)
         verts = VER * float(r) + P
-        
-        self.surface(verts.astype(np.float64), ITRI.astype(np.int32), name=name)
-        # try per-object color if supported by qtriplot, fall back to global color
-        self.cmd(f"color {color}")
 
-        # try:
-        #     # qtriplot often accepts: color <objectname> <r g b>  (or color <name> <colourname>)
-        #     self.send_command(f"color {color}")
-        # except Exception:
-        #     self.send_command(f"color {color}")
+        self.surface(verts.astype(np.float64), ITRI.astype(np.int32), name=name, apply_max_distance=True)
 
-        # ensure active panel is set after sending values
-        self.__set_active_panel()
+        if set_color:
+            self.cmd(f"color {color}")
+
+        # optionally update active panel once, not for every point in batch mode
+        if set_active:
+            self.__set_active_panel()
+
+    def marker(self, pos, color, r, name=None):
+        self._place_marker(pos, color, r, name=name)
+
+    def markers(self, positions, color, r, names=None, set_active_after=True, combine=True):
+        """Place multiple markers in one batch.
+
+        positions: iterable of (x,y,z) positions
+        color: color name or RGB string for all markers
+        r: radius for marker spheres
+        names: optional iterable of names, one per marker
+        set_active_after: if True, activates panel once at end (best for bulk updates)
+        combine: if True, send as one combined surface command for all markers
+        cut_points_outside_enable: if True, drop markers outside self.max_distance
+        """
+        positions = list(positions)
+        if names is not None:
+            names = list(names)
+            if len(names) != len(positions):
+                raise ValueError("names must have same length as positions")
+
+        if self.max_distance is not None:
+            maxd = float(self.max_distance)
+            filtered = []
+            filtered_names = []
+            for i, pos in enumerate(positions):
+                pos = np.asarray(pos, dtype=float)
+                if np.linalg.norm(pos) <= maxd:
+                    filtered.append(pos)
+                    if names is not None:
+                        filtered_names.append(names[i])
+            positions = filtered
+            names = filtered_names if names is not None else None
+
+        if combine and positions:
+            vertices_list = []
+            triangles_list = []
+            for i, pos in enumerate(positions):
+                name = names[i] if names is not None else None
+                VER, ITRI = self.__make_sphere(nref=3)
+                P = np.asarray(pos, dtype=float).reshape(1, 3)
+                vertices_list.append(VER * float(r) + P)
+                triangles_list.append(ITRI)
+
+            # one combined surface command
+            self.surface(vertices_list, triangles_list, name=name, apply_max_distance=True)
+            self.cmd(f"color {color}")
+
+        else:
+            for i, pos in enumerate(positions):
+                name = names[i] if names is not None else None
+                self._place_marker(pos, color, r, name=name, set_active=False)
+
+        if set_active_after:
+            self.__set_active_panel()
 
     def create_cylinder(self, length, radius=3, nseg=32, nlen=1, axis=(0, 0, 1), cap_ends=True, name="cylinder"):
         VER, ITRI, CNTR_IDX = self.__make_cylinder(length, radius, nseg, nlen, axis, cap_ends)
         self.surface(VER.astype(np.float64), ITRI.astype(np.int32), name=name)
         return VER, ITRI, CNTR_IDX
 
-    def surface(self, vertices, triangles, name=None, enable_print=False):
+    def _combine_meshes(self, vertices_list, triangles_list):
+        """Concatenate multiple mesh parts into one mesh."""
+        if not vertices_list or not triangles_list:
+            return np.empty((0, 3), dtype=float), np.empty((0, 3), dtype=int)
+
+        v_acc = []
+        t_acc = []
+        offset = 0
+        for v, t in zip(vertices_list, triangles_list):
+            v = np.asarray(v, dtype=float)
+            t = np.asarray(t, dtype=int)
+            v_acc.append(v)
+            t_acc.append(t + offset)
+            offset += v.shape[0]
+
+        all_verts = np.vstack(v_acc) if v_acc else np.empty((0, 3), dtype=float)
+        all_tris = np.vstack(t_acc) if t_acc else np.empty((0, 3), dtype=int)
+        return all_verts, all_tris
+
+    def surface(self, vertices, triangles, name=None, enable_print=False, set_max_distance=None, apply_max_distance=False):
+        # Accept either a single mesh or lists of meshes
+        if isinstance(vertices, (list, tuple)) and isinstance(triangles, (list, tuple)):
+            vertices, triangles = self._combine_meshes(vertices, triangles)
+
+        # Prepare the numeric mesh before computing distances
+        vertices = np.asarray(vertices, dtype=float)
+        triangles = np.asarray(triangles, dtype=int)
+
+        if set_max_distance is not None:
+            if isinstance(set_max_distance, bool) and set_max_distance is True:
+                # auto compute from current mesh distance
+                if vertices.size > 0:
+                    self.max_distance = float(np.max(vertices)) * 1.1  # add 10% margin
+                else:
+                    self.max_distance = None
+            elif isinstance(set_max_distance, (int, float)):
+                self.max_distance = float(set_max_distance)
+            else:
+                raise ValueError("set_max_distance must be numeric, bool True (auto) or None")
+
+        if apply_max_distance and self.max_distance is not None:
+            if vertices.size > 0 and triangles.size > 0:
+                dists = np.linalg.norm(vertices, axis=1)
+                mask = dists <= float(self.max_distance)
+                keep_idx = np.nonzero(mask)[0]
+                if keep_idx.size == 0:
+                    if enable_print:
+                        print(f"Surface: no vertices within max_distance={self.max_distance}")
+                    return
+
+                idx_map = np.full(vertices.shape[0], -1, dtype=int)
+                idx_map[keep_idx] = np.arange(keep_idx.shape[0], dtype=int)
+
+                new_triangles = idx_map[triangles]
+                valid_tri_mask = np.all(new_triangles >= 0, axis=1)
+                triangles = new_triangles[valid_tri_mask]
+                vertices = vertices[keep_idx]
         # Check debouncing
         if self.__should_debounce_cmd():
             return
@@ -183,8 +290,6 @@ class QTripy(QTripyCmd):
         if enable_print:
             print(f"Surface: {nver} verts, {ntri} tris")
 
-        # ensure active panel is set after sending values
-        self.__set_active_panel()
 
     def values(self, fun, name='', vmin=None, vmax=None):
         """
@@ -262,6 +367,14 @@ class QTripy(QTripyCmd):
         # ensure active panel is set after sending values
         self.__set_active_panel()
 
+
+    def set_max_distance(self, max_distance):
+        """Set per-object maximum distance from origin for surface vertices."""
+        self.max_distance = None if max_distance is None else float(max_distance)
+
+    def get_max_distance(self):
+        """Return the current max_distance cutoff."""
+        return self.max_distance
 
     def gradient_bins(self, bins):
         if bins < 1:

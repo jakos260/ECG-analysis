@@ -1,7 +1,7 @@
 import os
+import numpy as np
 import pandas as pd
 import xml.etree.ElementTree as ET
-import numpy as np
 
 class CartoPoint:
     def __init__(self, point_id, xml_path, base_dir):
@@ -69,56 +69,56 @@ class CartoPoint:
                 self._ecg_df = self.__read_carto_tsv(path)
         return self._ecg_df
 
-class CartoMap:
-    def __init__(self, master_xml_path):
-        self.master_xml = master_xml_path
-        self.base_dir = os.path.dirname(master_xml_path)
+
+class CartoMapModel:
+    def __init__(self):
         self.points = []
-        
+
         self.mesh_vertices = None
         self.mesh_triangles = None
-        
-        # New attributes for vertex colors
+
         self.mesh_colors = None
         self.color_names = []
-        
-        self.__load_master()
 
-    def __load_master(self):
+    def _load_master(self):
         tree = ET.parse(self.master_xml)
         for p_entry in tree.getroot().findall('Point'):
             p_id = p_entry.get('ID')
             p_xml = os.path.join(self.base_dir, p_entry.get('File_Name'))
-            
+
             if os.path.exists(p_xml):
                 self.points.append(CartoPoint(p_id, p_xml, self.base_dir))
 
-    def load_mesh(self, mesh_filename):
+    def load_mesh(self, mesh_filename=None):
         """Loads heart anatomy and associated color data from .mesh file"""
-        mesh_path = os.path.join(self.base_dir, mesh_filename)
+        if mesh_filename is None:
+            mesh_path = self.mesh_path
+        else:
+            mesh_path = os.path.join(self.base_dir, mesh_filename)
+
         if not os.path.exists(mesh_path):
             raise FileNotFoundError(f"Mesh file not found: {mesh_path}")
-        
+
         vertices = []
         faces = []
         colors = []
-        
+
         with open(mesh_path, 'r', encoding='utf-8', errors='replace') as f:
             lines = f.readlines()
-            
+
         mode = None
         for line in lines:
             line = line.strip()
             if not line or line.startswith(';'):
                 continue
-                
+
             # Extract Color Names to map the data columns
             if line.startswith('ColorsNames'):
                 parts = line.split('=')
                 if len(parts) > 1:
                     self.color_names = parts[1].split()
                 continue
-                
+
             if '[VerticesSection]' in line:
                 mode = 'v'
                 continue
@@ -129,9 +129,9 @@ class CartoMap:
                 mode = 'c'
                 continue
             if '[VerticesAttributesSection]' in line:
-                mode = 'a' # Prevent parsing into colors
+                mode = 'a'  # Prevent parsing into colors
                 continue
-            
+
             # Parse data lines
             if '=' in line:
                 parts = line.split('=', 1)
@@ -146,7 +146,7 @@ class CartoMap:
                         elif mode == 'f' and len(vals) >= 3:
                             # Carto files index from 1, Python uses 0-based indexing
                             # Reverse winding to fix normal direction (show outside surface)
-                            faces.append([int(vals[0])-1, int(vals[2])-1, int(vals[1])-1])
+                            faces.append([int(vals[0]) - 1, int(vals[2]) - 1, int(vals[1]) - 1])
                         elif mode == 'c':
                             colors.append([float(v) for v in vals])
                     except (ValueError, IndexError):
@@ -155,11 +155,13 @@ class CartoMap:
         self.mesh_vertices = np.array(vertices)
         self.mesh_triangles = np.array(faces)
         self.mesh_colors = np.array(colors) if colors else None
-        print(f"Mesh loaded: {len(vertices)} vertices, {len(faces)} triangles, {len(self.points)} points, {len(colors)} color entries.")
-        
-        return self.__get_map_data()
+        print(
+            f"Mesh loaded: {len(vertices)} vertices, {len(faces)} triangles, {len(self.points)} points, {len(colors)} color entries."
+        )
 
-    def __points_to_dataframe(self):
+        return self._get_map_data()
+
+    def _points_to_dataframe(self):
         data = []
         for p in self.points:
             pos = p.position
@@ -167,19 +169,20 @@ class CartoMap:
                 'ID': p.id,
                 'X': pos[0] if pos is not None else None,
                 'Y': pos[1] if pos is not None else None,
-                'Z': pos[2] if pos is not None else None
+                'Z': pos[2] if pos is not None else None,
             })
-        return pd.DataFrame(data).dropna(subset=['X', 'Y', 'Z']) # Odrzucamy puste punkty
+        return pd.DataFrame(data).dropna(subset=['X', 'Y', 'Z'])  # Odrzucamy puste punkty
 
-    def __get_map_data(self):
+    def _get_map_data(self):
         """Returns a dictionary with full data (mesh + points)"""
         if self.mesh_vertices is None:
             print("Warning: Mesh not loaded yet. Call load_mesh() first.")
-            
+
         return {
             'vertices': self.mesh_vertices,
             'triangles': self.mesh_triangles,
             'color_names': self.color_names,
             'colors_mesh': self.mesh_colors,
-            'points': self.__points_to_dataframe()
+            'points': self._points_to_dataframe(),
         }
+

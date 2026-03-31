@@ -1,0 +1,79 @@
+{
+    "xml_path": "C:\\Users\\Admin\\Documents\\Projects\\ecg project\\Scripts\\data\\Carto3Data\\Patient 2025_10_20\\VT1\\Export_VT1-02_02_2026-12-24-27\\1-VT_Points_Export.xml",
+    "mesh_path": "C:\\Users\\Admin\\Documents\\Projects\\ecg project\\Scripts\\data\\Carto3Data\\Patient 2025_10_20\\VT1\\Export_VT1-02_02_2026-12-24-27\\1-VT.mesh",
+    "CS_CONNECTOR_Eleclectrode_Positions": [
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2565144.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2567336.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2569420.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2573867.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2574734.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2575117.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_2579324.txt"
+    ],
+    "CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation": [
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2565144.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2569420.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2573867.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2574734.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2575117.txt",
+        "1-VT_CS_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2579324.txt"
+    ],
+    "ECG_Export": [
+        "1-VT_ECG_Export_2565144.txt",
+        "1-VT_ECG_Export_2567336.txt",
+        "1-VT_ECG_Export_2569420.txt",
+        "1-VT_ECG_Export_2573867.txt",
+        "1-VT_ECG_Export_2574734.txt",
+        "1-VT_ECG_Export_2575117.txt",
+        "1-VT_ECG_Export_2579324.txt"
+    ],
+    "MCC_DX_CONNECTOR_Eleclectrode_Positions": [
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2565144.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2567336.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2569420.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2573867.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2574734.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2575117.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_2579324.txt"
+    ],
+    "MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation": [
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2565144.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2567336.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2569420.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2573867.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2574734.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2575117.txt",
+        "1-VT_MCC_DX_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2579324.txt"
+    ],
+    "MCC_DX_CONNECTOR_Sensor_Positions": [
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2565144.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2567336.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2569420.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2573867.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2574734.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2575117.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_2579324.txt"
+    ],
+    "MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation": [
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2565144.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2567336.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2569420.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2573867.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2574734.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2575117.txt",
+        "1-VT_MCC_DX_CONNECTOR_Sensor_Positions_OnAnnotation_2579324.txt"
+    ],
+    "QUAD_A_CONNECTOR_Eleclectrode_Positions": [
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_2569420.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_2573867.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_2574734.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_2575117.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_2579324.txt"
+    ],
+    "QUAD_A_CONNECTOR_Eleclectrode_Positions_OnAnnotation": [
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2569420.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2573867.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2574734.txt",
+        "1-VT_QUAD_A_CONNECTOR_Eleclectrode_Positions_OnAnnotation_2575117.txt"
+    ]
+}
