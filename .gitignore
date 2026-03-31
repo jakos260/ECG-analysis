@@ -2,6 +2,7 @@ data
 Matlab/ecg analysis/local_paths.m
 Python/ecg_project_venv
 __pycache__
+.env
 *.pyc
 *.tri
 *.mat
