@@ -43,7 +43,7 @@ function [tmp, sig_sim] = get_h(p, dep, rep, L, A)
     % mode = 5; param = [theta(1), 0, theta(2), 0, theta(3)];
     % mode = 6; param = [theta(1), 0, theta(2), 0, theta(3)];
     % mode = getsMode.Exp_Spline; param = [0.995, 0, p(1)*2*0.96, p(2)*2, p(3)-0.2];
-    mode = getsMode.Two_dy_Spline; param = [0.995, 0, p(1), p(2), p(3)];
+    mode = getsMode.Two_dv_Spline; param = [0.995, 0, p(1), p(2), p(3)];
 
     T = ones(length(dep),1)*(1:L);
     S = gets(T, dep, rep, param, mode);

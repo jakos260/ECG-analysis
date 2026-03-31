@@ -20,7 +20,7 @@ sig_ref = sig_ref(:, offset:end);
 
 % --- PARAMETERS ---
 params = [0.995, 0, 0.3, 0.13, 0.1];
-mode = getsMode.Exp_Spline;
+mode = getsMode.Two_dv_Spline;
 L = 500;                            % simulation time [ms]
 T = ones(length(dep),1)*(1:L);
 

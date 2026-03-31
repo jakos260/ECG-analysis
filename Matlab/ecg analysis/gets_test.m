@@ -5,7 +5,7 @@
 close all; clear all;
 
 % init model and heart distances
-MODEL = readGeomPeacsModel_prof('./data/BSMUMC048Extended','BSMUMC048Extended');
+MODEL = readGeomPeacsModel_prof(append(DATA_PATH, '/BSMUMC048Extended'),'BSMUMC048Extended');
 HD = MODEL.VENTR.HEARTDIST;
 
 % ECG sim vertexes
@@ -49,7 +49,7 @@ params_to_iterate = {
 };
 [n_rows, ~] = size(params_to_iterate);
 
-mode = getsMode.Two_dy_Spline;
+mode = getsMode.Two_dv_Spline;
 
 for k = 1:n_rows
     ax1 = subplot(2, n_rows, k);
@@ -85,4 +85,4 @@ for k = 1:n_rows
 
 end
 
-sgtitle(sprintf('gets v2 function, mode = %s', mode));
+sgtitle(sprintf('gets v2 function, mode = %s', mode), 'Interpreter', 'none');

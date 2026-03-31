@@ -509,7 +509,7 @@ function S=gets(T,dep,rep,p,mode)
 
     end
 
-    if mode==getsMode.Two_dy_Spline
+    if mode==getsMode.Two_dv_Spline
         % params
         phase0_en = true;
         phase0_fall_value = max(p(3)/5, 0);  % ampl = [1.0 : 0.9) -> p(3) = [-1, 1]

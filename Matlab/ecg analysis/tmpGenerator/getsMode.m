@@ -7,7 +7,7 @@ classdef getsMode
         LinST_rept_ang_dept % -> S=upslope+downslope+linear ST_section | p(rept, st_ang, dept)
         NoReptCorrection    % -> S without rept correction | p(rept, st_ang, dept)
         Exp_Spline          % -> S=uplope + spline
-        Two_dy_Spline       % -> S=spline driven by 2 derivatives
+        Two_dv_Spline       % -> S=spline driven by 2 derivatives
         UpslopeDownslope    % -> S=upslope+downslope
     end
 end
