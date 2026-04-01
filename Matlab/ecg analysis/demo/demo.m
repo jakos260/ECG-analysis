@@ -1,41 +1,51 @@
 close all;
 
-patient = 'normal_young_male'; offset = 169;
+patient = 'normal_young_male'; offset = 169; % cut p-wave
 % patient = 'normal_male'; offset = 1;
 
 % --- DATA LOADING ---
+% DATA_PATH variable have to be defined
 dep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.dep'));
 rep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.rep'));
 
-% A       = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2BSM_(nijmegen_64).mat'));
-% sig_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/BSM_(nijmegen_64).refECG'));
-% sig_ref = sig_ref(:, offset:end);
+% if needed you can also load amplitude scaller [0,1] -> [mV]
+% ampl = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.ampl'));
 
-A       = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2standard_12.mat'));
-sig_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/standard_12.refECG'));
+% Body Surface Mapping signals (64 leads)
+A       = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2BSM_(nijmegen_64).mat'));
+sig_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/BSM_(nijmegen_64).refECG'));
 sig_ref = sig_ref(:, offset:end);
+
+% Standard ECG (12 leads)
+% A       = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2standard_12.mat'));
+% sig_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/standard_12.refECG'));
+% sig_ref = sig_ref(:, offset:end);
 
 [ventri_ver, ventri_tri] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle.tri'));
 
 
 % --- PARAMETERS ---
-params = [0.995, 0, 0.3, 0.13, 0.1];
-mode = getsMode.Two_dv_Spline;
-L = 500;                            % simulation time [ms]
-T = ones(length(dep),1)*(1:L);
+params = [0.995, 0, 0.3, 0.13, 0.1];    % dep_stepest, sep_incl, rep_st_drop, rep_st_1dv, rep_st_2dv
+mode = getsMode.Two_dv_Spline;          % tmp generator's mode
+L = 500;                                % simulation time [ms]
+T = ones(length(dep),1)*(1:L);          % time vector for all nodes
 
-node_idx = 20;
-lead_idx = 8;
-lead_names = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"];
+node_idx = 10;                          % node (of ventricle model) to plot
+lead_idx = 8;                           % lead number to plot
+lead_names = [
+    "I", "II", "III", ...
+    "aVR", "aVL", "aVF", ...
+    "V1", "V2", "V3", ...
+    "V4", "V5", "V6"];                  % use to decode standard 12 ecg leads
 
 % --- S GENERATING ---
 S = gets(T, dep, rep, params, mode);
 sig_sim = A * S;
-rep_sim = first_crossing_thr(S,0.5,false);
+rep_sim = first_crossing_thr(S,0.5,false); % returns a vector of indices of the first downward 0.5 crossing for each node
 
 
 % --- DATA PLOT ---
-fig = figure('Name', 'TMP demo', 'Position', [100, 100, 1200, 700]);
+fig = figure('Name', 'TMP demo', 'Position', [100, 100, 800, 500]);
 
 subplot(1, 2, 1);
 plot(1:L, S(node_idx, :), 'k', 'LineWidth', 1.5);
@@ -52,7 +62,7 @@ plot(1:L, sig_sim(lead_idx, 1:L), 'g', 'LineWidth', 1.5);
 hold on
 plot(1:L, sig_ref(lead_idx, 1:L), 'k', 'LineWidth', 0.75);
 % yline(0, '--', 'Color', [0.5 0.5 0.5], 'LineWidth', 1); 
-title(sprintf('sim&ref ECG - %s', lead_names(lead_idx)));
+title(sprintf('sim&ref ECG - %d', lead_idx)); % lead_names(lead_idx) for standard 12 ecg
 xlabel('time [ms]');
 ylabel('Ampl [mV]');
 legend("ECG sim", "ECG ref");
