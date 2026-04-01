@@ -1,8 +1,8 @@
-function q = initQtripy()
-    insert(py.sys.path, int32(0), 'C:\Users\Admin\Documents\Projects\ecg project\Scripts\Python\qtripy');
+function q = initQtripy(qtripy_path, qtriplot_exe_path)
+    insert(py.sys.path, int32(0), qtripy_path);
     py.importlib.import_module('qtripy')
     
-    q = py.qtripy.QTripy('C:\Program Files\qtriplot\qtriplot.exe');
+    q = py.qtripy.QTripy(qtriplot_exe_path); 
     q.begin(int32(1041));
     q.reset();
 end

@@ -70,8 +70,11 @@ xline(dep(node_idx), 'r--', 'HandleVisibility', 'off');
 xline(rep(node_idx), 'b--', 'HandleVisibility', 'off');
 grid on;
 
-% --- 3D VISUALIZATION ---
-q = initQtripy();
+% --- QTRIPLOT 3D VISUALIZATION ---
+qtriplot_exe_path = 'path\to\qtriplot.exe';
+qtripy_path = 'path\to\Python\qtripy';
+
+q = initQtripy(qtripy_path, qtriplot_exe_path);
 q.reset();
 q.disable_debounce();
 q.set_panels_number(2, 1);
