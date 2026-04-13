@@ -60,7 +60,6 @@ class QTripy(QTripyCmd):
         self.minmax_values = None
         self.min_time_before_next_cmd = 0.0  # debouncing: minimum time between surface/values commands in seconds
         self.last_cmd_time = 0.0  # timestamp of the last surface/values command
-        self.max_distance = None  # clean/cutoff mesh outside this radius
 
     def __start_qtriplot(self, port):
         for host in ["127.0.0.1", "::1", "localhost"]:
@@ -136,7 +135,7 @@ class QTripy(QTripyCmd):
         P = np.asarray(pos, dtype=float).reshape(1, 3)
         verts = VER * float(r) + P
 
-        self.surface(verts.astype(np.float64), ITRI.astype(np.int32), name=name, apply_max_distance=True)
+        self.surface(verts.astype(np.float64), ITRI.astype(np.int32), name=name)
 
         if set_color:
             self.cmd(f"color {color}")
@@ -165,19 +164,6 @@ class QTripy(QTripyCmd):
             if len(names) != len(positions):
                 raise ValueError("names must have same length as positions")
 
-        if self.max_distance is not None:
-            maxd = float(self.max_distance)
-            filtered = []
-            filtered_names = []
-            for i, pos in enumerate(positions):
-                pos = np.asarray(pos, dtype=float)
-                if np.linalg.norm(pos) <= maxd:
-                    filtered.append(pos)
-                    if names is not None:
-                        filtered_names.append(names[i])
-            positions = filtered
-            names = filtered_names if names is not None else None
-
         if combine and positions:
             vertices_list = []
             triangles_list = []
@@ -189,7 +175,7 @@ class QTripy(QTripyCmd):
                 triangles_list.append(ITRI)
 
             # one combined surface command
-            self.surface(vertices_list, triangles_list, name=name, apply_max_distance=True)
+            self.surface(vertices_list, triangles_list, name=name)
             self.cmd(f"color {color}")
 
         else:
@@ -224,7 +210,7 @@ class QTripy(QTripyCmd):
         all_tris = np.vstack(t_acc) if t_acc else np.empty((0, 3), dtype=int)
         return all_verts, all_tris
 
-    def surface(self, vertices, triangles, name=None, enable_print=False, set_max_distance=None, apply_max_distance=False):
+    def surface(self, vertices, triangles, name=None, enable_print=False, color=None, opacity=None):
         # Accept either a single mesh or lists of meshes
         if isinstance(vertices, (list, tuple)) and isinstance(triangles, (list, tuple)):
             vertices, triangles = self._combine_meshes(vertices, triangles)
@@ -233,35 +219,6 @@ class QTripy(QTripyCmd):
         vertices = np.asarray(vertices, dtype=float)
         triangles = np.asarray(triangles, dtype=int)
 
-        if set_max_distance is not None:
-            if isinstance(set_max_distance, bool) and set_max_distance is True:
-                # auto compute from current mesh distance
-                if vertices.size > 0:
-                    self.max_distance = float(np.max(vertices)) * 1.1  # add 10% margin
-                else:
-                    self.max_distance = None
-            elif isinstance(set_max_distance, (int, float)):
-                self.max_distance = float(set_max_distance)
-            else:
-                raise ValueError("set_max_distance must be numeric, bool True (auto) or None")
-
-        if apply_max_distance and self.max_distance is not None:
-            if vertices.size > 0 and triangles.size > 0:
-                dists = np.linalg.norm(vertices, axis=1)
-                mask = dists <= float(self.max_distance)
-                keep_idx = np.nonzero(mask)[0]
-                if keep_idx.size == 0:
-                    if enable_print:
-                        print(f"Surface: no vertices within max_distance={self.max_distance}")
-                    return
-
-                idx_map = np.full(vertices.shape[0], -1, dtype=int)
-                idx_map[keep_idx] = np.arange(keep_idx.shape[0], dtype=int)
-
-                new_triangles = idx_map[triangles]
-                valid_tri_mask = np.all(new_triangles >= 0, axis=1)
-                triangles = new_triangles[valid_tri_mask]
-                vertices = vertices[keep_idx]
         # Check debouncing
         if self.__should_debounce_cmd():
             return
@@ -289,6 +246,10 @@ class QTripy(QTripyCmd):
         self.socket.sendall(tri_data)
         if enable_print:
             print(f"Surface: {nver} verts, {ntri} tris")
+        if opacity is not None:
+            self.transparency(opacity)
+        if color:
+            self.cmd(f"color {color}")
 
 
     def values(self, fun, name='', vmin=None, vmax=None):
@@ -367,14 +328,6 @@ class QTripy(QTripyCmd):
         # ensure active panel is set after sending values
         self.__set_active_panel()
 
-
-    def set_max_distance(self, max_distance):
-        """Set per-object maximum distance from origin for surface vertices."""
-        self.max_distance = None if max_distance is None else float(max_distance)
-
-    def get_max_distance(self):
-        """Return the current max_distance cutoff."""
-        return self.max_distance
 
     def gradient_bins(self, bins):
         if bins < 1:
@@ -604,6 +557,45 @@ class QTripy(QTripyCmd):
             self.socket = None
             print("Connection closed.")
 
+    def axis(self, x_len=10.0, y_len=25.0, z_len=50.0, radius=1.0, segments=32, offset=(0.0, -100.0, -50.0)):
+        """Create and display three positive-axis cylinders (X, Y, Z).
+
+        The cylinders are aligned with the positive X, Y and Z axes, all
+        starting at the origin and extending in the positive direction.
+
+        Args:
+            x_len: length of the cylinder along the X axis.
+            y_len: length of the cylinder along the Y axis.
+            z_len: length of the cylinder along the Z axis.
+            radius: radius of all cylinders.
+            segments: number of radial subdivisions for each cylinder.
+            offset: 3D offset added to all cylinder vertices.
+        """
+        offset = np.asarray(offset, dtype=float)
+        if offset.shape != (3,):
+            raise ValueError('offset must be a 3-element vector')
+
+        # Create cylinders along each axis
+        # Cylinders start at origin and extend in positive direction
+        axes_config = [
+            (x_len, (1.0, 0.0, 0.0), (x_len / 2.0, 0.0, 0.0), 'x-axis'),
+            (y_len, (0.0, 1.0, 0.0), (0.0, y_len / 2.0, 0.0), 'y-axis'),
+            (z_len, (0.0, 0.0, 1.0), (0.0, 0.0, z_len / 2.0), 'z-axis'),
+        ]
+
+        for length, axis_vec, pos_offset, name in axes_config:
+            verts, tris, _ = self.__make_cylinder(
+                length=float(length),
+                radius=float(radius),
+                nseg=int(segments),
+                nlen=1,
+                axis=axis_vec,
+                cap_ends=True
+            )
+            # Shift cylinder from centered to positive direction, then apply user offset
+            verts = verts + np.asarray(pos_offset, dtype=float) + offset
+            self.surface(verts.astype(np.float64), tris.astype(np.int32), name=name)
+            self.cmd(f"color black")
 
     def clear(self, enable_print=False):
         """

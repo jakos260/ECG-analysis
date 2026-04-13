@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))                         # add helpers
 from qtripy.qtripy import QTripy
+from qtripy.readECGsim import read_ecg_sim
 from carto3reader.CartoMap import CartoMap
 
 load_dotenv()
@@ -39,14 +40,14 @@ color_names = data['color_names']
 
 
 # Drop columns with zero standard deviation
-if colors_mesh is not None and color_names:
-    valid_indices = np.min(colors_mesh, axis=0) != np.max(colors_mesh, axis=0)
-    colors_mesh = colors_mesh[:, valid_indices]
-    color_names = [name for name, valid in zip(color_names, valid_indices) if valid]
-
 def choose_color_type(color_names, default='Unipolar'):
     if not color_names:
         return None
+    
+    if colors_mesh is not None and color_names:
+        valid_indices = np.min(colors_mesh, axis=0) != np.max(colors_mesh, axis=0)
+        colors_mesh = colors_mesh[:, valid_indices]
+        color_names = [name for name, valid in zip(color_names, valid_indices) if valid]
 
     print("Available colorings:")
     for i, name in enumerate(color_names, start=1):
@@ -60,7 +61,8 @@ def choose_color_type(color_names, default='Unipolar'):
         import msvcrt
         print("Press number key or Enter to select default.")
         while True:
-            ch = msvcrt.getwch()
+            # ch = msvcrt.getwch()
+            ch = '1'
             if ch in ('\r', '\n'):
                 return default if default in color_names else color_names[0]
             if ch.isdigit():
@@ -83,25 +85,44 @@ def choose_color_type(color_names, default='Unipolar'):
         return default if default in color_names else color_names[0]
 
 
-map_type = choose_color_type(color_names, default='Unipolar')
+# map_type = choose_color_type(color_names, default='Unipolar')
+map_type = color_names[0]
 mesh = colors_mesh[:, color_names.index(map_type)] if (map_type is not None and map_type in color_names) else None
+
+# read Heart model
+heart_data = read_ecg_sim(os.path.join(data_path, "ECGsim_data", "normal_young_male"))
+ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
+rcav_ver, rcav_tri = heart_data['GEOM']['rcav']['VER'], heart_data['GEOM']['rcav']['ITRI']
+lcav_ver, lcav_tri = heart_data['GEOM']['lcav']['VER'], heart_data['GEOM']['lcav']['ITRI']
+
 
 q = QTripy()
 q.begin()
 q.reset()
 # q.set_panels_number(2,1)
-q.surface(v, t, set_max_distance=True)
-q.transparency(0.5)
+# q.surface(
+#     carto_map.modify(v,
+#                      rotate=(0, 90, 180),
+#                      translate=(170, -70, 80),
+#                      scale=1.0),
+#                      t)
+q.surface(v, t)
+q.transparency(0.7)
 q.values(mesh)
 q.gradient_bins(10)
+q.axis()
+
+q.surface(ventricles_ver, ventriclec_tri)
+q.transparency(0.4)
+q.surface(lcav_ver, lcav_tri)
+q.transparency(0.4)
+q.surface(rcav_ver, rcav_tri)
+q.transparency(0.4)
+
 
 # q.set_active_panel(2,1)
 # q.surface(v, t)
 # q.transparency(0.3)
-
-q.property_on_mouse_click('coor')
-q.text(f"Carto3Data {measurement_name} - {map_type}", pos=(0.15, 0.95))
-# q.background_color("white")
 
 cs_points = [(cs[lead_key][0][1], cs[lead_key][0][2], cs[lead_key][0][3]) for lead_key in cs.keys()]
 mc_points = [(mc[lead_key][0][1], mc[lead_key][0][2], mc[lead_key][0][3]) for lead_key in mc.keys()]
@@ -110,6 +131,10 @@ qd_points = [(qd[lead_key][0][1], qd[lead_key][0][2], qd[lead_key][0][3]) for le
 q.markers(cs_points, color='red', r=1)
 q.markers(mc_points, color='blue', r=1)
 q.markers(qd_points, color='green', r=1)
+
+q.property_on_mouse_click('coor')
+q.text(f"Carto3Data {measurement_name} - {map_type}", pos=(0.15, 0.95))
+# q.background_color("white")
 
 
 # carto_map.ecg_reader.plot()  # Plot ECG data if available

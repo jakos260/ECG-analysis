@@ -80,6 +80,8 @@ class CartoMapModel:
 
         self.mesh_colors = None
         self.color_names = []
+        
+        self.max_distance = None  # threshold for filtering vertices
 
     def _load_master(self):
         tree = ET.parse(self.master_xml)
@@ -186,6 +188,118 @@ class CartoMapModel:
             'colors_mesh': self.mesh_colors,
             'points': self._points_to_dataframe(),
         }
+
+    def modify_model(self, mesh_data, rotate=(0.0, 0.0, 0.0), translate=(0.0, 0.0, 0.0), scale=1.0):
+        """Return modified mesh vertices or modified mesh data.
+
+        The method applies scaling, rotation (degrees around X/Y/Z axes), and
+        translation to the mesh vertices. If max_distance threshold is set,
+        vertices beyond that distance are filtered out.
+
+        Args:
+            mesh_data: either a dict returned by load_mesh() containing
+                'vertices', or a plain (N, 3) vertices array-like.
+            rotate: angles in degrees as (rx, ry, rz).
+            translate: offset vector as (dx, dy, dz).
+            scale: uniform scale or 3-element scale factors.
+
+        Returns:
+            If input is a dict, returns a new dict with transformed 'vertices'
+            (and filtered if max_distance is set).
+            If input is an array-like vertices list, returns transformed
+            vertices as an np.ndarray of shape (N, 3) (filtered if max_distance is set).
+        """
+        if isinstance(mesh_data, dict):
+            if 'vertices' not in mesh_data:
+                raise ValueError('mesh_data dict must contain "vertices"')
+            vertices = np.asarray(mesh_data['vertices'], dtype=np.float64)
+            is_dict_input = True
+        else:
+            vertices = np.asarray(mesh_data, dtype=np.float64)
+            is_dict_input = False
+
+        if vertices.ndim != 2 or vertices.shape[1] != 3:
+            raise ValueError('mesh_data must contain an (N, 3) vertices array')
+
+        scale_arr = np.asarray(scale, dtype=np.float64)
+        if scale_arr.ndim == 0:
+            scale_arr = np.full(3, scale_arr)
+        elif scale_arr.shape != (3,):
+            raise ValueError('scale must be a scalar or a 3-element vector')
+
+        vertices = vertices * scale_arr
+
+        rotate_arr = np.asarray(rotate, dtype=np.float64)
+        if rotate_arr.shape != (3,):
+            raise ValueError('rotate must be a 3-element vector of degrees')
+
+        rx, ry, rz = np.deg2rad(rotate_arr)
+        cosx, sinx = np.cos(rx), np.sin(rx)
+        cosy, siny = np.cos(ry), np.sin(ry)
+        cosz, sinz = np.cos(rz), np.sin(rz)
+
+        rx_mat = np.array([[1.0, 0.0, 0.0],
+                           [0.0, cosx, -sinx],
+                           [0.0, sinx, cosx]], dtype=np.float64)
+        ry_mat = np.array([[cosy, 0.0, siny],
+                           [0.0, 1.0, 0.0],
+                           [-siny, 0.0, cosy]], dtype=np.float64)
+        rz_mat = np.array([[cosz, -sinz, 0.0],
+                           [sinz, cosz, 0.0],
+                           [0.0, 0.0, 1.0]], dtype=np.float64)
+
+        vertices = vertices @ rx_mat.T
+        vertices = vertices @ ry_mat.T
+        vertices = vertices @ rz_mat.T
+
+        translate_arr = np.asarray(translate, dtype=np.float64)
+        if translate_arr.shape != (3,):
+            raise ValueError('translate must be a 3-element vector')
+
+        vertices = vertices + translate_arr
+
+        # Apply max_distance filtering if threshold is set
+        if self.max_distance is not None and vertices.size > 0:
+            dists = np.linalg.norm(vertices, axis=1)
+            keep_mask = dists <= float(self.max_distance)
+            vertices = vertices[keep_mask]
+            
+            # If dict input with triangles, filter triangles too
+            if is_dict_input and 'triangles' in mesh_data:
+                triangles = np.asarray(mesh_data['triangles'], dtype=np.int32)
+                keep_indices = np.where(keep_mask)[0]
+                idx_map = np.full(mesh_data['vertices'].shape[0], -1, dtype=int)
+                idx_map[keep_indices] = np.arange(len(keep_indices), dtype=int)
+                
+                new_triangles = idx_map[triangles]
+                valid_tri_mask = np.all(new_triangles >= 0, axis=1)
+                triangles = new_triangles[valid_tri_mask]
+                
+                modified = mesh_data.copy()
+                modified['vertices'] = vertices
+                modified['triangles'] = triangles
+                return modified
+
+        if is_dict_input:
+            modified = mesh_data.copy()
+            modified['vertices'] = vertices
+            return modified
+        return vertices
+
+    def setMaxDistance(self, max_distance):
+        """Set the maximum distance threshold for filtering vertices.
+        
+        When set to a positive value, vertices further than this distance from
+        the origin will be filtered out during modify() operations. Pass None
+        to disable filtering.
+        
+        Args:
+            max_distance: numeric threshold or None to disable filtering.
+        """
+        if max_distance is None:
+            self.max_distance = None
+        else:
+            self.max_distance = float(max_distance)
 
     def get_electrode_types(self):
         """Return available electrode types detected from file_paths."""
