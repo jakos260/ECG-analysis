@@ -82,9 +82,8 @@ q.set_panels_number(2, 1);
 % reference repolarisation time
 q.set_active_panel(2, 1);
 q.marker(ventri_ver(node_idx, :), 'red', 5);
-q.surface(ventri_ver, ventri_tri);
-q.transparency(0.3);
-q.values(rep);
+qtriplot(ventri_ver, ventri_tri);
+qtriplot(rep);
 q.gradient_bins(10);
 q.text("reference rep", [0.6, 0.85]);
 
