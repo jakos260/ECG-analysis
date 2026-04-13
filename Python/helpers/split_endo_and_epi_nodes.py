@@ -1,23 +1,15 @@
-import os, sys
-import itertools
+from enum import Enum
+
 import numpy as np
-import xml.etree.ElementTree as ET
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 
-from pathlib import Path
-from dotenv import load_dotenv
 
-root_path = Path(__file__).resolve().parent.parent
-sys.path.append(str(root_path))                         # add helpers
-from qtripy.qtripy import QTripy
-from qtripy.readECGsim import read_ecg_sim
-from helpers.save_tri_file import save_tri_file
+class SplitingMethod(Enum):
+    SPLIT_BY_DISTANCE = 1
+    SPLIT_BY_DISTANCE_WITH_COMPONENT_CLEANUP = 2
 
 
 def split_vertices_by_distance(vertices, triangles, rcav_ver, lcav_ver, threshold=2.0):
-    """Old vertex-based split: classify vertices by distance to cavity points."""
+    """Split vertices by distance to cavity points."""
     vertices = np.asarray(vertices, dtype=float)
     rcav_ver = np.asarray(rcav_ver, dtype=float)
     lcav_ver = np.asarray(lcav_ver, dtype=float)
@@ -29,7 +21,9 @@ def split_vertices_by_distance(vertices, triangles, rcav_ver, lcav_ver, threshol
     endo_tmp = []
 
     for i, ver in enumerate(vertices):
-        if np.any(np.sum((rcav_ver - ver) ** 2, axis=1) < threshold_sq) or np.any(np.sum((lcav_ver - ver) ** 2, axis=1) < threshold_sq):
+        if np.any(np.sum((rcav_ver - ver) ** 2, axis=1) < threshold_sq) or np.any(
+            np.sum((lcav_ver - ver) ** 2, axis=1) < threshold_sq
+        ):
             endocardium_ver.append(ver)
             endo_tmp.append(i)
         else:
@@ -50,8 +44,10 @@ def split_vertices_by_distance(vertices, triangles, rcav_ver, lcav_ver, threshol
     return (
         np.asarray(epicardium_ver, dtype=float),
         np.asarray(epicardium_tri, dtype=int),
+        np.asarray(epi_tmp, dtype=int) + 1,
         np.asarray(endocardium_ver, dtype=float),
         np.asarray(endocardium_tri, dtype=int),
+        np.asarray(endo_tmp, dtype=int) + 1,
     )
 
 
@@ -120,7 +116,7 @@ def min_distance_sq_to_triangle_mesh(point, triangle_mesh):
 
 
 def split_vertices_by_surface(vertices, triangles, rcav_ver, rcav_tri, lcav_ver, lcav_tri, threshold=2.0):
-    """New method: classify vertices by distance to cavity surfaces (triangle mesh)."""
+    """Classify vertices by distance to cavity surface triangles."""
     vertices = np.asarray(vertices, dtype=float)
     rcav_ver = np.asarray(rcav_ver, dtype=float)
     lcav_ver = np.asarray(lcav_ver, dtype=float)
@@ -160,8 +156,10 @@ def split_vertices_by_surface(vertices, triangles, rcav_ver, rcav_tri, lcav_ver,
     return (
         np.asarray(epicardium_ver, dtype=float),
         np.asarray(epicardium_tri, dtype=int),
+        np.asarray(epi_tmp, dtype=int) + 1,
         np.asarray(endocardium_ver, dtype=float),
         np.asarray(endocardium_tri, dtype=int),
+        np.asarray(endo_tmp, dtype=int) + 1,
     )
 
 
@@ -222,7 +220,9 @@ def split_vertices_by_distance_with_component_cleanup(
     threshold_sq = threshold * threshold
     vertex_labels = np.zeros(len(vertices), dtype=int)
     for i, ver in enumerate(vertices):
-        if np.any(np.sum((rcav_ver - ver) ** 2, axis=1) < threshold_sq) or np.any(np.sum((lcav_ver - ver) ** 2, axis=1) < threshold_sq):
+        if np.any(np.sum((rcav_ver - ver) ** 2, axis=1) < threshold_sq) or np.any(
+            np.sum((lcav_ver - ver) ** 2, axis=1) < threshold_sq
+        ):
             vertex_labels[i] = 1
 
     triangle_group = np.empty(len(triangles), dtype=int)
@@ -297,69 +297,32 @@ def split_vertices_by_distance_with_component_cleanup(
     def _collect_group(group_id):
         mask = triangle_group == group_id
         if not np.any(mask):
-            return np.zeros((0, 3), dtype=float), np.zeros((0, 3), dtype=int)
+            return np.zeros((0, 3), dtype=float), np.zeros((0, 3), dtype=int), np.zeros((0,), dtype=int)
 
         group_tri = triangles[mask]
         used_vertices = np.unique(group_tri.ravel())
         vertex_map = {old_idx: new_idx for new_idx, old_idx in enumerate(used_vertices)}
         group_ver = vertices[used_vertices]
         group_tri = np.array([[vertex_map[idx] for idx in tri] for tri in group_tri], dtype=int)
-        return group_ver, group_tri
+        return group_ver, group_tri, used_vertices + 1
 
-    epicardium_ver, epicardium_tri = _collect_group(0)
-    endocardium_ver, endocardium_tri = _collect_group(1)
-    return epicardium_ver, epicardium_tri, endocardium_ver, endocardium_tri
+    epicardium_ver, epicardium_tri, epicardium_ids = _collect_group(0)
+    endocardium_ver, endocardium_tri, endocardium_ids = _collect_group(1)
+    return epicardium_ver, epicardium_tri, epicardium_ids, endocardium_ver, endocardium_tri, endocardium_ids
 
 
-load_dotenv()
-data_path = Path(os.getenv("ENV_DATA_PATH")).resolve()
-sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_male")
-
-heart_data = read_ecg_sim(sample_data_path)
-ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
-rcav_ver, rcav_tri = heart_data['GEOM']['rcav']['VER'], heart_data['GEOM']['rcav']['ITRI']
-lcav_ver, lcav_tri = heart_data['GEOM']['lcav']['VER'], heart_data['GEOM']['lcav']['ITRI']
-
-# Old approach is preserved for reference.
-# epicardium_ver, epicardium_tri, endocardium_ver, endocardium_tri = split_vertices_by_distance(
-#     ventricles_ver, ventriclec_tri, rcav_ver, lcav_ver, threshold=2.0)
-
-# New method: initial distance split plus cleanup of small disconnected triangle groups.
-epicardium_ver, epicardium_tri, endocardium_ver, endocardium_tri = split_vertices_by_distance_with_component_cleanup(
-    ventricles_ver,
-    ventriclec_tri,
+def split(
+    vertices,
+    triangles,
     rcav_ver,
     lcav_ver,
-    threshold=2.0,
-    min_component_triangles=40,
-    min_component_share=0.005,
-    rcav_tri=rcav_tri,
-    lcav_tri=lcav_tri,
-)
-
-print(f"{max(endocardium_tri.flatten())=} {min(endocardium_tri.flatten())=} {endocardium_ver.shape=}")
-print(f"{max(epicardium_tri.flatten())=} {min(epicardium_tri.flatten())=} {epicardium_ver.shape=}")
-
-save_tri_file(os.path.join(sample_data_path, "model/ventricle_endo.tri"), endocardium_ver, endocardium_tri)
-save_tri_file(os.path.join(sample_data_path, "model/ventricle_epi.tri"), epicardium_ver, epicardium_tri)
-
-q = QTripy()
-q.begin()
-q.reset()
-
-q.markers(endocardium_ver, color='blue', r=1)
-q.surface(endocardium_ver, endocardium_tri, color='blue')
-q.edge('y')
-
-q.markers(epicardium_ver, color='red', r=1)
-q.surface(epicardium_ver, epicardium_tri, color='red', opacity=0.5)
-q.edge('y')
-
-# q.markers(lcav_ver, color='black', r=1)
-# q.markers(rcav_ver, color='black', r=1)
-# q.marker(np.mean(ventricles_ver, axis=0), 'white', 5)
-
-q.text("Epi and Endo split", pos=(0.25, 0.95))
-
-input("Press Enter to close QTriplot...")
-q.close()
+    method=SplitingMethod.SPLIT_BY_DISTANCE_WITH_COMPONENT_CLEANUP,
+    **kwargs,
+):
+    if method == SplitingMethod.SPLIT_BY_DISTANCE:
+        return split_vertices_by_distance(vertices, triangles, rcav_ver, lcav_ver, **kwargs)
+    if method == SplitingMethod.SPLIT_BY_DISTANCE_WITH_COMPONENT_CLEANUP:
+        return split_vertices_by_distance_with_component_cleanup(
+            vertices, triangles, rcav_ver, lcav_ver, **kwargs
+        )
+    raise ValueError(f"Unsupported splitting method: {method}")
