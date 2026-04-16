@@ -71,19 +71,18 @@ xline(rep(node_idx), 'b--', 'HandleVisibility', 'off');
 grid on;
 
 % --- QTRIPLOT 3D VISUALIZATION ---
-qtriplot_exe_path = 'path\to\qtriplot.exe';
-qtripy_path = 'path\to\Python\qtripy';
+% qtriplot_exe_path = 'path\to\qtriplot.exe';
+% qtripy_path = 'path\to\Python\qtripy';
 
 q = initQtripy(qtripy_path, qtriplot_exe_path);
-q.reset();
 q.disable_debounce();
 q.set_panels_number(2, 1);
 
 % reference repolarisation time
 q.set_active_panel(2, 1);
 q.marker(ventri_ver(node_idx, :), 'red', 5);
-qtriplot(ventri_ver, ventri_tri);
-qtriplot(rep);
+q.surface(ventri_ver, ventri_tri);
+q.values(rep);
 q.gradient_bins(10);
 q.text("reference rep", [0.6, 0.85]);
 

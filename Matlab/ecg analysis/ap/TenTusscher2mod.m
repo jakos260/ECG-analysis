@@ -1,4 +1,4 @@
-function [t,V]=TenTusscher2mod(Stim_I, Stim_T, Stim_Int, CT, phases_mod)
+function [t,V]=TenTusscher2mod(HT, STOPTIME, CT, phases_mod)
 %% TENTUSSCHER2
 %     Ten Tusscher model, 2nd version, described in the article: KHWJ ten
 %     Tusscher and AV Panfilov, "Alternans and spiral breakup in a human
@@ -12,13 +12,10 @@ function [t,V]=TenTusscher2mod(Stim_I, Stim_T, Stim_Int, CT, phases_mod)
 %     Ten Tusscher's website: http://www-binf.bio.uu.nl/khwjtuss/
 %
 % INPUT VARIABLES
-%     Stim_I   : Array with the stimulus strengths of monophasic square
-%                stimulus pulses (A/F). One entry per pulse.
-%     Stim_T   : Array with the respective pulse durations (ms)
-%     Stim_Int : Array with interpulse intervals (ms). The interpulse
-%                interval is the interval after the start of a pulse to the
-%                start of the next pulse or to the end of the simulation.
-%     CT       : Cell type: 1=epicardial, 2=mid-myocardial, 3=endocardial
+%       HT          : Step time [ms]
+%       STOPTIME    : Length of simulation [ms]   
+%       CT          : Cell type: 1=epicardial, 2=mid-myocardial, 3=endocardial
+%       phase_mod   : Array of 3 factors modifing 3 phases currents
 %
 % OUTPUT VARIABLES
 %     t : Array of M points in time for each sample.
@@ -34,6 +31,11 @@ function [t,V]=TenTusscher2mod(Stim_I, Stim_T, Stim_Int, CT, phases_mod)
 %     Aalborg University
 %     Denmark
 %
+
+%% Default Single Stimulus Parameters
+Stim_I   = -24;  % Stimulus strength (A/F)
+Stim_T   = 1;    % Pulse duration (ms)
+Stim_Int = 10;   % Delay before the pulse starts (ms)
 
 %% Flag to choose type of cell
 switch CT
@@ -138,8 +140,8 @@ sOO    = 0.0;
 
 %% Integration parameters
 
-HT = 0.02;                       % timestep (ms)
-STOPTIME = 1000 + sum(Stim_Int); % Duration of the simulation (ms)
+% HT = 0.1;                       % timestep (ms)
+% STOPTIME = 500; % Duration of the simulation (ms)
 
 % End of Integration parameters
 
