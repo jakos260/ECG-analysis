@@ -343,6 +343,8 @@ class QTripy(QTripyCmd):
             horizontal: horizontal panel index (1-based)
             vertical: vertical panel index (1-based)
         """
+        horizontal = int(horizontal)
+        vertical = int(vertical)    
         self.active_panel = (min(horizontal, self.panels[0]), min(vertical, self.panels[1]))
 
     def __set_active_panel(self):
@@ -357,10 +359,10 @@ class QTripy(QTripyCmd):
             horizontal: number of horizontal panels (default 1)
             vertical: number of vertical panels (default 1)
         """
-        self.panels = (horizontal, vertical)
+        self.panels = (int(horizontal), int(vertical))
         if self.socket:
-            self.cmd(f'horizontal {horizontal}')
-            self.cmd(f'vertical {vertical}')
+            self.cmd(f'horizontal {self.panels[0]}')
+            self.cmd(f'vertical {self.panels[1]}')
 
     def __reset_panels(self):
         """
