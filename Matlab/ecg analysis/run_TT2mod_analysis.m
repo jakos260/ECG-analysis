@@ -1,3 +1,5 @@
+
+
 close all
 
 % time setup
@@ -31,6 +33,7 @@ TMP_ref = zeros(N_nodes, STOPTIME/HT);
 T_mapped = zeros(N_nodes, STOPTIME/HT);
 ECG = zeros(9, 3, 12, STOPTIME/HT);
 
+% treshold to calculate time points of depolarization and repolarization
 threshold = -40; % [mV]
 
 name = ["epicardium", "global", "endocardium"];
@@ -38,6 +41,7 @@ name = ["epicardium", "global", "endocardium"];
 mask_ep = (CT == 1);
 mask_ed = (CT == 3);
 
+% phases currents modification (x rows for x phases)
 phases_mod = [
     0 1 2;
     0.8 1 1.2;
@@ -51,9 +55,10 @@ combinations = [X(:), Y(:)];
 RMSE = zeros(3, size(phases_mod,1), size(phases_mod,2));
 CORR = zeros(3, size(phases_mod,1), size(phases_mod,2), 12);
 RD = zeros(3, size(phases_mod,1), size(phases_mod,2), 12);
-% 1.d = epi, global, endo
-% 2.d = phase number
-% 3.d = factor number
+% matrixes to store results:
+% 1. dim = epi, global, endo
+% 2. dim = phase number
+% 3. dim = factor number
 
 find_fiducials = @(t, V) deal(...
     t(find(V >= threshold, 1, 'first')), ... % depolarization time
@@ -61,7 +66,7 @@ find_fiducials = @(t, V) deal(...
 );
 
 
-
+% getting reference signals (without modification)
 [t_tmpl_epi, V_tmpl_epi] = TenTusscher2mod(HT, STOPTIME, 1, [1 1 1]);
 [t_dep_epi, t_rep_epi] = find_fiducials(t_tmpl_epi, V_tmpl_epi);
 [t_tmpl_endo, V_tmpl_endo] = TenTusscher2mod(HT, STOPTIME, 3, [1 1 1]);
@@ -81,10 +86,11 @@ for i = 1:N_nodes
     dep_i = dep(i);
     rep_i = rep(i);
 
+    % reference AP are interpolated that dep and rep times fit measured
     scale = (t_rep - t_dep) / (rep_i - dep_i);
     shift = t_dep - scale * dep_i;
     t_mapped = scale * t_tmpl + shift;
-
+    
     TMP_ref(i, :) = interp1(t_tmpl, V_tmpl, t_mapped, 'linear', 'extrap');
     T_mapped(i, :) = t_mapped(:);
 end
@@ -92,7 +98,7 @@ sig_ref = A * TMP_ref;
 
     
 for t = 1:3 % type to modification epi, global, endo
-    for c=1:size(combinations,1)
+    for c=1:size(combinations,1) % combinatins of modified parameters
         phase_factor_n = combinations(c,1);
         phase_n = combinations(c,2);
     
@@ -104,13 +110,16 @@ for t = 1:3 % type to modification epi, global, endo
         [t_tmpl_endo_mod, V_tmpl_endo_mod] = TenTusscher2mod(HT, STOPTIME, 3, params);
         [t_dep_endo_mod, t_rep_endo_mod] = find_fiducials(t_tmpl_endo_mod, V_tmpl_endo_mod);
         
+        % progressbar
         printProgress((t-1) * size(combinations,1) + c, 3*size(combinations,1), sprintf("mod %s params: %.1f %.1f %.1f", name(t), params(1), params(2), params(3)))
-        % fprintf("%d %d %d\n", t, phase_n, phase_factor_n);
     
         for i = 1:N_nodes
+            % check if curren node's tissue is modified:
+            % t==2  -> global params modifiaction
+            % t==CT -> current CellType params modification
             is_modified = (t == 2) || (t == 1 && CT(i) == 1) || (t == 3 && CT(i) == 3);
             if is_modified
-                % Wybór odpowiedniego template'u dla MODYFIKOWANYCH na podstawie CT
+                % Selecting the appropriate AP template for MODIFIED based on CT
                 if CT(i) == 1
                     t_tmpl = t_tmpl_epi_mod; V_tmpl = V_tmpl_epi_mod;
                 elseif CT(i) == 3
@@ -122,7 +131,7 @@ for t = 1:3 % type to modification epi, global, endo
                 t_mapped = T_mapped(i, :);        
                 result_V_tmpl = interp1(t_tmpl, V_tmpl, t_mapped, 'linear', 'extrap');
             else
-                % Wybór odpowiedniego template'u dla NIEMODYFIKOWANYCH na podstawie CT
+                % Selecting the appropriate AP template for UNMODIFIED based on CT
                 result_V_tmpl = TMP_ref(i, :);
             end
             TMP_matrix(i, :) = result_V_tmpl;
@@ -135,12 +144,14 @@ for t = 1:3 % type to modification epi, global, endo
             CORR(t, phase_factor_n, phase_n, j) = r(1,2);
             RD(t, phase_factor_n, phase_n, j) = RelativeDistance(sig_ref(j,:), sig_sim(j,:));
         end
-        
+
+        % store generated ECG signals
         ECG((t-1)*3 + phase_n, phase_factor_n,:,:) = sig_sim;
 
     end
 end
-%%
+%% Plot all ecg leads for every modified parameters combination
+%   (12 leads x 9 parameters combinations x 3 cell types)
 close all
 
 for i = 1:9
@@ -149,7 +160,6 @@ for i = 1:9
 
     ecg_0 = lowpassma(sig_ref, 50);
     ecg_1 = lowpassma(squeeze(ECG(num_to_plot, 1, :, :)), 50);
-    % ecg_2 = lowpassma(squeeze(ECG(num_to_plot, 2, :, :)), 50);
     ecg_3 = lowpassma(squeeze(ECG(num_to_plot, 3, :, :)), 50);
 
     leadv12( ...
@@ -168,7 +178,7 @@ for i = 1:9
     lgd = legend([h2, h1, h3], '+', 'ref', '-');
 end
 
-%%
+%% summary of the effects of parameter modification for the selected lead
 close all
 
 lead_to_plot = 6;
@@ -176,7 +186,7 @@ standard12_names = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4
 y_labels = {'Epicardium', 'Global', 'Endocardium'};
 x_labels = {'Phase 1', 'Phase 2', 'Phase 3'};
 
-figure("Name", "Abstract figure_1")
+figure("Name", "figure_1")
 sgtitle( ...
     sprintf("Comparison of the influence of modification of currents" + ...
     " of individual phases\nof action potential (AP) repolarization" + ...
@@ -226,7 +236,8 @@ end
 lgd = legend([h1, h0, h3], '+', 'ref', '-');
 
 
-%%
+%% summary of metrics (correlation and relative distance)
+% of the effects of parameter modification for the selected lead
 function plot_4d_corr(corr_data, varargin)
     % plot_4d_corr Visualizes a 3x3x3x12 correlation matrix or its average.
     
@@ -349,7 +360,7 @@ plot_4d_corr(RD, ...
     'AverageLeads', true ...
     );
 
-%%
+%% AP preview for three randomly selected nodes (interpolation validation)
 close all
 
 figure;
@@ -361,7 +372,6 @@ for k = 1:3
     node = rand_nodes(k);
     plot(t, TMP_ref(node, :), 'Color', colors(k,:), ...
         'DisplayName', sprintf('Node %d: %s (Dep: %.1f, Rep: %.1f)', node, name(CT(node)), dep(node), rep(node)));
-    % Zaznaczenie punktów depolaryzacji i repolaryzacji
     plot(dep(node), -40, 'o', 'Color', colors(k,:), 'HandleVisibility', 'off');
     plot(rep(node), -40, 'x', 'Color', colors(k,:), 'HandleVisibility', 'off');
 end
