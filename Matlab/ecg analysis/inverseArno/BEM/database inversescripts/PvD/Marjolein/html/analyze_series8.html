@@ -1,0 +1,703 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>MRI</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-04-26">
+      <meta name="m-file" content="analyze_series8"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>MRI</h1>
+         <introduction>
+            <p>A MRI of the heart is analyzed to extract the ratio between gray and white brain tissue in the head of the subject. The following
+               steps are taken: * Access DICOM data to create 3D data set * Visualize data to explore in 3D * Segment White and Gray Brain
+               Tissue using morphology * Measure Results
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Data Access</a></li>
+               <li><a href="#3">Visualization</a></li>
+               <li><a href="#6">Segmentation</a></li>
+            </ul>
+         </div>
+         <h2>Data Access<a name="1"></a></h2><pre class="codeinput"><span class="comment">% filename convention used in image series</span>
+[filenames,dirname] = uigetfile(<span class="string">'*.*'</span>,<span class="string">'MultiSelect'</span>,<span class="string">'on'</span>);
+
+<span class="comment">% first filename in series</span>
+fname = [dirname filenames{1}];
+
+<span class="comment">% examine file header</span>
+info = dicominfo(fname)
+
+<span class="comment">% extract size info from metadata</span>
+voxel_size = [info.PixelSpacing; info.SliceThickness]'
+</pre><pre class="codeoutput">
+info = 
+
+                          Filename: [1x49 char]
+                       FileModDate: '16-Mar-2004 08:45:58'
+                          FileSize: 138474
+                            Format: 'ACR/NEMA'
+                     FormatVersion: 'ACR-NEMA 1.0'
+                             Width: 256
+                            Height: 256
+                          BitDepth: 12
+                         ColorType: 'grayscale'
+                    SelectedFrames: []
+                        FileStruct: [1x1 struct]
+                  StartOfPixelData: 7390
+    FileMetaInformationGroupLength: 162
+        FileMetaInformationVersion: [2x1 uint8]
+           MediaStorageSOPClassUID: '1.2.840.10008.5.1.4.1.1.4'
+        MediaStorageSOPInstanceUID: [1x49 char]
+                 TransferSyntaxUID: '1.2.840.10008.1.2.1'
+            ImplementationClassUID: '1.3.46.670589.5.2.13'
+            IdentifyingGroupLength: 892
+       IdentifyingGroupLengthToEnd: 138144
+              SpecificCharacterSet: 'ISO_IR 100'
+                         ImageType: 'ORIGINAL\PRIMARY\OTHER'
+                   RecognitionCode: 'ACR-NEMA 1.0'
+                       SOPClassUID: '1.2.840.10008.5.1.4.1.1.4'
+                    SOPInstanceUID: [1x49 char]
+                         StudyDate: '20040109'
+                        SeriesDate: '20040109'
+                   AcquisitionDate: '20040109'
+                       ContentDate: '20040109'
+                         StudyTime: '131146.000000'
+                        SeriesTime: '144434.420000'
+                   AcquisitionTime: '144434.420000'
+                       ContentTime: '144434.420000'
+                    OldDataSetType: 0
+                    DataSetSubtype: 'FFE/M'
+                   AccessionNumber: '123456'
+                          Modality: 'MR'
+                      Manufacturer: 'Philips Medical Systems'
+                   InstitutionName: 'UMC UTRECHT MR 4'
+            ReferringPhysicianName: [1x1 struct]
+                       StationName: 'NTMR4'
+                  StudyDescription: 'MRI THORAX/HART'
+             ManufacturerModelName: 'Gyroscan NT Intera'
+           ReferencedImageSequence: [1x1 struct]
+          Private_0009_GroupLength: 304
+         Private_0009_10xx_Creator: 'SPI Release 1'
+         Private_0009_11xx_Creator: 'PHILIPS MR'
+         Private_0009_12xx_Creator: 'SPI-P Release 1'
+         Private_0009_21xx_Creator: 'PHILIPS MR/PART 12'
+                 Private_0009_1008: 'M'
+                 Private_0009_1015: '001P01MR012004010915344807'
+                 Private_0009_1110: 'T-J1'
+                 Private_0009_1112: '20020610'
+                 Private_0009_1215: 'P03100003000508407112004010914243704'
+                 Private_0009_1216: 'P03100003000508407112004010914243704'
+                 Private_0009_1218: 'P03100003000508407112004010914243704'
+                 Private_0009_2110: 0
+                PatientGroupLength: 136
+                       PatientName: [1x1 struct]
+                         PatientID: '112345'
+                  PatientBirthDate: '19700101'
+                        PatientSex: 'M'
+                     PatientWeight: 75
+          AdditionalPatientHistory: 'ECG VS CARDIAC MOTION'
+                   PatientComments: 'ECG VS CARDIAC MOTION'
+            AcquisitionGroupLength: 468
+                  ScanningSequence: 'GR'
+                   SequenceVariant: 'OTHER'
+                       ScanOptions: 'CG\RG'
+                 MRAcquisitionType: '2D'
+                    SliceThickness: 6
+                    RepetitionTime: 3.5756
+                          EchoTime: 1.7878
+                  NumberOfAverages: 1
+                  ImagingFrequency: 63.9043
+                     ImagedNucleus: '1H'
+                        EchoNumber: 1
+             MagneticFieldStrength: 1.5000
+              SpacingBetweenSlices: 6
+        NumberOfPhaseEncodingSteps: 192
+                   EchoTrainLength: 0
+                   PercentSampling: 100
+           PercentPhaseFieldOfView: 79.1667
+                DeviceSerialNumber: '05243'
+                   SoftwareVersion: 'NT 9.1.1'
+                      ProtocolName: 'BTFE SA APEX'
+                       TriggerTime: 0
+                        LowRRValue: 660
+                       HighRRValue: 862
+                 IntervalsAcquired: 190
+                 IntervalsRejected: 41
+                         HeartRate: 82
+                   ReceiveCoilName: 'SENSE-cardiac'
+                  TransmitCoilName: 'B'
+     InPlanePhaseEncodingDirection: 'COL'
+                         FlipAngle: 55
+               AcquisitionComments: 'EJ CARDIO  BTFE SA APEX'
+                   PatientPosition: 'HFS'
+          Private_0019_GroupLength: 2414
+         Private_0019_10xx_Creator: 'PHILIPS MR/PART'
+         Private_0019_11xx_Creator: 'PHILIPS MR/PART'
+         Private_0019_12xx_Creator: 'PHILIPS MR/LAST'
+         Private_0019_15xx_Creator: 'PHILIPS MR/PART 6'
+         Private_0019_16xx_Creator: 'PHILIPS MR/PART 7'
+         Private_0019_1dxx_Creator: 'SPI-P-Private_ICS Release 1'
+         Private_0019_40xx_Creator: 'PHILIPS MR SPECTRO;1'
+                 Private_0019_1000: [2x1 double]
+                 Private_0019_1001: 54.3438
+                 Private_0019_1002: -57.0702
+                 Private_0019_1003: -49.7352
+                 Private_0019_1005: -3.8826
+                 Private_0019_1006: 22.1039
+                 Private_0019_1007: 20.2331
+                 Private_0019_1008: 1
+                 Private_0019_1009: 1
+                 Private_0019_100a: 1
+                 Private_0019_100f: 10
+                 Private_0019_1010: 1
+                 Private_0019_1014: 'U'
+                 Private_0019_1015: 0
+                 Private_0019_101a: 55
+                 Private_0019_101b: 1
+                 Private_0019_101c: 'EJ CARDIO'
+                 Private_0019_101d: 'N'
+                 Private_0019_101e: '1.79'
+                 Private_0019_1022: 0
+                 Private_0019_1024: 3
+                 Private_0019_1040: 1
+                 Private_0019_1050: 0
+                 Private_0019_1067: 79.1667
+                 Private_0019_1069: 50
+                 Private_0019_106a: 82
+                 Private_0019_106e: 0
+                 Private_0019_1070: [2x1 double]
+                 Private_0019_1080: 0
+                 Private_0019_1081: 0
+                 Private_0019_108a: 'Y'
+                 Private_0019_108b: 'N'
+                 Private_0019_108c: 'N'
+                 Private_0019_108d: 'N'
+                 Private_0019_108e: 'N'
+                 Private_0019_108f: 'N'
+                 Private_0019_1094: 'N'
+                 Private_0019_1095: 'N'
+                 Private_0019_1096: 0
+                 Private_0019_1097: 'N'
+                 Private_0019_10a0: 0
+                 Private_0019_10a1: 0
+                 Private_0019_10a3: 0
+                 Private_0019_10b4: -21.6939
+                 Private_0019_10b5: -20.6751
+                 Private_0019_10b6: -11.8780
+                 Private_0019_10c9: 1
+                 Private_0019_10ca: 0
+                 Private_0019_10cb: 0
+                 Private_0019_10cc: 3
+                 Private_0019_10cf: 1
+                 Private_0019_10d0: 192
+                 Private_0019_10d1: 1
+                 Private_0019_10d2: '\2.085837E-01'
+                 Private_0019_10d3: 0.2086
+                 Private_0019_10d5: 3
+                 Private_0019_10d6: 2
+                 Private_0019_10d7: 100
+                 Private_0019_10d8: 0
+                 Private_0019_10d9: 1
+                 Private_0019_10da: 0
+                 Private_0019_10db: 0
+                 Private_0019_10e0: 100
+                 Private_0019_10e1: 0
+                 Private_0019_10f0: 0
+                 Private_0019_10f6: 'N'
+                 Private_0019_10f7: 'Y'
+                 Private_0019_10f8: 'Y'
+                 Private_0019_10f9: 'N'
+                 Private_0019_10fa: 'N'
+                 Private_0019_10fb: 'N'
+                 Private_0019_10fc: 'N'
+                 Private_0019_1100: 1
+                 Private_0019_1101: 0
+                 Private_0019_1102: [40x1 double]
+                 Private_0019_110b: -54.3438
+                 Private_0019_110c: -49.7352
+                 Private_0019_110d: 57.0702
+                 Private_0019_1121: 3
+                 Private_0019_1123: [3x1 double]
+                 Private_0019_1124: [3x1 double]
+                 Private_0019_1125: [3x1 double]
+                 Private_0019_1126: [3x1 double]
+                 Private_0019_1127: [3x1 double]
+                 Private_0019_1128: 'M\M\M'
+                 Private_0019_1129: [3x1 double]
+                 Private_0019_1130: 'FFE\FFE\FFE'
+                 Private_0019_1131: [3x1 double]
+                 Private_0019_1150: -21.6939
+                 Private_0019_1151: -20.6751
+                 Private_0019_1152: -11.8780
+                 Private_0019_1153: 10
+                 Private_0019_1154: 46.9293
+                 Private_0019_1155: -49.8075
+                 Private_0019_1156: -31.4793
+                 Private_0019_1157: 1
+                 Private_0019_1158: 0
+                 Private_0019_1159: 1
+                 Private_0019_1160: 350
+                 Private_0019_1161: 277.0833
+                 Private_0019_1162: 60
+                 Private_0019_1163: 6
+                 Private_0019_1164: 1
+                 Private_0019_1166: 2
+                 Private_0019_1209: 1.5000
+                 Private_0019_120e: 0
+                 Private_0019_12b1: 660
+                 Private_0019_12b2: 862
+                 Private_0019_12b3: 41
+                 Private_0019_12b4: [102x1 double]
+                 Private_0019_12b5: 1
+                 Private_0019_12b7: 102
+                 Private_0019_12c6: 0
+                 Private_0019_12ce: 0
+                 Private_0019_12d5: 146.4000
+                 Private_0019_12d6: 0
+                 Private_0019_12d9: [36x1 double]
+                 Private_0019_12e0: 0
+                 Private_0019_12e1: 0
+                 Private_0019_12e2: 0
+                 Private_0019_12e3: [3x1 double]
+                 Private_0019_12e4: 0
+                 Private_0019_12e5: 0
+                 Private_0019_12f2: 'compose'
+                 Private_0019_12f3: 'compose'
+                 Private_0019_1510: -1
+                 Private_0019_1600: 0
+                 Private_0019_1d31: 'B-TFE'
+                 Private_0019_4032: 0
+           RelationshipGroupLength: 404
+                  StudyInstanceUID: [1x47 char]
+                 SeriesInstanceUID: [1x49 char]
+                           StudyID: '1010450713'
+                      SeriesNumber: 1101
+                 AcquisitionNumber: 11
+                    InstanceNumber: 51
+                     ImagePosition: ''
+              ImagePositionPatient: [3x1 double]
+                  ImageOrientation: ''
+           ImageOrientationPatient: [6x1 double]
+                          Location: ''
+               FrameOfReferenceUID: [1x41 char]
+                        Laterality: ''
+        TemporalPositionIdentifier: 1
+         NumberOfTemporalPositions: 1
+        PositionReferenceIndicator: ''
+                   ModifiedImageID: ''
+                 ModifiedImageDate: ''
+                 ModifiedImageTime: ''
+          Private_0021_GroupLength: 336
+         Private_0021_10xx_Creator: 'PHILIPS MR/PART'
+         Private_0021_11xx_Creator: 'PHILIPS MR/PART'
+         Private_0021_12xx_Creator: 'PHILIPS MR/LAST'
+         Private_0021_18xx_Creator: 'SPI-P-Private_CDS Release 1'
+                 Private_0021_1000: 1
+                 Private_0021_1006: '\\'
+                 Private_0021_1008: 'PIXEL'
+                 Private_0021_1009: 'N'
+                 Private_0021_100a: 'Y'
+                 Private_0021_100f: 'FFE'
+                 Private_0021_1010: 20
+                 Private_0021_1013: 'N'
+                 Private_0021_1015: 0
+                 Private_0021_1020: 2
+                 Private_0021_1030: 1
+                 Private_0021_1031: 132068408
+                 Private_0021_1035: 0
+                 Private_0021_1040: 1
+                 Private_0021_1050: 1
+                 Private_0021_1100: '20040109'
+                 Private_0021_1110: '144434.420000'
+                 Private_0021_1221: 0
+                 Private_0021_1840: 11
+      ImagePresentationGroupLength: 196
+                   SamplesPerPixel: 1
+         PhotometricInterpretation: 'MONOCHROME2'
+                              Rows: 256
+                           Columns: 256
+                      PixelSpacing: [2x1 double]
+                     BitsAllocated: 16
+                        BitsStored: 12
+                           HighBit: 11
+               PixelRepresentation: 0
+                      WindowCenter: 753
+                       WindowWidth: 1507
+                  RescaleIntercept: 0
+                      RescaleSlope: 1.2210
+                       RescaleType: 'US'
+          Private_0029_GroupLength: 1786
+         Private_0029_10xx_Creator: 'PHILIPS MR/PART'
+         Private_0029_11xx_Creator: 'PHILIPS MR/LAST'
+         Private_0029_1bxx_Creator: 'SPI-P-Private_CDS Release 1'
+         Private_0029_20xx_Creator: 'SPI-P-Private_ICS Release 1'
+         Private_0029_25xx_Creator: 'SPI-P-Private_ICS Release 1;5'
+                 Private_0029_1004: 1
+                 Private_0029_1020: 'normalized'
+                 Private_0029_1031: [2x1 double]
+                 Private_0029_1032: [2x1 double]
+                 Private_0029_1050: 753
+                 Private_0029_1051: 1507
+                 Private_0029_1052: 0
+                 Private_0029_1053: 0.0015
+                 Private_0029_1110: 0
+                 Private_0029_1120: 1082366
+                 Private_0029_1161: 0
+                 Private_0029_1162: 0
+                 Private_0029_1183: 0
+                 Private_0029_1b10: [319x1 uint8]
+                 Private_0029_200f: [1x1 struct]
+                 Private_0029_201b: [1x1 struct]
+                 Private_0029_201c: [1x1 struct]
+                 Private_0029_2021: [1x1 struct]
+                 Private_0029_204c: [1x1 struct]
+                 Private_0029_2067: 'gcom_NTMR4'
+                 Private_0029_2550: 'CREATED'
+                 Private_0029_2555: 'CREATED'
+                ResultsGroupLength: 16
+            InterpretationStatusID: 'CREATED'
+              PixelDataGroupLength: 131084
+
+
+voxel_size =
+
+    1.3672    1.3672    6.0000
+
+</pre><pre class="codeinput"><span class="comment">%read slice images; populate XYZ matrix</span>
+hWaitBar = waitbar(0,<span class="string">'Reading DICOM files'</span>);
+D = uint16(zeros(info.Rows,info.Columns,length(filenames)));
+<span class="keyword">for</span> i=length(filenames):-1:1
+  fname = [dirname filenames{i}];
+  D(:,:,i) = uint16(dicomread(fname));
+  m(i) = max(max(D(:,:,i)));
+  waitbar((length(filenames)-i)/length(filenames))
+<span class="keyword">end</span>
+
+delete(hWaitBar)
+whos <span class="string">D</span>
+</pre><pre class="codeoutput">  Name      Size                           Bytes  Class
+
+  D       256x256x30                     3932160  uint16 array
+
+Grand total is 1966080 elements using 3932160 bytes
+
+</pre><h2>Visualization<a name="3"></a></h2><pre class="codeinput"><span class="comment">% explore image data using Image Viewer GUI tool</span>
+i = 15;  <span class="comment">%middle slice</span>
+im = D(:,:,i);
+max_level = double(max(im(:)));
+imtool(im,[0 max_level])
+</pre><img vspace="5" hspace="5" src="analyze_series8_01.png"> <img vspace="5" hspace="5" src="analyze_series8_02.png"> <p>explore 3D volume (new Slice-O-Matic viewer) <a href="http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=764">http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=764</a></p><pre class="codeinput">sliceomatic(double(D))
+daspect(1./voxel_size)
+hSlico2 = gcf;
+
+<span class="comment">% %%</span>
+<span class="comment">% %reorient data for easier interpretation (stand patient up)</span>
+<span class="comment">%</span>
+<span class="comment">% D = permute(D,[3 2 1]);</span>
+<span class="comment">% voxel_size = voxel_size([1 3 2]);</span>
+<span class="comment">% for i=1:3</span>
+<span class="comment">%   D1 = flipdim(D,i);</span>
+<span class="comment">% end</span>
+<span class="comment">% whos D</span>
+<span class="comment">%</span>
+<span class="comment">% %explore rotated 3D volume (new Slice-O-Matic viewer)</span>
+<span class="comment">% sliceomatic(double(D1))</span>
+<span class="comment">% daspect(1./voxel_size)</span>
+<span class="comment">% hSlico2 = gcf;</span>
+<span class="comment">% %set(hSlico2,'position',[455 63 560 420])</span>
+</pre><pre class="codeoutput">Sticky preferences loaded.
+Smoothing for IsoNormals...
+Generating reduction volume...
+</pre><img vspace="5" hspace="5" src="analyze_series8_03.png"> <pre class="codeinput"><span class="comment">%intensity distribution also useful (more custom graphics)</span>
+
+max_level = double(max(im(:)));
+my_map = jet(max_level);
+fig2 = figure;
+
+<span class="comment">%intensity distribution - top 2/3</span>
+subplot(3,1,1:2)
+hist(double(im(:)),max_level)
+axis([0 max_level 0 900])
+title(<span class="string">'Distribution'</span>)
+
+<span class="comment">%color scale - bottom 1/3</span>
+subplot(3,1,3)
+imagesc(1:max_level)
+colormap(my_map)
+xlim([0 max_level])
+set(gca,<span class="string">'ytick'</span>,[])
+ylabel(<span class="string">'Color Map'</span>)
+xlabel(<span class="string">'Intensity'</span>)
+set(fig2,<span class="string">'position'</span>,[22 60 560 300],<span class="string">'render'</span>,<span class="string">'zbuffer'</span>)
+</pre><img vspace="5" hspace="5" src="analyze_series8_04.png"> <h2>Segmentation<a name="6"></a></h2><pre class="codeinput"><span class="comment">%ignore low levels (backround air, CSF &amp; other soft? tissues)</span>
+<span class="comment">%using custom GUI tool to select best threshold level</span>
+im = imrotate(squeeze(D(:,:,15)),90);
+
+<span class="comment">%custom GUI tool</span>
+thresh_tool(im)
+
+<span class="comment">%duplicate original data set for later reference</span>
+D1 = D;
+</pre><img vspace="5" hspace="5" src="analyze_series8_05.png"> <pre class="codeinput"><span class="comment">%apply some thresholding rules to ignore certain parts of data</span>
+D(D&lt;=34) = 0;       <span class="comment">%ignore low levels (CSF &amp; air)</span>
+<span class="comment">%D(D&gt;=85) = 0;      %ignore high levels (skull &amp; other hard? tissues)</span>
+<span class="comment">%D(:,:,1:60) = 0;    %ignore spatially low positions (below brain mass)</span>
+figure;subplot(2,2,1);imagesc(squeeze(D(:,:,15)));title(<span class="string">'slide 30 after thresholding D &gt; 34'</span>)
+
+<span class="comment">%erode away thick layer (dissolve thin surrounding tissues)</span>
+blk = ones([9 9 9]);
+D = imerode(D,blk);
+subplot(2,2,2);imagesc(squeeze(D(:,:,15)));title(<span class="string">'slide 30 after eroding thin tissues'</span>)
+
+<span class="comment">%isolate brain mass (bwlabeln)</span>
+lev = graythresh(double(im)/max_level) * max_level;
+bw = (D&gt;=lev);
+L = bwlabeln(bw);
+
+<span class="comment">%connected region properties - how many, how big?</span>
+stats = regionprops(L)
+
+<span class="comment">%remove smaller scraps</span>
+BW2 = bwareaopen(bw,200,6);
+D(~BW2) = 0;
+subplot(2,2,3);imagesc(squeeze(D(:,:,15)));title(<span class="string">'slide 30 after removing small objects'</span>)
+
+<span class="comment">%grow back main region (brian mass)</span>
+D = uint16(imdilate(BW2,blk)).*D1;
+subplot(2,2,4);imagesc(squeeze(D(:,:,15)));title(<span class="string">'slide 30 segmented contents of the heart'</span>)
+</pre><pre class="codeoutput">
+stats = 
+
+15x1 struct array with fields:
+    Area
+    Centroid
+    BoundingBox
+
+</pre><img vspace="5" hspace="5" src="analyze_series8_06.png"> <pre class="codeinput">figure
+gBrain = patch(isosurface(D,0.1));
+set(gBrain,<span class="string">'FaceColor'</span>,<span class="string">'red'</span>,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>);
+daspect(1./voxel_size)
+view(3); axis <span class="string">tight</span>
+camlight
+lighting <span class="string">gouraud</span>
+</pre><img vspace="5" hspace="5" src="analyze_series8_07.png"> <p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% MRI
+% A MRI of the heart is analyzed to extract the ratio between gray and white brain
+% tissue in the head of the subject.
+% The following steps are taken:
+% * Access DICOM data to create 3D data set
+% * Visualize data to explore in 3D
+% * Segment White and Gray Brain Tissue using morphology
+% * Measure Results
+
+%% Data Access
+
+% filename convention used in image series
+[filenames,dirname] = uigetfile('*.*','MultiSelect','on');
+
+% first filename in series
+fname = [dirname filenames{1}];
+
+% examine file header
+info = dicominfo(fname)
+
+% extract size info from metadata
+voxel_size = [info.PixelSpacing; info.SliceThickness]'
+
+%%
+%read slice images; populate XYZ matrix
+hWaitBar = waitbar(0,'Reading DICOM files');
+D = uint16(zeros(info.Rows,info.Columns,length(filenames)));
+for i=length(filenames):-1:1
+  fname = [dirname filenames{i}];
+  D(:,:,i) = uint16(dicomread(fname));
+  m(i) = max(max(D(:,:,i)));
+  waitbar((length(filenames)-i)/length(filenames))
+end
+
+delete(hWaitBar)
+whos D
+
+%% Visualization
+
+% explore image data using Image Viewer GUI tool
+i = 15;  %middle slice
+im = D(:,:,i);
+max_level = double(max(im(:))); 
+imtool(im,[0 max_level])
+
+%%
+% explore 3D volume (new Slice-O-Matic viewer) 
+% http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=764
+
+sliceomatic(double(D))
+daspect(1./voxel_size)
+hSlico2 = gcf;
+
+% %%
+% %reorient data for easier interpretation (stand patient up)
+% 
+% D = permute(D,[3 2 1]);
+% voxel_size = voxel_size([1 3 2]);
+% for i=1:3
+%   D1 = flipdim(D,i);
+% end
+% whos D
+% 
+% %explore rotated 3D volume (new Slice-O-Matic viewer) 
+% sliceomatic(double(D1))
+% daspect(1./voxel_size)
+% hSlico2 = gcf;
+% %set(hSlico2,'position',[455 63 560 420])
+
+%%
+%intensity distribution also useful (more custom graphics)
+
+max_level = double(max(im(:))); 
+my_map = jet(max_level);
+fig2 = figure; 
+
+%intensity distribution - top 2/3 
+subplot(3,1,1:2)
+hist(double(im(:)),max_level)
+axis([0 max_level 0 900])
+title('Distribution')
+
+%color scale - bottom 1/3 
+subplot(3,1,3)
+imagesc(1:max_level)
+colormap(my_map)
+xlim([0 max_level])
+set(gca,'ytick',[])
+ylabel('Color Map')
+xlabel('Intensity')
+set(fig2,'position',[22 60 560 300],'render','zbuffer')
+
+
+%% Segmentation
+
+%ignore low levels (backround air, CSF & other soft? tissues)
+%using custom GUI tool to select best threshold level 
+im = imrotate(squeeze(D(:,:,15)),90);
+
+%custom GUI tool 
+thresh_tool(im)
+
+%duplicate original data set for later reference 
+D1 = D;
+
+%%
+%apply some thresholding rules to ignore certain parts of data
+D(D<=34) = 0;       %ignore low levels (CSF & air)
+%D(D>=85) = 0;      %ignore high levels (skull & other hard? tissues)
+%D(:,:,1:60) = 0;    %ignore spatially low positions (below brain mass)
+figure;subplot(2,2,1);imagesc(squeeze(D(:,:,15)));title('slide 30 after thresholding D > 34')
+
+%erode away thick layer (dissolve thin surrounding tissues)
+blk = ones([9 9 9]);
+D = imerode(D,blk);
+subplot(2,2,2);imagesc(squeeze(D(:,:,15)));title('slide 30 after eroding thin tissues')
+
+%isolate brain mass (bwlabeln)
+lev = graythresh(double(im)/max_level) * max_level;
+bw = (D>=lev);
+L = bwlabeln(bw); 
+
+%connected region properties - how many, how big?
+stats = regionprops(L)
+
+%remove smaller scraps
+BW2 = bwareaopen(bw,200,6);
+D(~BW2) = 0;
+subplot(2,2,3);imagesc(squeeze(D(:,:,15)));title('slide 30 after removing small objects')
+
+%grow back main region (brian mass) 
+D = uint16(imdilate(BW2,blk)).*D1;
+subplot(2,2,4);imagesc(squeeze(D(:,:,15)));title('slide 30 segmented contents of the heart')
+
+%%
+figure
+gBrain = patch(isosurface(D,0.1));
+set(gBrain,'FaceColor','red','EdgeColor','none');
+daspect(1./voxel_size)
+view(3); axis tight
+camlight 
+lighting gouraud
+
+
+##### SOURCE END #####
+-->
+   </body>
+</html>

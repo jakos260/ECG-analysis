@@ -1,0 +1,8 @@
+CC = gcc -ansi -g -Wreturn-type -Wimplicit -Wuninitialized\
+     -DUnix -DX_Windows -DLinux -Dsystemid=\"Linux\"  
+     
+HOMENAME = /home/bioel/thom
+BINNAME = bin.linux.new
+SYSNAME = linuxn
+
+include makefile.gen

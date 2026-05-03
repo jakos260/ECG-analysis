@@ -1,0 +1,33 @@
+Hoe worden de tijden naar de optimale waarden geschoven?
+
+Het gebeurt allemaal bij regel 201 ev.
+
+shift() schuift de tijden zo, dat tmin=1, en de tijden zitten tussen tmin en
+tmax. als tmax-tmin te groot is (gewoonlijk 100), returnt shift() false, en
+worden deze tijden als onacceptabel beschouwd.
+
+treg() berekent de regval (is natuurlijk onafhankelijk van de shift).
+
+vcalcvu() berekent de voorwaartse potentiaal voor die tijden.
+
+optims() berekent de shift waarbij het verschil tussen voorwaartse en meting
+minimaal is. Dat doet-ie alsvolgt:
+
+  Hij probeert alle mogelijke shifts, dat wil zeggen van 
+  0 tot (maximaal toegestane breedte) - (tmax-tim).
+  Maximaal toegestane breedte is normaal 100; hij zou natuurlijk eigenlijk
+  bij 0 moeten beginnen.
+  
+  Vervolgens berekent hij voor alle elektrodes ie en alle gemeten t's it
+  het kwadratisch verschil tussen vm[ie][it] (gemeten) en vi[ie][iw]
+  (simulatie), waarbij iw=it-shift. Als iw<tmin of iw>tmax wordt voor
+  vi de waarde 0 genomen.
+  Die waarden worden dan opgeteld, en onthouden wordt voor welke shift
+  het verschil minimaal was.
+  
+  Het is natuurlijk wel zaak even goed te letten op de afronding van de
+  double tijds-waarden en array-indices, en de "randen" (normaal 1 en 100)
+  goed af te handelen.
+  
+
+  

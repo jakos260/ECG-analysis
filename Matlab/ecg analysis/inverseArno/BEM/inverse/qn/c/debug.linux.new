@@ -1,0 +1,18 @@
+if (/usr/bin/test -f $1.c)
+then
+
+  tmp="-f makefiledb.linux.new f=$1"
+
+  if (make $tmp 2> $1.log)
+
+  then
+    cat $1.log
+    chmod -w $1.c
+    exit
+  fi
+
+  cat $1.log
+  exit
+fi
+echo $1.c does not exist
+

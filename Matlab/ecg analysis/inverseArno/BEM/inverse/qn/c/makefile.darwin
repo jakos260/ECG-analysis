@@ -1,0 +1,23 @@
+CC = g++ -pipe -ansi -O3 \
+     -Wall -Wno-unused -W \
+     -DUnix -DX_Windows -I/usr/local/matlab/extern/include
+     -I/usr/X11R6/include -I../bem/c -DDarwin -Dsystemid=\"Darwin\"\
+     -D_REENTRANT \
+     -arch x86_64
+     
+HOMENAME = /Users/thom
+BINNAME = bin.Darwin
+SYSNAME = Darwin
+LIBPATH = $(HOMENAME)/lib
+LIBNAME = $(HOMENAME)/lib/libInv$(SYSNAME).a
+LIBS    = -L$(LIBPATH) -lInv$(SYSNAME) -lThom$(SYSNAME) -lBem$(SYSNAME)\
+	  -lncurses -lm
+LIBS    += -L/usr/local/matlab/bin/maci64 -weak-lmat -weak-lmx
+
+$f:	$f.cc\
+	$(LIBNAME)
+	$(CC) $f.cc -o $(HOMENAME)/$(BINNAME)/$f $(LIBS)
+	chmod -w $f.cc
+	chmod +r $f.cc
+
+include makefile.gen

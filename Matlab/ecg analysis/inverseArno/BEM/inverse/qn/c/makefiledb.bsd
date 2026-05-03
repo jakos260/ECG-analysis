@@ -1,0 +1,8 @@
+CC = g++ -ansi -O -g -Wreturn-type -Wimplicit -Wuninitialized\
+     -DUnix -DX_Windows -DFreeBSD -Dsystemid=\"FreeBSD\"  
+     
+HOMENAME = /home/bioel/thom
+BINNAME = bin.bsd
+SYSNAME = bsd
+
+include makefile.gen

@@ -1,0 +1,18 @@
+CC = g++ -ansi -O6 -s -Wreturn-type -Wimplicit -Wuninitialized\
+     -DUnix -DX_Windows -DLinux -Dsystemid=\"Linux\"  
+     
+HOMENAME = /home/mbbioel/thom
+BINNAME = bin.linux.$R
+SYSNAME = linux.$R
+LIBPATH = $(HOMENAME)/lib
+LIBNAME = $(HOMENAME)/lib/libInv$(SYSNAME).a
+LIBS    = -L$(LIBPATH) -lInv$(SYSNAME) -lThom$(SYSNAME) -lBem$(SYSNAME) -L/usr/X11/lib\
+	  -lX11 -lncurses -lm
+
+$f:	$f.cc\
+	$(LIBNAME)
+	$(CC) $f.cc -o $(HOMENAME)/$(BINNAME)/$f $(LIBS)
+	chmod -w $f.cc
+	chmod +r $f.cc
+
+include makefile.gen

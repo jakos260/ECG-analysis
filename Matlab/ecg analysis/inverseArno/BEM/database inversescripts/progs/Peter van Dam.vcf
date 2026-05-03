@@ -1,0 +1,37 @@
+BEGIN:VCARD
+VERSION:2.1
+X-MS-SIGNATURE:YES
+N;LANGUAGE=nl:van Dam;Peter
+FN:Peter van Dam
+ORG:Peacs
+TEL;WORK;VOICE:+31 6-22198396
+ADR;WORK;PREF:;;Herkenboschstraat 42;Arnhem;;6845HN;Netherlands
+LABEL;WORK;PREF;ENCODING=QUOTED-PRINTABLE:Herkenboschstraat 42=0D=0A=
+6845HN  Arnhem
+X-MS-OL-DEFAULT-POSTAL-ADDRESS:2
+URL;WORK:www.peacs.nl
+EMAIL;PREF;INTERNET:peter.van.dam@peacs.nl
+X-MS-CARDPICTURE;TYPE=JPEG;ENCODING=BASE64:
+ /9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAcFBQYFBAcGBQYIBwcIChELCgkJChUPEAwRGBUa
+ GRgVGBcbHichGx0lHRcYIi4iJSgpKywrGiAvMy8qMicqKyr/2wBDAQcICAoJChQLCxQqHBgc
+ KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKir/wAAR
+ CAAYADYDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAA
+ AgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkK
+ FhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWG
+ h4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl
+ 5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREA
+ AgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYk
+ NOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE
+ hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk
+ 5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD6A1LURYeUMRs0m4gPJs4AzxwcnoMe9Rxa
+ sHkn8xYoo4B+8Ly/MoCgklcYwCcdexqS4sJ5LpZ4bx4pFQooMasoBIJ4x7DvWBe+FNWv4ZbS
+ 48QA2Nw5M8C2gVnUtuZQ4bIzyO/BpNtbI1hCDa5pJL5/5FPwj4on1i/1qeWN/wB5cxLZwscf
+ u2j3IfYFQXP1NdVNe3MEsMTxw75dwVt5C5GMLnHU5P5V59cibTfGupaXoj+Td3U1ktrI+ZPJ
+ AjkDvgnkBFIwfUV040PxJIUFz4jglRGVin9nYDEHIJ/eZ646ccVlCTtbd6/mduLow9opJqKa
+ TSd9rLsmdXmjmsmOy1kf63V4m/3bQD/2Y1ajtrsD97fFv92JR/jWt32OFxitpJ/f/kXKKjVG
+ Ucys/wBQP6CimZktFFFAHKW+gbviZea3KnypZRxRE92JbcfqAAP+BV1PFFFKMUtjavUlNq/R
+ JfgOooopmIUUUUAf/9k=
+
+X-MS-OL-DESIGN;CHARSET=utf-8:<card xmlns="http://schemas.microsoft.com/office/outlook/12/electronicbusinesscards" ver="1.0" layout="left" bgcolor="ffffff"><img xmlns="" align="tleft" area="25" use="cardpicture"/><fld xmlns="" prop="name" align="left" dir="ltr" style="b" color="000000" size="10"/><fld xmlns="" prop="org" align="left" dir="ltr" color="000000" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="telwork" align="left" dir="ltr" color="000000" size="8"><label align="right" color="626262">Work</label></fld><fld xmlns="" prop="email" align="left" dir="ltr" color="000000" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="addrwork" align="left" dir="ltr" color="000000" size="8"/><fld xmlns="" prop="webwork" align="left" dir="ltr" color="000000" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/><fld xmlns="" prop="blank" size="8"/></card>
+REV:20130430T184851Z
+END:VCARD

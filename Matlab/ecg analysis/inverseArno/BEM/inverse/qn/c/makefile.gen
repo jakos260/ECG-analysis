@@ -1,0 +1,25 @@
+
+$(LIBNAME): \
+  $(LIBNAME)(finddhk2.o)\
+  $(LIBNAME)(vcalcall.o)\
+  $(LIBNAME)(breaks.o)\
+  $(LIBNAME)(voisin.o)\
+  $(LIBNAME)(tatau.o)\
+  $(LIBNAME)(allfuns.o)\
+  $(LIBNAME)(qnfuns.o)\
+  $(LIBNAME)(svdgj.o)\
+  $(LIBNAME)(sigdec.o)\
+  $(LIBNAME)(dsvdgj.o)\
+  $(LIBNAME)(dsigdec.o)\
+  $(LIBNAME)(dsvdcmp.o)
+	
+.cc.a:
+	$(CC) -c $<
+	ar r $@ $*.o
+	ranlib $@
+	rm $*.o
+	chmod -w $*.cc
+	
+
+.DEFAULT:
+	@echo file $*.cc does not exist

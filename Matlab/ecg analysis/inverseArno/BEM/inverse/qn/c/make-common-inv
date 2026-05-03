@@ -1,0 +1,18 @@
+#!/usr/local/bin/bash
+if [ $OSTYPE = 'linux-gnu' ]; then
+  comp=comp.linux.new
+else 
+  if [ $OSTYPE = 'Linux' ]; then
+    comp=comp.linux
+  else
+    comp=comp.bsd
+  fi
+fi  
+$comp bsmelec
+$comp hutelec
+$comp lap
+$comp inest
+$comp inlog
+$comp scan
+$comp vs
+$comp vsv

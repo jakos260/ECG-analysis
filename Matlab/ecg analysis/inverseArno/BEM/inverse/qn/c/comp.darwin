@@ -1,0 +1,18 @@
+if (/bin/test -f $1.cc)
+then
+
+  tmp="-f makefile.darwin f=$1"
+
+  if (make $tmp 2> $1.log)
+
+  then
+    cat $1.log
+    chmod -w $1.cc
+    exit
+  fi
+
+  cat $1.log
+  exit
+fi
+echo $1.cc does not exist
+

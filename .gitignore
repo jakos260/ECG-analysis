@@ -1,11 +1,43 @@
+# data directory
 data
+
+# local paths
 Matlab/ecg analysis/local_paths.m
 Python/ecg_project_venv
+
+# Python cache and environment files
 __pycache__
 .env
 *.pyc
-*.tri
-*.mat
+
+# images
 *.jpg
-*.asv
+*.png
+*.fig
+
+# data files
+*.mat
 *.log
+*.tri
+*.lay
+*.mes
+*.tim
+*.ama
+*.el
+*.mla
+*.leads
+*.results
+
+# archives
+*.zip
+*.rar
+*.tgz
+
+# others
+*.pdf
+*.bak
+*.asv
+*.m~
+*.a
+*.exe
+*.dll

@@ -1,0 +1,1 @@
+pig09_005_155_184_RVApexPostEpi	pig09_005_190_219_RVApexPostEpi						RVEndo							-39	-6	851					Endo1	-37	-15	865	-36	-14	867	0Endo2	-37	-15	865	-36	-14	867	23							pig09_005_155_184_RVApexPostEpi							LVEndo							-39	-6	851					Endo1	-37	-15	865	-36	-14	867	0

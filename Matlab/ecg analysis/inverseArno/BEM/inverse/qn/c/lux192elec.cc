@@ -1,0 +1,838 @@
+
+
+  /**********************************************************************/
+  /*                                                                    */
+  /*    luxelec.c                                                       */
+  /*                                                                    */
+  /*    Program to determine the "lambda-mu" parameters	of the		*/
+  /*	BSM-electrodes based on the NIM system on a triangulated torso. */
+  /*									*/
+  /*	The assignment of electrodes closely resembles the way it is	*/
+  /*	done by BSM laborants.						*/
+  /*									*/
+  /*    Rudi Hoekema, Feb 22, 1195, after program eegelec.c by		*/
+  /*									*/
+  /*    Thom Oostendorp							*/
+  /*    November 25, 1993						*/
+  /*									*/
+  /**********************************************************************/
+			    
+/*
+        input:
+	      - standard triangle file defining the geometry of the torso 
+
+        output:
+	      - electrode description file
+                (file containing the "lambda-mu" parameters of the electrodes).
+										
+*/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include "trilib.h"
+
+#define NEL	   192 
+#define distance     0.03333
+
+int 	ndhk, npnt;
+int 	(*dhk)[3]=NULL;
+double 	(*pnt)[3]=NULL, dir[3],p[3],p1[3],p2[3],p3[3],n[3];
+double   pl1[3],pr1[3],pf1[3],pl2[3],pr2[3],pf2[3];
+double	(*refpnt)[3];
+int	nel;
+CONTOUR tmp[NEL], tmp2[NEL], tmp1[NEL], elec[NEL],el[NEL];
+double   norm_x[3]={1,0,0};
+double   norm_minx[3]={-1,0,0};
+double   norm_y[3]={0,1,0};
+double   norm_miny[3]={0,-1,0};
+double   norm_z[3]={0,0,1};
+double   norm_xy1[3]={1,1,0};
+double   norm_xy2[3]={-1,1,0};
+double   norm_minz[3]={0,0,-1};
+double   origin[3]={0,0,0};
+double   vertshift=0;
+
+
+char elname[NEL][122]=
+        {
+           "1", "2","3","4","5","6","7","8","9",
+           "10","11","12","13","14","15","16","17","18","19",
+           "20","21","22","23","24","25","26","27","28","29",
+           "30","31","32","33","34","35","36","37","38","39",
+           "40","41","42","43","44","45","46","47","48","49",
+           "50","51","52","53","54","55","56","57","58","59",
+           "60","61","62","63","64","65","66","67","68","69",
+           "70","71","72","73","74","75","76","77","78","79",
+           "80","81","82","83","84","85","86","87","88","89",
+           "90","91","92","93","94","95","96","97","98","99",
+           "100","101","102","103","104","105","106","107","108","109",
+           "110","111","112","113","114","115","116","117","118","119",
+           "120","121","122","123","124","125","126","127","128","129",
+           "130","131","132","133","134","135","136","137","138","139",
+           "140","141","142","143","144","145","146","147","148","149",
+           "150","151","152","153","154","155","156","157","158","159",
+           "160","161","162","163","164","165","166","167","168","169",
+           "170","171","172","173","174","175","176","177","178","179",
+           "180","181","182","183","184","185","186","187","188","189",
+           "190","191","192"
+        };
+
+void find_dhk2(double ppp[3],double c[3],double *la,double *mu,double *eta,
+       int *eldhk, int npnt, double (*pnt)[3], int ndhk, int (*dhk)[3]) ;
+void find_dhk(double ppp[3],double *la,double *mu,double *eta,int *eldhk,
+        int npnt, double (*pnt)[3], int ndhk, int (*dhk)[3]) ;
+
+int assign_el(char *name, CONTOUR *c, int i, CONTOUR *el)
+ {
+  int j;
+  
+  for (j=0; j<NEL; j++)
+    if (strcmp(elname[j], name)==0)
+      break;
+  if (j==NEL)
+   {
+    printf("Electrode %s undefined\n", name);
+    return -1;
+   }
+  el[j].tr=c[i].tr;
+  el[j].l=c[i].l;
+  el[j].m=c[i].m;
+  return j;
+ }
+
+int assign_lm_el(char *name, int tr, double l, double m, CONTOUR *el)
+ {
+  int j;
+  
+  for (j=0; j<NEL; j++)
+    if (strcmp(elname[j], name)==0)
+      break;
+  if (j==NEL)
+   {
+    printf("Electrode %s undefined\n", name);
+    return -1;
+   }
+  el[j].tr=tr;
+  el[j].l=l;
+  el[j].m=m;
+  return j;
+ }
+
+double cont_len(int nlm,DCONT *c,
+            int npnt, double (*pnt)[3], int ndhk, int (*dhk)[3])
+{
+  double som=0,r1[3],r2[3];
+  int i;
+
+  for (i=0;i<nlm;i++){
+    routlm(r1, c[i].tr, c[i].l, c[i].m, npnt, pnt, ndhk, dhk);
+    routlm(r2, c[i].tr, c[i].l2, c[i].m2, npnt, pnt, ndhk, dhk);
+    som += vecdist(r1,r2);
+  }
+  return som;
+}
+
+  
+
+int compose_normal(double n[3],int tr1,int tr2,
+                  int npnt, double (*pnt)[3], int ndhk, int (*dhk)[3])
+{
+  double n1[3],n2[3],a[3],b[3],len1,len2;
+  int i;
+
+  for (i=0;i<3;i++){
+    p[i]=pnt[dhk[tr1][0]][i];
+    a[i]=pnt[dhk[tr1][1]][i]-pnt[dhk[tr1][0]][i];
+    b[i]=pnt[dhk[tr1][2]][i]-pnt[dhk[tr1][0]][i];
+  }
+  len1 = sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+  len2 = sqrt(b[0]*b[0] + b[1]*b[1] + b[2]*b[2]);
+  for (i=0;i<3;i++){
+    a[i]/=len1;
+    b[i]/=len2;
+  }
+  n1[0]=a[1]*b[2]-a[2]*b[1];
+  n1[1]=a[2]*b[0]-a[0]*b[2];
+  n1[2]=a[0]*b[1]-a[1]*b[0];
+
+  for (i=0;i<3;i++){
+    p[i]=pnt[dhk[tr2][0]][i];
+    a[i]=pnt[dhk[tr2][1]][i]-pnt[dhk[tr2][0]][i];
+    b[i]=pnt[dhk[tr2][2]][i]-pnt[dhk[tr2][0]][i];
+  }
+  len1 = sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+  len2 = sqrt(b[0]*b[0] + b[1]*b[1] + b[2]*b[2]);
+  for (i=0;i<3;i++){
+    a[i]/=len1;
+    b[i]/=len2;
+  }
+  n2[0]=a[1]*b[2]-a[2]*b[1];
+  n2[1]=a[2]*b[0]-a[0]*b[2];
+  n2[2]=a[0]*b[1]-a[1]*b[0];
+
+  for (i=0;i<3;i++)
+    n[i]=0.5*(n1[i]+n2[i]);
+}
+
+
+
+int contcross(DCONT *c1, int f1, int l1, DCONT *c2, int f2, int l2,
+		int *tr, double *l, double *m, double criterium,
+		int npnt, double (*pnt)[3], int ndhk, int (*dhk)[3])
+ {
+  int i, j, k, tra, trb;
+  double p1[3], p2[3], s1[3], s2[3], min=1e20;
+  double la, ma, lb, mb, r1, r2;
+  
+  for (i=f1; i<l1; i++)
+   {
+    routlm(p1, c1[i].tr, c1[i].l, c1[i].m, npnt, pnt, ndhk, dhk);
+    routlm(s1, c1[i].tr, c1[i].l2, c1[i].m2, npnt, pnt, ndhk, dhk);
+    for (k=0; k<3; k++)
+      s1[k] -= p1[k];
+    for (j=f2; j<l2; j++)
+     {
+      routlm(p2, c2[j].tr, c2[j].l, c2[j].m, npnt, pnt, ndhk, dhk);
+      routlm(s2, c2[j].tr, c2[j].l2, c2[j].m2, npnt, pnt, ndhk, dhk);
+      for (k=0; k<3; k++)
+        s2[k] -= p2[k];
+      if (linesect(p1, s1, p2, s2, &r1, &r2))
+       {
+        if (r1>=0 && r1<=1 && r2>=0 && r2<=1)
+	 {
+	  tra=c1[i].tr;
+	  la=(1-r1)*c1[i].l+r1*c1[i].l2;
+	  ma=(1-r1)*c1[i].m+r1*c1[i].m2;
+	  trb=c2[j].tr;
+	  lb=(1-r2)*c2[j].l+r2*c2[j].l2;
+	  mb=(1-r2)*c2[j].m+r2*c2[j].m2;
+	  routlm(p2, tra, la, ma, npnt, pnt, ndhk, dhk);
+	  routlm(s2, trb, lb, mb, npnt, pnt, ndhk, dhk);
+	  if (vecdist(p2, s2)<=criterium)
+	   {
+	    *tr=tra;
+	    *l=la;
+	    *m=ma;
+	    return 1;
+	   }
+	 }
+       }
+     }
+   }
+  return 0;
+ }
+
+void write_elec(char *filename)
+ {
+  int	i;
+  FILE	*file;
+
+  nel=NEL;
+  file=fopen(filename, "w");
+  if (file==NULL)
+   {
+    printf("Error opening %s\n", filename);
+    exit(1);
+   }
+  fprintf(file, "%4d\n", nel);
+  for (i=0; i<nel; i++)
+    if (fprintf(file,"%4d %7.4f %7.4f !%s\n", elec[i].tr+1, 
+		elec[i].l, elec[i].m, elname[i])==EOF)
+     {
+      printf("Error writing to %s\n", filename);
+      exit(1);
+     }
+  fclose(file);
+ }
+
+
+void out_of_mem(void)
+ {
+  printf("Sorry, out of memory");
+  exit(1);
+ }
+
+
+int main(int argc, char *argv[])
+ {
+  int	i, j, k, tr,pp;
+  int	nlmh1,nlmh2, index;
+  DCONT *h1,*h2;
+  double l, m;
+  char 	filename[80]="\0";
+  char 	line[80]="\0";
+  FILE	*file;
+  double pos[28],pos2[18];
+  double ymin,ymax;
+  int cmin,cmax;
+  DCONT *c,*vc;
+  int nlm,vnlm;
+  int eldhk;
+  double la,mu,eta;
+
+
+/* get user input */
+
+  if (argc>1)
+    strcpy(filename, argv[1]);
+  else
+   {
+    printf("Name triangulated torso: ");
+    gets(filename);
+   }
+  if (filename[0]=='\0')
+    exit(0);
+  if (!dhkinp(filename, &npnt, &ndhk, &pnt, &dhk))
+    exit(1);
+
+  if (argc>2)
+    strcpy(filename, argv[2]);
+  else
+   {
+    printf("Name output file: ");
+    gets(filename);
+   }
+  if (filename[0]=='\0') exit(0);
+
+  if (argc>3)
+    strcpy(line, argv[3]);
+  else if (argc==1)
+   {
+    printf("Shift points vertically: [m] ");
+    gets(line);
+   }
+  if (strlen(line)){
+    sscanf(line,"%lf",&vertshift);
+  }
+  
+  h1=(DCONT*) calloc(ndhk, sizeof(DCONT));
+  if (h1==NULL)
+    out_of_mem();
+
+  h2=(DCONT*) calloc(ndhk, sizeof(DCONT));
+  if (h2==NULL)
+    out_of_mem();
+
+  c=(DCONT*) calloc(ndhk, sizeof(DCONT));
+  if (c==NULL)
+    out_of_mem();
+
+  vc=(DCONT*) calloc(ndhk, sizeof(DCONT));
+  if (vc==NULL)
+    out_of_mem();
+
+  for (i=0;i<28;i++)
+    pos[i]=i/16.0;
+  
+  for (i=0;i<17;i++)
+    pos2[i]=i*distance;
+
+/*  get wilson's electrode positions */
+
+  p1[0]=0; p1[1]= 1; p1[2]=0.125+vertshift;
+  contour(p1, norm_y, 0, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  routlm(pl1,h1[0].tr,h1[0].l,h1[0].m,npnt,pnt,ndhk,dhk);
+
+  p1[0]=0; p1[1]=-1; p1[2]=0.125+vertshift;
+  contour(p1, norm_y, 0, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  routlm(pr1,h1[0].tr,h1[0].l,h1[0].m,npnt,pnt,ndhk,dhk);
+  
+  contour(pr1, pl1, 1, norm_x,0, norm_y, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  elecs(nlmh1, h1, 0, index, npnt, pnt, ndhk, dhk, 17, pos, 1, tmp);
+/*
+  assign_el("R", tmp, 0, elec);
+  assign_el("L", tmp, 16, elec);
+*/
+
+
+/*  get reference points at sternum */
+
+  p1[0]= 1.0; p1[1]= 0.0; p1[2]= 0.0+vertshift;
+  find_dhk2(p1,norm_minx,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pf1,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+
+  p1[0]= 1.0; p1[1]= 0.0; p1[2]= -0.15+vertshift;
+  find_dhk2(p1,norm_minx,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pf2,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+
+/*  get reference points at left side */
+
+  p1[0]=0; p1[1]=1; p1[2]=0+vertshift;
+  find_dhk2(p1,norm_miny,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pl1,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+
+  p1[0]=0; p1[1]=1; p1[2]=-0.15+vertshift;
+  find_dhk2(p1,norm_miny,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pl2,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+
+
+/*  get reference points at right side */
+
+  p1[0]=0; p1[1]=-1; p1[2]=0+vertshift;
+  find_dhk2(p1,norm_y,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pr1,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+
+  p1[0]=0; p1[1]=-1; p1[2]=-0.15+vertshift;
+  find_dhk2(p1,norm_y,&la,&mu,&eta,&eldhk,npnt, pnt, ndhk, dhk);
+  routlm(pr2,eldhk,la,mu,npnt,pnt,ndhk,dhk);
+printf("%7.4f %7.4f %7.4f\n",pf1[0],pf1[1],pf1[2]);
+printf("%7.4f %7.4f %7.4f\n",pf2[0],pf2[1],pf2[2]);
+printf("%7.4f %7.4f %7.4f\n",pl1[0],pl1[1],pl1[2]);
+printf("%7.4f %7.4f %7.4f\n",pl2[0],pl2[1],pl2[2]);
+printf("%7.4f %7.4f %7.4f\n",pr1[0],pr1[1],pr1[2]);
+printf("%7.4f %7.4f %7.4f\n",pr2[0],pr2[1],pr2[2]);
+
+  /* strips on back side : construct horizontals */
+
+  contour(pl1, pr1, 1, norm_minx,0, norm_minx, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  elecs(nlmh1, h1, 0, index, npnt, pnt, ndhk, dhk, 17, pos, 1, tmp1);
+
+  contour(pl2, pr2, 1, norm_minx,0, norm_minx, npnt, pnt, ndhk, dhk, 
+    &nlmh2, h2, &index);
+  elecs(nlmh2, h2, 0, index, npnt, pnt, ndhk, dhk, 17, pos, 1, tmp2);
+
+  /* strip */
+
+  pp=1;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("145",el,4,elec);
+  assign_el("146",el,3,elec);
+  assign_el("147",el,2,elec);
+  assign_el("148",el,1,elec);
+  assign_el("149",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("150",el,1,elec);
+  assign_el("151",el,2,elec);
+  assign_el("152",el,3,elec);
+  assign_el("153",el,4,elec);
+  assign_el("154",el,5,elec);
+  assign_el("155",el,6,elec);
+  assign_el("156",el,7,elec);
+
+  /* strip  */
+
+  pp=3;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("157",el,4,elec);
+  assign_el("158",el,3,elec);
+  assign_el("159",el,2,elec);
+  assign_el("160",el,1,elec);
+  assign_el("161",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("162",el,1,elec);
+  assign_el("163",el,2,elec);
+  assign_el("164",el,3,elec);
+  assign_el("165",el,4,elec);
+  assign_el("166",el,5,elec);
+  assign_el("167",el,6,elec);
+  assign_el("168",el,7,elec);
+
+
+  /* strip  */
+
+  pp=5;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("169",el,4,elec);
+  assign_el("170",el,3,elec);
+  assign_el("171",el,2,elec);
+  assign_el("172",el,1,elec);
+  assign_el("173",el,0,elec);
+  
+  contour(p1, n,0,p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("174",el,1,elec);
+  assign_el("175",el,2,elec);
+  assign_el("176",el,3,elec);
+  assign_el("177",el,4,elec);
+  assign_el("178",el,5,elec);
+  assign_el("179",el,6,elec);
+  assign_el("180",el,7,elec);
+
+
+  /* strip  */
+
+  pp=7;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("181",el,4,elec);
+  assign_el("182",el,3,elec);
+  assign_el("183",el,2,elec);
+  assign_el("184",el,1,elec);
+  assign_el("185",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("186",el,1,elec);
+  assign_el("187",el,2,elec);
+  assign_el("188",el,3,elec);
+  assign_el("189",el,4,elec);
+  assign_el("190",el,5,elec);
+  assign_el("191",el,6,elec);
+  assign_el("192",el,7,elec);
+
+
+  /* strip  */
+
+  pp=9;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("1",el,4,elec);
+  assign_el("2",el,3,elec);
+  assign_el("3",el,2,elec);
+  assign_el("4",el,1,elec);
+  assign_el("5",el,0,elec);
+  
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 9, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("6",el,1,elec);
+  assign_el("7",el,2,elec);
+  assign_el("8",el,3,elec);
+  assign_el("9",el,4,elec);
+  assign_el("10",el,5,elec);
+  assign_el("11",el,6,elec);
+  assign_el("12",el,7,elec);
+  
+  
+  /* strip  */
+
+  pp=11;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("13",el,4,elec);
+  assign_el("14",el,3,elec);
+  assign_el("15",el,2,elec);
+  assign_el("16",el,1,elec);
+  assign_el("17",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("18",el,1,elec);
+  assign_el("19",el,2,elec);
+  assign_el("20",el,3,elec);
+  assign_el("21",el,4,elec);
+  assign_el("22",el,5,elec);
+  assign_el("23",el,6,elec);
+  assign_el("24",el,7,elec);
+
+  /* strip  */
+
+  pp=13;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("25",el,4,elec);
+  assign_el("26",el,3,elec);
+  assign_el("27",el,2,elec);
+  assign_el("28",el,1,elec);
+  assign_el("29",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("30",el,1,elec);
+  assign_el("31",el,2,elec);
+  assign_el("32",el,3,elec);
+  assign_el("33",el,4,elec);
+  assign_el("34",el,5,elec);
+  assign_el("35",el,6,elec);
+  assign_el("36",el,7,elec);
+
+
+  /* strip  */
+
+  pp=15;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("37",el,4,elec);
+  assign_el("38",el,3,elec);
+  assign_el("39",el,2,elec);
+  assign_el("40",el,1,elec);
+  assign_el("41",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("42",el,1,elec);
+  assign_el("43",el,2,elec);
+  assign_el("44",el,3,elec);
+  assign_el("45",el,4,elec);
+  assign_el("46",el,5,elec);
+  assign_el("47",el,6,elec);
+  assign_el("48",el,7,elec);
+
+
+  /* construct right horizontal */
+
+  for (i=0;i<18;i++)
+    pos[i]=i/8.0;
+
+  contour(pr1, pf1, 1, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  elecs(nlmh1, h1, 0, index, npnt, pnt, ndhk, dhk, 9, pos, 1, tmp1);
+
+  contour(pr2, pf2, 1, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh2, h2, &index);
+  elecs(nlmh2, h2, 0, index, npnt, pnt, ndhk, dhk, 9, pos, 1, tmp2);
+
+
+  /* strip  */
+
+
+  pp=1;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("49",el,4,elec);
+  assign_el("50",el,3,elec);
+  assign_el("51",el,2,elec);
+  assign_el("52",el,1,elec);
+  assign_el("53",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("54",el,1,elec);
+  assign_el("55",el,2,elec);
+  assign_el("56",el,3,elec);
+  assign_el("57",el,4,elec);
+  assign_el("58",el,5,elec);
+  assign_el("59",el,6,elec);
+  assign_el("60",el,7,elec);
+
+  /* strip  */
+
+  pp=3;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("61",el,4,elec);
+  assign_el("62",el,3,elec);
+  assign_el("63",el,2,elec);
+  assign_el("64",el,1,elec);
+  assign_el("65",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("66",el,1,elec);
+  assign_el("67",el,2,elec);
+  assign_el("68",el,3,elec);
+  assign_el("69",el,4,elec);
+  assign_el("70",el,5,elec);
+  assign_el("71",el,6,elec);
+  assign_el("72",el,7,elec);
+
+  /* strip  */
+
+  pp=5;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("73",el,4,elec);
+  assign_el("74",el,3,elec);
+  assign_el("75",el,2,elec);
+  assign_el("76",el,1,elec);
+  assign_el("77",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("78",el,1,elec);
+  assign_el("79",el,2,elec);
+  assign_el("80",el,3,elec);
+  assign_el("81",el,4,elec);
+  assign_el("82",el,5,elec);
+  assign_el("83",el,6,elec);
+  assign_el("84",el,7,elec);
+
+  pp=7;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("85",el,4,elec);
+  assign_el("86",el,3,elec);
+  assign_el("87",el,2,elec);
+  assign_el("88",el,1,elec);
+  assign_el("89",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("90",el,1,elec);
+  assign_el("91",el,2,elec);
+  assign_el("92",el,3,elec);
+  assign_el("93",el,4,elec);
+  assign_el("94",el,5,elec);
+  assign_el("95",el,6,elec);
+  assign_el("96",el,7,elec);
+  
+  /* construct left horizontal */
+
+  contour(pl1, pf1, 1, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh1, h1, &index);
+  elecs(nlmh1, h1, 0, index, npnt, pnt, ndhk, dhk, 10, pos, 1, tmp1);
+
+  contour(pl2, pf2, 1, norm_x,0, norm_x, npnt, pnt, ndhk, dhk, 
+    &nlmh2, h2, &index);
+  elecs(nlmh2, h2, 0, index, npnt, pnt, ndhk, dhk, 10, pos, 1, tmp2);
+
+  /* strip  */
+
+  pp=7;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("97",el,4,elec);
+  assign_el("98",el,3,elec);
+  assign_el("99",el,2,elec);
+  assign_el("100",el,1,elec);
+  assign_el("101",el,0,elec);
+
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("102",el,1,elec);
+  assign_el("103",el,2,elec);
+  assign_el("104",el,3,elec);
+  assign_el("105",el,4,elec);
+  assign_el("106",el,5,elec);
+  assign_el("107",el,6,elec);
+  assign_el("108",el,7,elec);
+
+
+  /* strip  */
+
+  pp=5;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("109",el,4,elec);
+  assign_el("110",el,3,elec);
+  assign_el("111",el,2,elec);
+  assign_el("112",el,1,elec);
+  assign_el("113",el,0,elec);
+  
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("114",el,1,elec);
+  assign_el("115",el,2,elec);
+  assign_el("116",el,3,elec);
+  assign_el("117",el,4,elec);
+  assign_el("118",el,5,elec);
+  assign_el("119",el,6,elec);
+  assign_el("120",el,7,elec);
+
+
+  /* strip  */
+
+  pp=3;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("121",el,4,elec);
+  assign_el("122",el,3,elec);
+  assign_el("123",el,2,elec);
+  assign_el("124",el,1,elec);
+  assign_el("125",el,0,elec);
+  
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 9, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("126",el,1,elec);
+  assign_el("127",el,2,elec);
+  assign_el("128",el,3,elec);
+  assign_el("129",el,4,elec);
+  assign_el("130",el,5,elec);
+  assign_el("131",el,6,elec);
+  assign_el("132",el,7,elec);
+
+  /* strip  */
+
+  pp=1;
+  routlm(p1,tmp1[pp].tr,tmp1[pp].l,tmp1[pp].m, npnt, pnt, ndhk, dhk);
+  routlm(p2,tmp2[pp].tr,tmp2[pp].l,tmp2[pp].m, npnt, pnt, ndhk, dhk);
+  compose_normal(n,tmp1[pp].tr, tmp2[pp].tr,npnt,pnt,ndhk,dhk);
+
+  contour(p1, n,0,p2, 1, norm_z, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 7, pos2, 0, el);
+  assign_el("133",el,4,elec);
+  assign_el("134",el,3,elec);
+  assign_el("135",el,2,elec);
+  assign_el("136",el,1,elec);
+  assign_el("137",el,0,elec);
+  
+  contour(p1, n,0, p2, 1, norm_minz, npnt, pnt, ndhk, dhk, &vnlm, vc, &index);
+  elecs(vnlm, vc, 0, 7, npnt, pnt, ndhk, dhk, 9, pos2, 0, el);
+  assign_el("138",el,1,elec);
+  assign_el("139",el,2,elec);
+  assign_el("140",el,3,elec);
+  assign_el("141",el,4,elec);
+  assign_el("142",el,5,elec);
+  assign_el("143",el,6,elec);
+  assign_el("144",el,7,elec);
+  
+/* write result */
+
+
+  write_elec(filename);
+  return 0;
+ }
+
+
