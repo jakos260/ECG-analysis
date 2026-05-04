@@ -6,6 +6,7 @@ import numpy as np
 class SplitingMethod(Enum):
     SPLIT_BY_DISTANCE = 1
     SPLIT_BY_DISTANCE_WITH_COMPONENT_CLEANUP = 2
+    SPLIT_BY_DISTANCE_TO_TYP = 3
 
 
 def split_vertices_by_distance(vertices, triangles, rcav_ver, lcav_ver, threshold=2.0):
@@ -310,6 +311,40 @@ def split_vertices_by_distance_with_component_cleanup(
     endocardium_ver, endocardium_tri, endocardium_ids = _collect_group(1)
     return epicardium_ver, epicardium_tri, epicardium_ids, endocardium_ver, endocardium_tri, endocardium_ids
 
+def split_typ(vertices, rcav_ver, lcav_ver, threshold=2.0):
+    """
+    Returns a class vector for the heart model nodes:
+    1 - epicardium
+    2 - left ventricle endocardium (LV)
+    3 - right ventricle endocardium (RV)
+    """
+    vertices = np.asarray(vertices, dtype=float)
+    rcav_ver = np.asarray(rcav_ver, dtype=float)
+    lcav_ver = np.asarray(lcav_ver, dtype=float)
+
+    threshold_sq = threshold * threshold
+    
+    # Initialize the classes vector with ones (defaulting to epicardium)
+    classes = np.ones(len(vertices), dtype=int)
+
+    for i, ver in enumerate(vertices):
+        # Calculate squared distances to both heart cavities
+        dist_sq_lcav = np.sum((lcav_ver - ver) ** 2, axis=1)
+        dist_sq_rcav = np.sum((rcav_ver - ver) ** 2, axis=1)
+
+        # Find the minimum distance to LV and RV
+        min_lcav = np.min(dist_sq_lcav) if len(dist_sq_lcav) > 0 else np.inf
+        min_rcav = np.min(dist_sq_rcav) if len(dist_sq_rcav) > 0 else np.inf
+
+        # If the vertex is within the threshold of at least one cavity
+        if min_lcav < threshold_sq or min_rcav < threshold_sq:
+            # Assign to the closer cavity
+            if min_lcav <= min_rcav:
+                classes[i] = 2  # lv endo
+            else:
+                classes[i] = 3  # rv endo
+
+    return classes
 
 def split(
     vertices,
@@ -325,4 +360,7 @@ def split(
         return split_vertices_by_distance_with_component_cleanup(
             vertices, triangles, rcav_ver, lcav_ver, **kwargs
         )
+    if method == SplitingMethod.SPLIT_BY_DISTANCE_TO_TYP:
+        return split_typ(vertices, rcav_ver, lcav_ver, **kwargs)
+    
     raise ValueError(f"Unsupported splitting method: {method}")
