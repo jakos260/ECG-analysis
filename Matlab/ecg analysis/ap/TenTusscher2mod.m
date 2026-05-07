@@ -12,6 +12,8 @@ function [t,V]=TenTusscher2mod(HT, STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, 
 %     Ten Tusscher's website: http://www-binf.bio.uu.nl/khwjtuss/
 %
 % INPUT VARIABLES
+%     HT       : Timestep (ms)
+%     STOPTIME : Duration of the simulation (ms)
 %     Stim_I   : Array with the stimulus strengths of monophasic square
 %                stimulus pulses (A/F). One entry per pulse.
 %     Stim_T   : Array with the respective pulse durations (ms)
