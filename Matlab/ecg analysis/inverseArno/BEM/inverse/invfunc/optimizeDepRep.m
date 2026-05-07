@@ -61,8 +61,8 @@ else
 % Calculate Splus and Smin:
 % Splus      	= getSfunc(INV.T, tims_1, tims_3, INV.SPECS, notchopt.pot, amplopt.pot, INV.mode, INV);             % Produce TMP's for .tims + dif_tims
 % Smin      	= getSfunc(INV.T, tims_2, tims_4, INV.SPECS, notchopt.pot, amplopt.pot, INV.mode, INV);             % Produce TMP's for .tims - dif_tims
-Splus       = getSmode(INV.T, tims_1, tims_3, INV.SPECS, INV.mode, 22);    
-Smin        = getSmode(INV.T, tims_2, tims_4, INV.SPECS, INV.mode, 22);
+Splus       = getSmode(INV.T, tims_1, tims_3, INV.SPECS, INV.mode);    
+Smin        = getSmode(INV.T, tims_2, tims_4, INV.SPECS, INV.mode);
 startopt   	= opt;                                                                                              % File initial ops [input] as startopt.
 
 if (strcmp(opt.type,'dep') + strcmp(opt.type,'rep')) == 0, startopt.tims = startopt.tims - keepopt.tims; end    % In other words, if opt.type='apd'(?)

@@ -92,7 +92,7 @@ while  nrClust < 8 || (max(bestdep) - SCAN.qrsduration) > 3
     maxt = max(SCAN.qrsduration, round(max(dep)) );   
     t= 1:maxt;
     T=ones(length(GEOM.VER),1)*t;   
-    PSIA =lowpassma(SCAN.AMAorg*getSmode(T,dep,SCAN.rep,GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+    PSIA =lowpassma(SCAN.AMAorg*getSmode(T,dep,SCAN.rep,GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
     COR=corrcoef(PSIA,SCAN.PSIREForg(:,1:size(PSIA,2)));
     cor = COR(2,1);
     rd  = norm(SCAN.PSIREForg(:,1:size(PSIA,2)) - PSIA,'fro')/SCAN.normphi;
@@ -148,6 +148,7 @@ function [focusfound,bestdep,foci,bestshift,SCAN] = fociscan(GEOM,SCAN,initdep,i
 % init
 focusfound  = 0;
 bestdep     = initdep;
+foci        = -1;
 bestshift   = -1;
 cors        = -1 * ones(size(GEOM.DIST,1),1);
 rds         = 10 * ones(size(GEOM.DIST,1),1);
@@ -243,11 +244,11 @@ for inode=1:length(GEOM.VER)
     maxt = max(SCAN.qrsduration, round(max(dep)) );   
     t= 1:maxt;
     T=ones(length(GEOM.VER),1)*t;
-    PSIA =lowpassma(SCAN.AMA*getSmode(T,dep,SCAN.rep,GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+    PSIA =lowpassma(SCAN.AMA*getSmode(T,dep,SCAN.rep,GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
     
 %     a= cumsum(rms(PSIA(:,1:maxt)))-cumsum(rms(GEOM.BSM(:,1:maxt)));
 %     cums(inode) = a(end);
-%     a = gabornelson(GEOM.Tnormal,GEOM.Tarea,lowpassma(GEOM.AMAall*getSmode(T,dep,SCAN.rep,GEOM.pS,[],SCAN.scanmode),SCAN.lpass));
+%     a = gabornelson(GEOM.Tnormal,GEOM.Tarea,lowpassma(GEOM.AMAall*getSmode(T,dep,SCAN.rep,GEOM.SPECS,SCAN.scanmode),SCAN.lpass));
 %     vecs{inode} = a(1:length(vec0),:)-vec0;
 %     if SCAN.usecor
         COR=corrcoef(PSIA,SCAN.PSIREF(:,1:maxt));
@@ -328,7 +329,7 @@ useSurf     = zeros(size(GEOM.DIST,1),1);
 % Leave the first minTFact% (10%) of the activation sequence as is.
 T=ones(length(GEOM.VER),1)*(1:max(initdep));
  % surf
-PSIA = lowpassma( SCAN.AMA * getSmode(T, initdep, SCAN.rep, GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+PSIA = lowpassma( SCAN.AMA * getSmode(T, initdep, SCAN.rep, GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
 
 if SCAN.usecor
     COR0 = corrcoef(PSIA, SCAN.PSIREF(:,1:size(PSIA,2))); 
@@ -354,7 +355,7 @@ for inode=1:length(GEOM.VER)
     %     dep = dep - min(dep);
     %     dep  = dep  *( SCAN.qrsduration / max(dep) );
         T=ones(length(GEOM.VER),1)*(1:max(deps(:,inode)));
-        PSIA = lowpassma( SCAN.AMA*getSmode(T, deps(:,inode), SCAN.rep, GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+        PSIA = lowpassma( SCAN.AMA*getSmode(T, deps(:,inode), SCAN.rep, GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
 
         if SCAN.usecor
             COR = corrcoef(PSIA, SCAN.PSIREF(:,1:size(PSIA,2))); 
@@ -426,7 +427,7 @@ return
 % dep = dep - min(dep);
 
 
-% PSIA = lowpassma( SCAN.AMA*getSmode(T, bestdep, SCAN.rep, GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+% PSIA = lowpassma( SCAN.AMA*getSmode(T, bestdep, SCAN.rep, GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
 %%
 if SCAN.usecor
     COR = corrcoef(PSIA, SCAN.PSIREF(:,mint:SCAN.qrsduration)); 
@@ -470,7 +471,7 @@ for inode=1:length(GEOM.VER)
         depSurf(depSurf < initdep) = initdep(depSurf < initdep) ;
 
         % surf
-        PSIA = lowpassma( SCAN.AMA*getSmode(T, depSurf, SCAN.rep, GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+        PSIA = lowpassma( SCAN.AMA*getSmode(T, depSurf, SCAN.rep, GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
         
         if SCAN.usecor
             CORSu = corrcoef(PSIA, SCAN.PSIREF(:,mint:SCAN.qrsduration)); 
@@ -479,7 +480,7 @@ for inode=1:length(GEOM.VER)
         end
         
         %trans
-        PSIA = lowpassma( SCAN.AMA*getSmode(T, depTrans, SCAN.rep, GEOM.pS,[],SCAN.scanmode),SCAN.lpass);
+        PSIA = lowpassma( SCAN.AMA*getSmode(T, depTrans, SCAN.rep, GEOM.SPECS,SCAN.scanmode),SCAN.lpass);
         if SCAN.usecor
             CORTr = corrcoef(PSIA, SCAN.PSIREF(:,mint:SCAN.qrsduration)); 
             cors(inode) = max(CORSu(2,1),CORTr(2,1));            

@@ -44,7 +44,7 @@ else
 end
 
 % TST.S = getSfunc(INV.T, tims_1, tims_2, INV.SPECS, notchopt.pot, amplopt.pot, INV.mode, INV);   %
-TST.S = getSmode(INV.T, tims_1, tims_2, INV.SPECS, INV.mode, 22); % 22: test new option with estimation based on tdom
+TST.S = getSmode(INV.T, tims_1, tims_2, INV.SPECS, INV.mode); % 22: test new option with estimation based on tdom
 
 %% Determine simulated BSM, residue, RD and weighted RD values:
 TST.PHIA    = lowpassma(INV.AMA * TST.S,INV.lpass);                                             % Construct filterd simulated BSM with A-matrix (INV.AMA) and simulated cardiac signals (TST.S)
