@@ -26,8 +26,8 @@ function [tmp, sig_sim] = tt2_wrapper(pEpi, pEndo, dep, rep, L, A, CT)
     HT = 0.1; STOPTIME = 500; threshold = -40;
     
     % Generowanie dwóch szablonów AP
-    [tE, VE] = TenTusscher2mod(HT, STOPTIME, 1, pEpi);
-    [tN, VN] = TenTusscher2mod(HT, STOPTIME, 3, pEndo);
+    [tE, VE] = wrapper_TenTusscher2mod(HT, STOPTIME, 1, pEpi);
+    [tN, VN] = wrapper_TenTusscher2mod(HT, STOPTIME, 3, pEndo);
     
     % Wyznaczanie punktów charakterystycznych (dep/rep) dla szablonów
     find_fid = @(t,V) [t(find(V>=threshold,1)), t(find(V(find(V>=threshold,1):end)<=threshold,1)+find(V>=threshold,1)-1)];

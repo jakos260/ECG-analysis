@@ -141,8 +141,8 @@ classdef TT2modUiAdjuster < handle
             norm_fn = @(v) (v - min(v)) / (max(v) - min(v));
             
             % AP Templates
-            [t_ref_epi, v_ref_epi] = TenTusscher2mod(0.1, 500, 1, [1,1,1]);
-            [t_ref_endo, v_ref_endo] = TenTusscher2mod(0.1, 500, 3, [1,1,1]);
+            [t_ref_epi, v_ref_epi] = wrapper_TenTusscher2mod(0.1, 500, 1, [1,1,1]);
+            [t_ref_endo, v_ref_endo] = wrapper_TenTusscher2mod(0.1, 500, 3, [1,1,1]);
             set(obj.line_epi_ref, 'XData', t_ref_epi, 'YData', norm_fn(v_ref_epi));
             set(obj.line_endo_ref, 'XData', t_ref_endo, 'YData', norm_fn(v_ref_endo));
 
@@ -150,12 +150,12 @@ classdef TT2modUiAdjuster < handle
             p_endo = [1,1,1]; if obj.cb_endo.Value, p_endo = p; end
 
             if obj.cb_epi.Value
-                [t_m_epi, v_m_epi] = TenTusscher2mod(0.1, 500, 1, p_epi);
+                [t_m_epi, v_m_epi] = wrapper_TenTusscher2mod(0.1, 500, 1, p_epi);
                 set(obj.line_epi_mod, 'Visible', 'on', 'XData', t_m_epi, 'YData', norm_fn(v_m_epi));
             else, set(obj.line_epi_mod, 'Visible', 'off'); end
 
             if obj.cb_endo.Value
-                [t_m_endo, v_m_endo] = TenTusscher2mod(0.1, 500, 3, p_endo);
+                [t_m_endo, v_m_endo] = wrapper_TenTusscher2mod(0.1, 500, 3, p_endo);
                 set(obj.line_endo_mod, 'Visible', 'on', 'XData', t_m_endo, 'YData', norm_fn(v_m_endo));
             else, set(obj.line_endo_mod, 'Visible', 'off'); end
 

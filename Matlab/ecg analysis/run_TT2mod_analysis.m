@@ -67,9 +67,9 @@ find_fiducials = @(t, V) deal(...
 
 
 % getting reference signals (without modification)
-[t_tmpl_epi, V_tmpl_epi] = TenTusscher2mod(HT, STOPTIME, 1, [1 1 1]);
+[t_tmpl_epi, V_tmpl_epi] = wrapper_TenTusscher2mod(HT, STOPTIME, 1, [1 1 1]);
 [t_dep_epi, t_rep_epi] = find_fiducials(t_tmpl_epi, V_tmpl_epi);
-[t_tmpl_endo, V_tmpl_endo] = TenTusscher2mod(HT, STOPTIME, 3, [1 1 1]);
+[t_tmpl_endo, V_tmpl_endo] = wrapper_TenTusscher2mod(HT, STOPTIME, 3, [1 1 1]);
 [t_dep_endo, t_rep_endo] = find_fiducials(t_tmpl_endo, V_tmpl_endo);
 
 
@@ -105,9 +105,9 @@ for t = 1:3 % type to modification epi, global, endo
         params = ones(3);
         params(phase_n) = phases_mod(phase_n, phase_factor_n);
 
-        [t_tmpl_epi_mod, V_tmpl_epi_mod] = TenTusscher2mod(HT, STOPTIME, 1, params);
+        [t_tmpl_epi_mod, V_tmpl_epi_mod] = wrapper_TenTusscher2mod(HT, STOPTIME, 1, params);
         [t_dep_epi_mod, t_rep_epi_mod] = find_fiducials(t_tmpl_epi_mod, V_tmpl_epi_mod);
-        [t_tmpl_endo_mod, V_tmpl_endo_mod] = TenTusscher2mod(HT, STOPTIME, 3, params);
+        [t_tmpl_endo_mod, V_tmpl_endo_mod] = wrapper_TenTusscher2mod(HT, STOPTIME, 3, params);
         [t_dep_endo_mod, t_rep_endo_mod] = find_fiducials(t_tmpl_endo_mod, V_tmpl_endo_mod);
         
         % progressbar
