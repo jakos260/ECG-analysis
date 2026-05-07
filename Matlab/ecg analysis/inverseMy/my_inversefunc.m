@@ -60,7 +60,7 @@ OPT.NOT.pot = zeros(size(GEOM.VER,1),1); % Notch - wyłączony
 OPT.AMP.pot = ones(size(GEOM.VER,1),1);  % Amplituda - wyłączona i ustawiona na 1
 
 %% WSTĘPNA WERYFIKACJA STANU POCZĄTKOWEGO
-TST = gettres_v(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
+TST = gettres_v_from_TT2mod(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
 
 disp('-------------------------------------------------------------------------');
 disp(' iter    minD    maxD   stdD   minR    maxR   stdR     reg      rd     tres');
@@ -100,7 +100,7 @@ disp('-------------------------------------------------------------------------'
 
 %% ZWRÓCENIE WYNIKÓW
 % Ostatnia kontrola parametrów
-TST = gettres_v(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
+TST = gettres_v_from_TT2mod(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
 
 meas = struct();
 meas.depfinal = OPT.DEP.tims;
@@ -116,47 +116,3 @@ disp(['Zakończono optymalizację po ', num2str(iter), ' iteracjach. RD = ', num
 
 end
 
-
-function TST = my_gettres_v(INV, opt, keepopt, notchopt, amplopt)
-    % Set weighted RD value parameter to 0.0010;
-    wrd_param   = 0.0010;
-    
-    % Determine S for given .tims:
-    % Check if type is depolarization or something else ('rep' or 'apd'):
-    if strcmp(opt.type,'dep')
-        tims_1 = opt.tims; tims_2 = keepopt.tims;
-    else
-        tims_1 = keepopt.tims; tims_2 = opt.tims;
-    end
-    
-    % TST.S = getSfunc(INV.T, tims_1, tims_2, INV.SPECS, notchopt.pot, amplopt.pot, INV.mode, INV);   %
-    TST.S = getSmode(INV.T, tims_1, tims_2, INV.SPECS, INV.mode);
-    
-    % Determine simulated BSM, residue, RD and weighted RD values:
-    TST.PHIA    = lowpassma(INV.AMA * TST.S,INV.lpass);                                             % Construct filterd simulated BSM with A-matrix (INV.AMA) and simulated cardiac signals (TST.S)
-    TST.RES     = INV.PHIREF-TST.PHIA(1:size(INV.PHIREF,1),1:size(INV.PHIREF,2));                   % Calculated residue --> difference INV.PHIREF and TST.PHIA
-    TST.rd      = norm(TST.RES,'fro')/INV.normphi;                                                  % Calculate RD value
-    TST.wrd     = sum(rms(TST.RES)./(wrd_param + rms(INV.PHIREF)));                                 % Calcualte weighted RD value
-    
-    % Determine regularization value:
-    if strcmp(opt.type,'dep')
-        TST.reg = norm(INV.REGOP*opt.tims);                                                         % Calculate regularization by multiplying REGOP with times
-    else
-        TST.reg = norm(INV.REGOPREP*opt.tims);                                                      % Calculate regularization by multiplying REGOPREP with times
-    end
-    
-    % Determine value of regularization term plus RD value:
-    if INV.useWeighedRd                                                                            % Check if weighted RD is used:
-        if strcmp(opt.type,'dep')
-            TST.tres = sqrt(TST.wrd^2+(TST.reg*opt.mu)^2);
-        else
-            TST.tres = sqrt(TST.wrd^2+(TST.reg*opt.mu)^2);
-        end
-    else
-        if strcmp(opt.type,'dep')
-            TST.tres = sqrt(TST.rd^2+(TST.reg*opt.mu)^2);
-        else
-            TST.tres = sqrt(TST.rd^2+(TST.reg*opt.mu)^2);
-        end
-    end
-end
