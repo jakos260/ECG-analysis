@@ -60,7 +60,9 @@ OPT.NOT.pot = zeros(size(GEOM.VER,1),1); % Notch - wyłączony
 OPT.AMP.pot = ones(size(GEOM.VER,1),1);  % Amplituda - wyłączona i ustawiona na 1
 
 %% WSTĘPNA WERYFIKACJA STANU POCZĄTKOWEGO
+INV.LUT = getTmpLut(0.8, 1.2, 0.2);
 TST = gettres_v_from_TT2mod(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
+% TST = gettres_v_from_TT2mod(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
 
 disp('-------------------------------------------------------------------------');
 disp(' iter    minD    maxD   stdD   minR    maxR   stdR     reg      rd     tres');
