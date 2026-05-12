@@ -58,18 +58,18 @@ if splitingMethod == SplitingMethod.SPLIT_BY_DISTANCE:
     print(f"{max(epicardium_tri.flatten())=} {min(epicardium_tri.flatten())=} {epicardium_ver.shape=}")
 
 
-    save_tri_file(
-        os.path.join(sample_data_path, "model/ventricle_endo.tri"),
-        endocardium_ver,
-        endocardium_tri,
-        vertex_ids=endocardium_ids,
-    )
-    save_tri_file(
-        os.path.join(sample_data_path, "model/ventricle_epi.tri"),
-        epicardium_ver,
-        epicardium_tri,
-        vertex_ids=epicardium_ids,
-    )
+    # save_tri_file(
+    #     os.path.join(sample_data_path, "model/ventricle_endo.tri"),
+    #     endocardium_ver,
+    #     endocardium_tri,
+    #     vertex_ids=endocardium_ids,
+    # )
+    # save_tri_file(
+    #     os.path.join(sample_data_path, "model/ventricle_epi.tri"),
+    #     epicardium_ver,
+    #     epicardium_tri,
+    #     vertex_ids=epicardium_ids,
+    # )
 
     q = QTripy()
     q.begin()
