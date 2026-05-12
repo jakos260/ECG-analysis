@@ -19,8 +19,8 @@ from helpers.split_endo_and_epi_nodes import SplitingMethod, split
 
 load_dotenv()
 data_path = Path(os.getenv("ENV_DATA_PATH")).resolve()
-sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_male")
-# sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_young_male")
+# sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_male")
+sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_young_male")
 
 heart_data = read_ecg_sim(sample_data_path)
 ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
@@ -43,7 +43,7 @@ common_AC = len(intersect_rows(ventricles_ver, lcav_ver))
 print("ventricles ∩ rcav:", common_AB)
 print("ventricles ∩ lcav:", common_AC)
 
-splitingMethod = SplitingMethod.SPLIT_BY_DISTANCE_TO_TYP
+splitingMethod = SplitingMethod.SPLIT_BY_DISTANCE
 if splitingMethod == SplitingMethod.SPLIT_BY_DISTANCE:
     epicardium_ver, epicardium_tri, epicardium_ids, endocardium_ver, endocardium_tri, endocardium_ids = split(
         ventricles_ver,
@@ -58,35 +58,35 @@ if splitingMethod == SplitingMethod.SPLIT_BY_DISTANCE:
     print(f"{max(epicardium_tri.flatten())=} {min(epicardium_tri.flatten())=} {epicardium_ver.shape=}")
 
 
-    save_tri_file(
-        os.path.join(sample_data_path, "model/ventricle_endo.tri"),
-        endocardium_ver,
-        endocardium_tri,
-        vertex_ids=endocardium_ids,
-    )
-    save_tri_file(
-        os.path.join(sample_data_path, "model/ventricle_epi.tri"),
-        epicardium_ver,
-        epicardium_tri,
-        vertex_ids=epicardium_ids,
-    )
+    # save_tri_file(
+    #     os.path.join(sample_data_path, "model/ventricle_endo.tri"),
+    #     endocardium_ver,
+    #     endocardium_tri,
+    #     vertex_ids=endocardium_ids,
+    # )
+    # save_tri_file(
+    #     os.path.join(sample_data_path, "model/ventricle_epi.tri"),
+    #     epicardium_ver,
+    #     epicardium_tri,
+    #     vertex_ids=epicardium_ids,
+    # )
 
     q = QTripy()
     q.begin()
     q.reset()
 
-    q.markers(endocardium_ver, color='blue', r=1)
-    # q.surface(endocardium_ver, endocardium_tri, color='blue')
-    # q.edge('y')
+    q.markers(endocardium_ver, color='blue', r=1)                       # endocardium nodes
+    q.surface(endocardium_ver, endocardium_tri, color='blue')           # endocardium surface
+    q.edge('y')
 
-    q.markers(epicardium_ver, color='red', r=1)
-    # q.surface(epicardium_ver, epicardium_tri, color='red', opacity=0.5)
-    # q.edge('y')
+    q.markers(epicardium_ver, color='red', r=1)                         # epicardium nodes 
+    q.surface(epicardium_ver, epicardium_tri, color='red', opacity=0.5) # epicardium surface
+    q.edge('y')
 
-    q.markers(lcav_ver, color='black', r=1)
-    q.markers(rcav_ver, color='black', r=1)
-    # q.surface(lcav_ver, lcav_tri, color='black', opacity=0.7)
-    # q.surface(rcav_ver, rcav_tri, color='black', opacity=0.7)
+    q.markers(lcav_ver, color='black', r=1)                             # left cavities nodes
+    q.markers(rcav_ver, color='black', r=1)                             # right cavities nodes  
+    q.surface(lcav_ver, lcav_tri, color='black', opacity=0.7)           # left cavities surface
+    q.surface(rcav_ver, rcav_tri, color='black', opacity=0.7)           # right cavities surface
     # q.marker(np.mean(ventricles_ver, axis=0), 'white', 5)
 
     q.text("Epi and Endo split", pos=(0.25, 0.95))
