@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))                         # add helpers
 from qtripy.readECGsim import read_ecg_sim
-from helpers.split_aha_segments import get_17_aha_segments
+from helpers.split_aha_segments import get_heart_model_segments
 
 load_dotenv()
 data_path = Path(os.getenv("ENV_DATA_PATH")).resolve()
@@ -18,26 +18,26 @@ sample_data_path = os.path.join(data_path, "ECGsim_data", "normal_young_male")
 heart_data = read_ecg_sim(sample_data_path)
 ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
 
-apex_idx = 558                 # Indeks wierzchołka na koniuszku (np. linia 105 w pliku)
-septum_idx = 249            # Wierzchołek gdzieś na środku podstawy zastawek
+apex_idx = 578              # Wierzchołek koniuszka
+base_idx = 513              # Wierzchołek gdzieś na środku podstawy zastawek
+septum_bottom_idx = 564     # Wierzchołek na dole przegrody
+septum_top_idx = 995        # Wierzchołek na górze przegrody 
 
-basal_rim_indices = [532, 513, 1019, 1011, 505] # Obwód zastawki mitralnej
-rim_points = ventricles_ver[basal_rim_indices]
-
-base_pt = np.mean(rim_points, axis=0)
 apex_pt = ventricles_ver[apex_idx]
-septum_pt = ventricles_ver[septum_idx]
+base_pt = ventricles_ver[base_idx]
+septum_bottom_pt = ventricles_ver[septum_bottom_idx]
+septum_top_pt = ventricles_ver[septum_top_idx]
 
-
-aha_labels = get_17_aha_segments(
+aha_labels = get_heart_model_segments(
     ventricles_ver,
     apex_pt,
     base_pt,
-    septum_pt,
+    septum_top_pt,
+    septum_bottom_pt,
     angle_offset_deg=0,
-    extra_septum=True,
-    septum_wedge_deg=40
+    extra_septum=True
     )
+
 unique_labels_number = np.unique(aha_labels).shape[0]
 print(f"labeled {aha_labels.shape[0]} vertices with AHA {unique_labels_number} unique segments")
 
@@ -48,7 +48,7 @@ faces = np.column_stack((np.full(len(ventriclec_tri), 3), ventriclec_tri)).flatt
 
 mesh = pv.PolyData(ventricles_ver, faces)
 tri_labels = aha_labels[ventriclec_tri[:, 0]]
-mesh.cell_data["AHA_Segment"] = tri_labels
+mesh.cell_data["Segments"] = tri_labels
 
 colors = [
     "white",      
@@ -56,7 +56,7 @@ colors = [
     "grey",       
     "black",      
     "red",        
-    "lightgrey",  
+    "orange",  
     "#CC1933", 
     "green",      
     "yellow",     
@@ -70,14 +70,14 @@ colors = [
     "black",     
     "#FFCC99",
     "blue",
-    "lime"  
+    "lime",  
 ]
-my_cmap = ListedColormap(colors)
+my_cmap = ListedColormap(colors[:unique_labels_number+1])
 
 plotter = pv.Plotter()
 plotter.add_mesh(
     mesh,
-    scalars="AHA_Segment",
+    scalars="Segments",
     cmap=my_cmap,
     show_scalar_bar=True,
     show_edges=True,
