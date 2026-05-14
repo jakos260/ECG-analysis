@@ -101,3 +101,12 @@ plotter.enable_point_picking(
 
 plotter.set_background("#9999CC") 
 plotter.show()
+
+file_name = "ventricles_labels_of_20.segments"
+np.savetxt(os.path.join(sample_data_path, "model", file_name), aha_labels, fmt="%d")
+
+with open(os.path.join(sample_data_path, "model", "ventricles_labels_points.segments"), "w") as f:
+    lines = [
+        "'file_name','apex','base','septum_top','septum_bottom'\n",
+        f"{file_name},{apex_idx},{base_idx},{septum_top_idx},{septum_bottom_idx}\n"]
+    f.writelines(lines)
