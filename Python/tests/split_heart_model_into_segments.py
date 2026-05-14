@@ -51,27 +51,26 @@ tri_labels = aha_labels[ventriclec_tri[:, 0]]
 mesh.cell_data["AHA_Segment"] = tri_labels
 
 colors = [
-    "white",           # 1
-    "purple",          # 11
-    "grey",            # 3
-    "black",           # 5
-    "red",             # 6
-    "lightgrey",           # 7
-    "#CC1933",        # 17 (heart - bordowy)
-    "green",       # 8
-    "yellow",          # 9
-    "cyan",            # 10
-    "purple",          # 11
-    "#FF8080",       # 12 (lightred)
-    "darkgrey",        # 4
-    # "lightgreen",      # 13
-    "lightblue",       # 14
-    "lightyellow",     # 15
-    "yellow",       # 14
-    "black",     # 15
-    "#FFCC99",       # 16 (flesh - cielisty)
+    "white",      
+    "purple",     
+    "grey",       
+    "black",      
+    "red",        
+    "lightgrey",  
+    "#CC1933", 
+    "green",      
+    "yellow",     
+    "cyan",       
+    "purple",     
+    "#FF8080",   
+    "darkgrey",   
+    "lightblue",  
+    "lightyellow",
+    "yellow",     
+    "black",     
+    "#FFCC99",
     "blue",
-    "lime"              # 2
+    "lime"  
 ]
 my_cmap = ListedColormap(colors)
 
