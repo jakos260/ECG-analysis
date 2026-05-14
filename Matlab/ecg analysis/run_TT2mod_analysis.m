@@ -382,3 +382,70 @@ title('TMP');
 legend('Location', 'best');
 grid on;
 hold off;
+
+
+%% plot AP modifications
+close all
+
+y_labels = {'Epicardium', 'Endocardium'};
+x_labels = {'Phase 1', 'Phase 2', 'Phase 3'};
+
+x_len = length(x_labels);
+y_len = length(y_labels);
+
+p = [1, 1, 1];
+
+figure("Name", "figure_1")
+
+t = linspace(HT,STOPTIME,STOPTIME/HT);
+
+for i = 1:x_len
+    for j = 1:y_len
+        num = (j-1)*x_len+i;
+        subplot(y_len, x_len, num)
+        hold on;
+        grid on;
+
+        CT = 1;
+        if j == 2
+            CT = 3;
+        end
+
+        % ylim([-300, 500]);
+        params = p;
+        [t_tmpl_mod_0, V_tmpl_mod_0] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
+        h0 = plot( ...
+            t_tmpl_mod_0, V_tmpl_mod_0, 'k', ...
+            'LineWidth', 1.5, ...
+            'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
+
+        params(i) = 1.2;
+        [t_tmpl_mod_p, V_tmpl_mod_p] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
+        h1 = plot( ...
+            t_tmpl_mod_p, V_tmpl_mod_p, 'r', ...
+            'LineWidth', 1.5, ...
+            'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
+
+        params(i) = 0.8;
+        [t_tmpl_mod_n, V_tmpl_mod_n] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
+        h3 = plot( ...
+            t_tmpl_mod_n, V_tmpl_mod_n, 'b', ...
+            'LineWidth', 1.5, ...
+            'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
+
+        ylabel('Amplitude [mV]', 'FontSize', 10);
+        yticklabels({});
+    
+        if i == x_len
+            text(1.08, 0.5, y_labels{j}, 'Units', 'normalized', ...
+                     'Rotation', -90, 'HorizontalAlignment', 'center', ...
+                     'FontWeight', 'bold', 'FontSize', 12);
+        end
+        if j == 1
+            title(x_labels{i}, 'FontWeight', 'bold', 'FontSize', 12);
+        end
+        xlabel('Time [ms]', 'FontSize', 10);
+        xticklabels({});
+    end
+end
+lgd = legend([h1, h0, h3], '+', 'ref', '-');
