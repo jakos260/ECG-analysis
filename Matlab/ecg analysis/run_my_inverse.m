@@ -79,32 +79,11 @@ GEOM.SPECS.scaleAmpl = 15;
 GEOM.LAY = lay_nim64();
 
 %% BUDOWA SŁOWNIKA LUT (Ten Tusscher 2) I ŁADOWANIE KLASTRÓW
-disp('Ładowanie podziału na segmenty (AHA)...');
+disp('Loading AHA segment definitions...');
 GEOM.RegionIdx = load(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles_labels_of_20.segments'));
 
-disp('Budowanie słownika LUT dla fizjologicznych kształtów APD...');
-phases_sweep = 0.5:0.1:1.5;
-LUT = struct();
-
-for i = 1:length(phases_sweep)
-    % Uruchomienie Twojego generatora dla danej modyfikacji fazy 3
-    [t_tt2, V_tt2] = wrapper_TenTusscher2mod(0.1, 500, 1, [1, 1, phases_sweep(i)], 60, 0);
-    
-    % Normalizacja potencjału dla macierzy AMA
-    V_norm = (V_tt2 - min(V_tt2)) / (max(V_tt2) - min(V_tt2));
-    
-    % Wyliczenie dokładnych markerów czasowych dla tego wzorca
-    idx_dep = find(V_norm >= 0.5, 1, 'first');
-    idx_rep = find(V_norm(idx_dep:end) <= 0.1, 1, 'first') + idx_dep - 1;
-    if isempty(idx_rep), idx_rep = length(V_norm); end
-    
-    LUT(i).phase_mod = phases_sweep(i);
-    LUT(i).V = V_norm;
-    LUT(i).t = t_tt2;
-    LUT(i).t_dep = t_tt2(idx_dep);
-    LUT(i).APD = t_tt2(idx_rep) - LUT(i).t_dep;
-end
-GEOM.LUT = LUT; % Zapisujemy do struktury przekazywanej do invfunc
+% Tworzymy słownik z idealnie równymi krokami od 200 do 350 ms z krokiem co 1 ms
+GEOM.LUT = getTmpLut_niceApd(200, 350, 1);
 
 %% ESTYMACJA POCZĄTKOWA I PROBLEM ODWROTNY
 initialvelocity = 0.4;
@@ -128,6 +107,9 @@ error_rep = abs(meas.repfinal - true_rep);
 disp(['Średni błąd depolaryzacji: ', num2str(mean(error_dep)), ' ms']);
 disp(['Średni błąd repolaryzacji: ', num2str(mean(error_rep)), ' ms']);
 
+tru_ecg = 
+rel_diff_rep = RelativeDistance()
+
 
 %% 5. Qtriplot
 q = initQtripy();
@@ -136,18 +118,18 @@ q.reset();
 q.disable_debounce();
 q.set_panels_number(2, 1);
 
-depolarisation time error
-q.set_active_panel(2, 1);
+% depolarisation time error
+q.set_active_panel(1, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(0.3);
 q.values(error_dep);
 q.gradient_bins(10);
-q.text("error_dep", [0.6, 0.85]);
+q.text("error_dep", [0.1, 0.85]);
 
-simulated repolarisation time
-q.set_active_panel(1, 1);
+% simulated repolarisation time
+q.set_active_panel(2, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(0.3);
 q.values(error_rep);
 q.gradient_bins(10);
-q.text("error_rep", [0.1, 0.85]);
+q.text("error_rep", [0.6, 0.85]);
