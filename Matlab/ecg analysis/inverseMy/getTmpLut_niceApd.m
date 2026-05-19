@@ -7,7 +7,7 @@ function LUT = getTmpLut_niceApd(start_apd, stop_apd, step_apd)
     disp('This may take a moment due to the fine sweep step...');
     
     % 1. Define the fine sweep range for the phase 3 modifier
-    phases_sweep = 0.2:0.001:2.5; 
+    phases_sweep = 0.2:0.001:3.5; 
     num_sweeps = length(phases_sweep);
     
     % Arrays to store temporary results

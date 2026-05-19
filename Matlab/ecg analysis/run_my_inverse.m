@@ -83,13 +83,14 @@ disp('Loading AHA segment definitions...');
 GEOM.RegionIdx = load(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles_labels_of_20.segments'));
 
 % Tworzymy słownik z idealnie równymi krokami od 200 do 350 ms z krokiem co 1 ms
-GEOM.LUT = getTmpLut_niceApd(200, 350, 1);
+GEOM.LUT = getTmpLut_niceApd(200, 460, 1);
 
 %% ESTYMACJA POCZĄTKOWA I PROBLEM ODWROTNY
 initialvelocity = 0.4;
-mudep = 5e-5;
-murep = 1e-4;
+mudep = 1e-6;
+murep = 2e-6;
 
+%%
 % 1. Szukanie ognisk początkowych (Initial Estimate)
 disp('Uruchamiam multifociscan...');
 [measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
@@ -107,9 +108,13 @@ error_rep = abs(meas.repfinal - true_rep);
 disp(['Średni błąd depolaryzacji: ', num2str(mean(error_dep)), ' ms']);
 disp(['Średni błąd repolaryzacji: ', num2str(mean(error_rep)), ' ms']);
 
-tru_ecg = 
-rel_diff_rep = RelativeDistance()
+% rel_diff_rep = RelativeDistance()
 
+data            = [];
+data.T          = T;
+data.meas       = meas;
+data.measinit   = measinit;
+plotecg(GEOM, data, S.scanmode, S.lpass)
 
 %% 5. Qtriplot
 q = initQtripy();
