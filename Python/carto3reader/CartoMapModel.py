@@ -147,9 +147,7 @@ class CartoMapModel:
                         if mode == 'v' and len(vals) >= 3:
                             vertices.append([float(vals[0]), float(vals[1]), float(vals[2])])
                         elif mode == 'f' and len(vals) >= 3:
-                            # Carto files index from 1, Python uses 0-based indexing
-                            # Reverse winding to fix normal direction (show outside surface)
-                            faces.append([int(vals[0]) - 1, int(vals[2]) - 1, int(vals[1]) - 1])
+                            faces.append([int(vals[0]), int(vals[2]), int(vals[1])])
                         elif mode == 'c':
                             colors.append([float(v) for v in vals])
                     except (ValueError, IndexError):
@@ -159,7 +157,7 @@ class CartoMapModel:
         self.mesh_triangles = np.array(faces)
         self.mesh_colors = np.array(colors) if colors else None
         print(
-            f"Mesh loaded: {len(vertices)} vertices, {len(faces)} triangles, {len(self.points)} points, {len(colors)} color entries."
+            f"loaded {len(vertices)} vertices, {len(faces)} triangles, {len(self.points)} points, {len(colors)} color entries."
         )
 
         return self._get_map_data()

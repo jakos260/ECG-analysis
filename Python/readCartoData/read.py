@@ -34,7 +34,7 @@ mc = carto_map.load_electrodes('MCC_DX')
 qd = carto_map.load_electrodes('QUAD_A')
 
 v = data['vertices']
-t = data['triangles']
+t = data['triangles'] + 1 # Conversion indexing from Python 0-based to Fortran 1-based
 points = data['points']
 colors_mesh = data['colors_mesh']
 color_names = data['color_names']
