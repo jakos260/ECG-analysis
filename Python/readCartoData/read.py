@@ -17,7 +17,8 @@ from carto3reader.CartoMap import CartoMap
 load_dotenv()
 
 data_path = Path(os.getenv("ENV_DATA_PATH")).resolve()
-sample_data_path = os.path.join(data_path, 'Carto3Data', 'Patient 2025_10_20', 'VT1', 'Export_VT1-02_02_2026-12-24-27')
+patient_name = 'Patient 2025_10_20'
+sample_data_path = os.path.join(data_path, 'other', 'Carto3Data', patient_name, 'VT1', 'Export_VT1-02_02_2026-12-24-27')
 
 measurement_name = '1-VT' # 114 points
 # measurement_name = '2-AT LV'
@@ -90,10 +91,10 @@ map_type = color_names[0]
 mesh = colors_mesh[:, color_names.index(map_type)] if (map_type is not None and map_type in color_names) else None
 
 # read Heart model
-heart_data = read_ecg_sim(os.path.join(data_path, "ECGsim_data", "normal_young_male"))
-ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
-rcav_ver, rcav_tri = heart_data['GEOM']['rcav']['VER'], heart_data['GEOM']['rcav']['ITRI']
-lcav_ver, lcav_tri = heart_data['GEOM']['lcav']['VER'], heart_data['GEOM']['lcav']['ITRI']
+# heart_data = read_ecg_sim(os.path.join(data_path, "ECGsim_data", "normal_young_male"))
+# ventricles_ver, ventriclec_tri = heart_data['VENTR']['geom']['VER'], heart_data['VENTR']['geom']['ITRI']
+# rcav_ver, rcav_tri = heart_data['GEOM']['rcav']['VER'], heart_data['GEOM']['rcav']['ITRI']
+# lcav_ver, lcav_tri = heart_data['GEOM']['lcav']['VER'], heart_data['GEOM']['lcav']['ITRI']
 
 
 q = QTripy()
@@ -107,17 +108,17 @@ q.reset()
 #                      scale=1.0),
 #                      t)
 q.surface(v, t)
-q.transparency(0.7)
+q.transparency(0.3)
 q.values(mesh)
 q.gradient_bins(10)
-q.axis()
+# q.axis()
 
-q.surface(ventricles_ver, ventriclec_tri)
-q.transparency(0.4)
-q.surface(lcav_ver, lcav_tri)
-q.transparency(0.4)
-q.surface(rcav_ver, rcav_tri)
-q.transparency(0.4)
+# q.surface(ventricles_ver, ventriclec_tri)
+# q.transparency(0.4)
+# q.surface(lcav_ver, lcav_tri)
+# q.transparency(0.4)
+# q.surface(rcav_ver, rcav_tri)
+# q.transparency(0.4)
 
 
 # q.set_active_panel(2,1)
