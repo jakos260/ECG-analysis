@@ -78,11 +78,19 @@ GEOM.SPECS.scaleAmpl = 15;
 
 GEOM.LAY = lay_nim64();
 
+%% BUDOWA SŁOWNIKA LUT (Ten Tusscher 2) I ŁADOWANIE KLASTRÓW
+disp('Loading AHA segment definitions...');
+GEOM.RegionIdx = load(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles_labels_of_20.segments'));
+
+% Tworzymy słownik z idealnie równymi krokami od 200 do 350 ms z krokiem co 1 ms
+GEOM.LUT = getTmpLut_niceApd(200, 460, 1);
+
 %% ESTYMACJA POCZĄTKOWA I PROBLEM ODWROTNY
 initialvelocity = 0.4;
-mudep = 5e-5;
-murep = 1e-4;
+mudep = 1e-6;
+murep = 2e-6;
 
+%%
 % 1. Szukanie ognisk początkowych (Initial Estimate)
 disp('Uruchamiam multifociscan...');
 [measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
@@ -100,6 +108,13 @@ error_rep = abs(meas.repfinal - true_rep);
 disp(['Średni błąd depolaryzacji: ', num2str(mean(error_dep)), ' ms']);
 disp(['Średni błąd repolaryzacji: ', num2str(mean(error_rep)), ' ms']);
 
+% rel_diff_rep = RelativeDistance()
+
+data            = [];
+data.T          = T;
+data.meas       = meas;
+data.measinit   = measinit;
+plotecg(GEOM, data, S.scanmode, S.lpass)
 
 %% 5. Qtriplot
 q = initQtripy();
@@ -109,17 +124,17 @@ q.disable_debounce();
 q.set_panels_number(2, 1);
 
 % depolarisation time error
-q.set_active_panel(2, 1);
+q.set_active_panel(1, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(0.3);
 q.values(error_dep);
 q.gradient_bins(10);
-q.text("error_dep", [0.6, 0.85]);
+q.text("error_dep", [0.1, 0.85]);
 
 % simulated repolarisation time
-q.set_active_panel(1, 1);
+q.set_active_panel(2, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(0.3);
 q.values(error_rep);
 q.gradient_bins(10);
-q.text("error_rep", [0.1, 0.85]);
+q.text("error_rep", [0.6, 0.85]);
