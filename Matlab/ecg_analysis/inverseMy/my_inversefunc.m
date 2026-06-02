@@ -127,6 +127,7 @@ meas.tresfinal = TST.tres;
 COR = corrcoef(TST.PHIA, INV.PHIREF);
 meas.corfinal = COR(2,1);
 meas.iterfinal = best_iter;
+meas.simulated_ecg = TST.PHIA;
 
 disp(['Optimization completed. Best achieved RD = ', num2str(meas.rdfinal)]);
 

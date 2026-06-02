@@ -379,7 +379,9 @@ meas.tresfinal  = TST.tres;                                                     
 COR             = corrcoef(TST.PHIA,INV.PHIREF);                                                        % Calculate correlation
 meas.corfinal   = COR(2,1);                                                                             % Final correlation value between simulated and measured signals
 meas.iterfinal  = iter;                                                                                 % Final number of iterations
-meas.log        = RESNOW;                                                                               % Log-file
+meas.log        = RESNOW;
+meas.simulated_ecg = TST.PHIA;
+% Log-file
 
 if INV.doSave               % If doSave = 1, write results to ASCI-file
     fprintf(fh,'\n Performance \n');

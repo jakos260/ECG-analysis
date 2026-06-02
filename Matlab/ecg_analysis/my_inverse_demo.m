@@ -101,7 +101,7 @@ measinit.rep = initRep(GEOM, measinit.dep);
 disp('Uruchamiam inversefunc...');
 meas = my_inversefunc(GEOM, measinit.dep, measinit.rep, mudep, murep);
 
-%%
+%% old aproach
 mudep = 5e-5;
 murep = 1e-6;
 estamp = 0;
@@ -184,3 +184,68 @@ q.transparency(transparency);
 q.values(error_rep_old);
 q.gradient_bins(gradient_bins);
 q.text(sprintf("error_rep_old av=%.0f[ms]", mean(error_rep_old)), [0.51, 0.45]);
+
+%% ECGI Summit 2026
+
+transparency = 0.4;
+gradient_bins = 6;
+
+q = initQtripy();
+
+q.reset();
+q.disable_debounce();
+q.set_panels_number(1, 2);
+q.background_color("white");
+
+% depolarisation time error
+q.set_active_panel(1, 1);
+q.surface(GEOM.VER, GEOM.ITRI);
+q.transparency(transparency);
+q.values(meas.repfinal);
+q.gradient_bins(gradient_bins);
+q.text(sprintf("av=%.0f[ms]", mean(meas.repfinal)), [0.2, 0.95]);
+
+% simulated repolarisation time
+q.set_active_panel(1, 2);
+q.surface(GEOM.VER, GEOM.ITRI);
+q.transparency(transparency);
+q.values(meas_old.repfinal);
+q.gradient_bins(gradient_bins);
+q.text(sprintf("av=%.0f[ms]", mean(meas_old.repfinal)), [0.2, 0.45]);
+
+
+%%
+N = 4;
+% Smooth the signals (using a Gaussian filter with a small window size)
+window_size = 5;
+
+% Note: If offset:offset+400 contains 401 samples, ensure simulated_ecg indices match (e.g., 1:401).
+ecg_ref = smoothdata(sig_ref(N, offset:offset+400), 'gaussian', window_size);
+ecg_sim = smoothdata(meas.simulated_ecg(N, 1:400), 'gaussian', window_size); 
+ecg_sim_old = smoothdata(meas_old.simulated_ecg(N, 1:400), 'gaussian', window_size);
+
+figure(67);
+clf; % Clear the figure to prevent overlapping when re-running
+set(gcf, 'Color', 'w');
+
+% First subplot: New simulation (LUT based)
+subplot(2,1,1);
+yline(0, 'Color', [0.7 0.7 0.7], 'LineWidth', 1.5); % Add gray zero-line first so it stays in the background
+hold on;
+plot(ecg_ref, 'k', 'LineWidth', 2.0); % Thick black line for reference
+plot(ecg_sim, 'r', 'LineWidth', 2.0); % Thick red line for simulation
+
+% Format title to include the Relative Distance (RD) value
+title(sprintf('Reference vs New LUT Optimization (RD = %.3f)', meas.rdfinal), 'FontSize', 12);
+axis off; % Remove all axes, borders, and ticks
+
+% Second subplot: Old simulation
+subplot(2,1,2);
+yline(0, 'Color', [0.7 0.7 0.7], 'LineWidth', 1.5); % Add gray zero-line
+hold on;
+plot(ecg_ref, 'k', 'LineWidth', 2.0);
+plot(ecg_sim_old, 'r', 'LineWidth', 2.0);
+
+% Format title to include the Relative Distance (RD) value from the old model
+title(sprintf('Reference vs Old Optimization (RD = %.3f)', meas_old.rdfinal), 'FontSize', 12);
+axis off; % Remove all axes, borders, and ticks
