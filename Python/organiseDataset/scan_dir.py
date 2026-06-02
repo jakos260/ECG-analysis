@@ -23,7 +23,7 @@ def format_data_path(path: Path) -> str:
 
 
 def main():
-    root_path = r"C:\Users\Admin\Documents\Projects\ecg project\Scripts\data\Dataset"
+    root_path = r"C:\Users\Admin\Documents\Projects\ecg_project\Scripts\data\other\Carto3Data\Patient 2025_10_20\VT1\Export_VT1-02_02_2026-12-24-27"
     files_info = scan_dir(root_path)
 
     with open("organiseDataset/files_report.txt", "w") as report:

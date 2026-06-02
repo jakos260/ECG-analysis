@@ -52,12 +52,12 @@ def smart_scan_carto(root_path):
         if total_size_mb > 0.1 or count > 5:
             print(line)
 
-    print("\n" + "="*90)
-    print("💡 WSKAZÓWKA: Szukaj plików z 'Points_Export.xml' (cała mapa) ")
-    print("   lub ogromnych plików .txt (surowe dane).")
-    print("="*90)
+    # print("\n" + "="*90)
+    # print("💡 WSKAZÓWKA: Szukaj plików z 'Points_Export.xml' (cała mapa) ")
+    # print("   lub ogromnych plików .txt (surowe dane).")
+    # print("="*90)
 
 # smart_scan_carto('C:/Twoja/Sciezka')
 
 # Podaj tu ścieżkę do rozpakowanych danych CARTO
-smart_scan_carto(os.path.join(data_path, 'Carto3Data', 'Patient 2025_10_20', 'VT1', 'Export_VT1-02_02_2026-12-24-27'))
+smart_scan_carto(os.path.join(data_path, 'other', 'Carto3Data', 'Patient 2025_10_20', 'VT1', 'Export_VT1-02_02_2026-12-24-27'))
