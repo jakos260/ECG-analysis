@@ -6,19 +6,22 @@ function DATA = readGeomPeacsModel(dirname,subject,varargin)
 % vbeatsdir = [dirname  '/ventricular_beats/beat1/'];
 
 modeldir = fullfile(dirname ,subject);
-modeldir = [modeldir '\'];
-if exist([modeldir  'atria.adj2d'])
-    [DATA.GEOM.atria.VER DATA.GEOM.atria.ITRI]     = loadtri([modeldir  'atria.tri']);
+modeldir = [modeldir '_'];
+if exist([modeldir  'atria.adj2d'])    
     [DATA.ATRIA.geom.VER,DATA.ATRIA.geom.ITRI] = loadtri([modeldir  'atria.tri']);
+    [DATA.ATRIA.geom.NORMV,DATA.ATRIA.geom.NORMT] = trinormals(DATA.ATRIA.geom.VER,DATA.ATRIA.geom.ITRI);
+
     DATA.ATRIA.ADJsurf = loadmat([modeldir  'atria.adj2d']);
     DATA.ATRIA.ADJ3D = loadmat([modeldir  'atria.adj3d']);
     DATA.ATRIA.DISTsurf = loadmat([modeldir  'atria.dst2d']);
     DATA.ATRIA.DIST3D = loadmat([modeldir  'ATRIA.dst3d']);
     DATA.ATRIA.ADJANIS = loadmat([modeldir  'ATRIA.adjanis']);
     DATA.ATRIA.DISTANIS = loadmat([modeldir  'ATRIA.dstanis']);
+    [DATA.GEOM.atria.VER, DATA.GEOM.atria.ITRI] = loadtri([modeldir  'atria.tri']);
     DATA.GEOM.atria.geomtyp = loadmat([modeldir  'atria.typ']);
 end
-[DATA.VENTR.geom.VER,DATA.VENTR.geom.ITRI] = loadtri([modeldir  'ventricles.tri']);
+[DATA.VENTR.geom.VER, DATA.VENTR.geom.ITRI] = loadtri([modeldir  'ventricles.tri']);
+[DATA.VENTR.geom.NORMV,DATA.VENTR.geom.NORMT] = trinormals(DATA.VENTR.geom.VER,DATA.VENTR.geom.ITRI);
 DATA.VENTR.ADJsurf = loadmat([modeldir  'ventricles.adj2d']);
 DATA.VENTR.ADJ3D = loadmat([modeldir  'ventricles.adj3d']);
 DATA.VENTR.DISTsurf = loadmat([modeldir  'ventricles.dst2d']);
@@ -26,15 +29,20 @@ DATA.VENTR.DIST3D = loadmat([modeldir  'ventricles.dst3d']);
 DATA.VENTR.ADJANIS = loadmat([modeldir  'ventricles.adjanis']);
 DATA.VENTR.DISTANIS = loadmat([modeldir  'ventricles.dstanis']);
 DATA.VENTR.HEARTDIST = loadmat([modeldir  'ventricles.heartdist']);
+
+[DATA.GEOM.ventr.VER,DATA.GEOM.ventr.ITRI] = loadtri([modeldir  'ventricles.tri']);
+[DATA.GEOM.ventr.NORMV,DATA.GEOM.ventr.NORMT] = trinormals(DATA.GEOM.ventr.VER,DATA.GEOM.ventr.ITRI);
 DATA.GEOM.ventr.geomtyp = loadmat([modeldir  'ventricles.typ']);
 DATA.GEOM.ventr.scar = loadmat([modeldir  'ventricles.scar']);
 DATA.GEOM.ventr.walls= loadmat([modeldir  'ventricles.walls']);
 DATA.GEOM.ventr.segments= loadmat([modeldir  'ventricles.segments']);
 
 
-[DATA.GEOM.ventr.VER,DATA.GEOM.ventr.ITRI]     = loadtri([modeldir  'ventricles.tri']);
+
 [DATA.GEOM.lcav.VER, DATA.GEOM.lcav.ITRI]      = loadtri([modeldir  'lcav.tri']);
+DATA.GEOM.lcav.geomtyp = loadmat([modeldir  'lcav.typ']);
 [DATA.GEOM.rcav.VER, DATA.GEOM.rcav.ITRI]      = loadtri([modeldir  'rcav.tri']);
+DATA.GEOM.rcav.geomtyp = loadmat([modeldir  'rcav.typ']);
 if exist([modeldir  'llung.tri'])
     [DATA.GEOM.llung.VER,DATA.GEOM.llung.ITRI]     = loadtri([modeldir  'llung.tri']);
     
@@ -42,6 +50,9 @@ end
 if exist( [modeldir  'rlung.tri'])
     [DATA.GEOM.rlung.VER,DATA.GEOM.rlung.ITRI]     = loadtri([modeldir  'rlung.tri']);
 end
+[DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI]   = loadtri([modeldir  'thorax.tri']);
+[DATA.GEOM.thorax.NORMV,DATA.GEOM.thorax.NORMT] = trinormals(DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI);
+
 [DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI]   = loadtri([modeldir  'thorax.tri']);
 if exist([modeldir  'liver.tri'])
     [DATA.GEOM.liver.VER,DATA.GEOM.liver.ITRI]   = loadtri([modeldir  'liver.tri']);
@@ -61,51 +72,48 @@ if exist([modeldir  'coil.tri'])
 end
 
 
-
-if nargin ==3 && ischar(varargin{end})
-    lead_path = varargin{end};
-else
-    lead_path = dirname;
-end
-
-if isempty(dir(fullfile(lead_path, '*.lead'))) && exist(fullfile(lead_path, subject), 'dir')
-    lead_path = fullfile(lead_path, subject);
-end
-
-if nargin == 3 && ~ischar(varargin{end})
-    wct = varargin{end};
-    wct_arg = true;
-else
-    wct_arg = false;
-end
-        
-if ~wct_arg
-    dd = dir(fullfile(lead_path, '*.lead'));
-    if ~isempty(dd)
-        idx_12lead = 1;
-        for i = 1:length(dd)
-            if contains(dd(i).name, 'standard12lead')
-                idx_12lead = i;
+if nargin ==3
+    if ischar(varargin{end})
+        dd = dir([varargin{end} '/*.lead']);
+        for i=1:length(dd)
+            if ~isempty(strfind(dd(i).name,'standard12lead'))
                 break;
             end
         end
-        
-        wct_file = fullfile(lead_path, dd(idx_12lead).name);
-        ver = loadmat(wct_file);
-        
-        if size(ver, 2) >= 4
-            ver = ver(:, 2:4);
-        end
-        
+        ver = loadmat(fullfile(varargin{end}, dd(i).name));
+        ver = ver(:,2:4);
         meanTh = mean(DATA.GEOM.thorax.VER);
-        wct = [];
-        for i = 1:3
-            TRIS = linetris(DATA.GEOM.thorax.VER, DATA.GEOM.thorax.ITRI, ver(i,:), [meanTh(1) meanTh(2) ver(i,3)]);
+        wct=[];
+        for i=1:3
+            
+            TRIS= linetris(DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI,ver(i,:),[meanTh(1) meanTh(2) ver(i,3)]);
             if isempty(TRIS)
-                TRIS = linetris(DATA.GEOM.thorax.VER, DATA.GEOM.thorax.ITRI, ver(i,:), meanTh);
-                TRIS(TRIS(:,2)<0, :) = [];
+                TRIS= linetris(DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI,ver(i,:),meanTh);
+                TRIS(TRIS(:,2)<0,:) = [];
             end
-            TRIS(abs(TRIS(:,end)) > min(abs(TRIS(:,end))), :) = [];
+            TRIS(abs(TRIS(:,end))> min(abs(TRIS(:,end))),:)=[];
+            %         itri = DATA.GEOM.thorax.ITRI(TRIS(1),:);
+            wct = [wct DATA.GEOM.thorax.ITRI(TRIS(1),1)];
+        end
+    else
+        wct = varargin{end};
+    end
+else
+    dd = dir([dirname '/*.lead']);
+    if ~isempty(dd)
+        for i=1:length(dd)
+            if ~isempty(strfind(dd(i).name,'standard12lead'))
+                break;
+            end
+        end
+        ver = loadmat(fullfile(dirname, dd(i).name));
+        ver = ver(:,2:4);
+        meanTh = mean(DATA.GEOM.thorax.VER);
+        wct=[];
+        for i=1:3
+            TRIS= linetris(DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI,ver(i,:),[meanTh(1) meanTh(2) ver(i,3)]);
+            TRIS(abs(TRIS(:,end))> min(abs(TRIS(:,end))),:)=[];
+            %         itri = DATA.GEOM.thorax.ITRI(TRIS(1),:);
             wct = [wct DATA.GEOM.thorax.ITRI(TRIS(1),1)];
         end
     end
@@ -121,6 +129,8 @@ if exist('wct')
     end
     if exist([modeldir 'all.vedl'])
         AV = 40*loadmat([modeldir 'all.vedl']);
+    elseif exist([modeldir 'full.vedl'])
+        AV = 40*loadmat([modeldir 'full.vedl']);
     elseif exist([modeldir 'thorax.vedl'])
         AV = 40*loadmat([modeldir 'thorax.vedl']);
     else
@@ -150,32 +160,32 @@ if exist('wct')
             n = n + length(DATA.GEOM.llung.VER);
         end
 
-        if isfield(DATA.GEOM,'liver') 
-            DATA.VENTR.LIVER= (AV(n+1: n + length(DATA.GEOM.liver.VER),:));
-            n = n + length(DATA.GEOM.liver.VER);
+        if isfield(DATA.GEOM,'liver')
+           DATA.VENTR.LIVER= (AV(n+1: n + length(DATA.GEOM.liver.VER),:));
+           n = n + length(DATA.GEOM.liver.VER);
         end
 
-        if isfield(DATA.GEOM,'ribcage') 
-            DATA.VENTR.RIBCAGE= (AV(n+1: n + length(DATA.GEOM.ribcage.VER),:));
-            n = n + length(DATA.GEOM.ribcage.VER);
+        if isfield(DATA.GEOM,'ribcage')
+           DATA.VENTR.RIBCAGE= (AV(n+1: n + length(DATA.GEOM.ribcage.VER),:));
+           n = n + length(DATA.GEOM.ribcage.VER);
         end
-        if isfield(DATA.GEOM,'fatpad_1') 
-
-            DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_1.VER),:));
-            n = n + length(DATA.GEOM.fatpad_1.VER);
+        if isfield(DATA.GEOM,'fatpad_1')
+           DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_1.VER),:));
+           n = n + length(DATA.GEOM.fatpad_1.VER);
         end
 
-        if isfield(DATA.GEOM,'fatpad_2') 
-
-            DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_2.VER),:));
-            n = n + length(DATA.GEOM.fatpad_2.VER);
+        if isfield(DATA.GEOM,'fatpad_2')
+           DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_2.VER),:));
+           n = n + length(DATA.GEOM.fatpad_2.VER);
         end
         if isfield(DATA.GEOM,'coil') 
-            DATA.VENTR.COIL= (AV(n+1: n + length(DATA.GEOM.coil.VER),:));
-            n = n + length(DATA.GEOM.coil.VER);
+           DATA.VENTR.COIL= (AV(n+1: n + length(DATA.GEOM.coil.VER),:));
+           n = n + length(DATA.GEOM.coil.VER);
         end
-        
         if size(AV,1)>n
+            if isfield(DATA.GEOM,'atria') 
+                DATA.VENTR.ATRIA= (AV(n+1: n + length(DATA.GEOM.atria.VER),:));
+            end
             DATA.VENTR.VENTRICLES = (AV(end-length(DATA.GEOM.ventr.VER)+1:end,:));
         end
     end
@@ -219,36 +229,40 @@ if exist('wct')
             DATA.ATRIA.COIL= (AV(n+1: n + length(DATA.GEOM.coil.VER),:));
             n = n + length(DATA.GEOM.coil.VER);
         end
+
         DATA.ATRIA.ATRIA = (AA(end-length(DATA.GEOM.atria.VER)+1: end,:));
     end
 end
 %%
 if nargin == 3 && ischar(varargin{end})
-    dd = dir(fullfile(lead_path, '*.lead'));
- 
-    for i = 1:length(dd)
-        ver = loadmat(fullfile(lead_path, dd(i).name));
-    
-        if size(ver, 2) >= 4
-            ver = ver(:, 2:4);
+    dd = dir([varargin{end} '/*.lead']);
+    for i=1:length(dd)
+        if ~isempty(strfind(dd(i).name,'standard12lead'))
+            break;
         end
-    
-        name = dd(i).name(1:end-5);
-        name = strrep(name, ' ', '');
-        name = strrep(name, subject, '');
-        name = ['A' name];
-    
-        [AMA_A, AMA_V] = getAMA(DATA, ver);
-        eval(['DATA.VENTR.' name ' = AMA_V;']);
-        eval(['DATA.VENTR.LEADPOS.' name ' = ver;']);
-    
-        if ~isempty(AMA_A) && isfield(DATA, 'ATRIA')
-            eval(['DATA.ATRIA.' name ' = AMA_A;']);
-            eval(['DATA.ATRIA.LEADPOS.' name ' = ver;']);
-        end        
     end
+    ver = loadmat(fullfile(varargin{end}, dd(i).name));
+    ver = ver(:,2:4);
+    name = 'standard12lead';
+    iVer =zeros(length(ver),1);
+    for i= 1:length(ver)
+        d = norm3d(bsxfun(@minus, DATA.GEOM.thorax.VER, ver(i,:)));
+        iVer(i) = find(d==min(d));
+    end
+    
+    
+    
+    %     [AMA_A,AMA_V] = getAMA(DATA,ver);
+    %     eval(['DATA.VENTR.' name '=AMA_V;']);
+    %     eval(['DATA.ATRIA.' name '=AMA_A;']);
+    
+    eval(['DATA.VENTR.LEADPOS.' name '=ver;']);
+    eval(['DATA.VENTR.ILEADPOS.' name '=iVer;']);
+
+    eval(['DATA.ATRIA.LEADPOS.' name '=ver;']);
+    eval(['DATA.ATRIA.ILEADPOS.' name '=iVer;']);
 else
-    dd = dir([dirname '\*.lead']);
+    dd = dir([dirname '/*.lead']);
     
     for i=1:length(dd)
         ver = loadmat(fullfile(dirname, dd(i).name));
@@ -256,15 +270,19 @@ else
         
         name = dd(i).name(1:end-5);
         name = strrep(name,' ','');
+        name = strrep(name,'-','');
         name = strrep(name,subject,'');
         name = ['A' name];
+        name = strrep(name,'+','_');
+
+        % TODO:  Why is this stored here?  It doesn't seem to be used.
         [AMA_A,AMA_V] = getAMA(DATA,ver);
         eval(['DATA.VENTR.' name '=AMA_V;']);
         eval(['DATA.VENTR.LEADPOS.' name '=ver;']);
-        if ~isempty(AMA_A)
-            eval(['DATA.ATRIA.' name '=AMA_A;']);
+        if isfield(DATA,'ATRIA')
+            eval(['DATA.ATRIA.' name '=AMA_A;']);               
             eval(['DATA.ATRIA.LEADPOS.' name '=ver;']);
-        end        
+        end
     end
 end
 
@@ -408,74 +426,52 @@ function [M, extraresult]=loadmat(name)
 
 f=fopen(name);
 if (f==-1)
-    fprintf('\nCannot open %s\n\n', name);
-    M=0;
-    extraresult='';
-    return;
+%   fprintf('\nCannot open %s\n\n', name);
+  M=0;
+  extraresult='';
+  return;
 end
 
 [N,nr]=fscanf(f,'%d',2);
 if (nr~=2)
+  fclose(f);
+  f=fopen(name);
+  [magic ,nr]=fread(f,8,'char');
+  if (char(magic')==';;mbfmat')
+    fread(f,1,'char');
+    hs=fread(f,1,'long');
+    fread(f,1,'char');
+    fread(f,1,'char');
+    fread(f,1,'char');
+    N=fread(f,2,'long');
+    M=fread(f,[N(2),N(1)],'double');
+  else
     fclose(f);
-    f=fopen(name);
-    [magic ,nr]=fread(f,8,'char');
-    if (char(magic')==';;mbfmat')
-        fread(f,1,'char');
-        hs=fread(f,1,'long');
-        fread(f,1,'char');
-        fread(f,1,'char');
-        fread(f,1,'char');
-        N=fread(f,2,'long');
-        M=fread(f,[N(2),N(1)],'double');
-    else
-        fclose(f);
-        f=fopen(name);
-        N=fread(f,2,'long');
-        M=fread(f,[N(2),N(1)],'float');
+    f=fopen(name);    
+    N=fread(f,2,'long');
+    pos = ftell(f);
+    [M,count]=fread(f,[N(2),N(1)],'double');    
+    if count ~= N(2) * N(1)
+        status = fseek(f,pos,'bof');
+        M=fread(f,[N(2),N(1)],'float');    
     end
+  end
 else
-    M=fscanf(f,'%f',[N(2) N(1)]);
+  M=fscanf(f,'%f',[N(2) N(1)]);
 end
 [extra,nextra]=fread(f,1000,'char');
 fclose(f);
 extra = char(extra);
 
 if ~all(isspace(extra))
-    %   S=sprintf('%s contains the following extra information:\n', name);
-    %   disp(S);
-    %   disp(extra');
+%   S=sprintf('%s contains the following extra information:\n', name);
+%   disp(S);
+%   disp(extra');
 else
     extra=[];
 end
 M=M';
 extraresult=extra;
-
-%%========================================================================
-function [pnt, dhk] = loadtri(fn)
-
-fid = fopen(fn, 'rt');
-if fid~=-1
-    
-    % read the vertex points
-    Npnt = fscanf(fid, '%d', 1);
-    pnt  = fscanf(fid, '%f', [4, Npnt]);
-    pnt  = pnt(2:4,:)';
-    
-    % if present, read the triangles
-    if (~(feof(fid)))
-        [Ndhk, count] = fscanf(fid, '%d', 1);
-        if (count ~= 0)
-            dhk = fscanf(fid, '%d', [4, Ndhk]);
-            dhk = dhk(2:4,:)';
-        end
-    else
-        dhk = [];
-    end
-    fclose(fid);
-    
-else
-    error(['unable to open file: ' fn]);
-end
 
 %%
 function [AMA_A,AMA_V] = getAMA(DATA,ver)
