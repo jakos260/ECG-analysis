@@ -85,7 +85,7 @@ GEOM.RegionIdx = load(append(DATA_PATH, 'other/ECGsim_data/', subject, '/model/v
 % Tworzymy słownik z idealnie równymi krokami od 200 do 350 ms z krokiem co 1 ms
 GEOM.LUT = getTmpLut_niceApd(200, 460, 1);
 
-    q
+    
 %%
 % (Initial Estimate - foci skan)
 disp('Uruchamiam multifociscan...');
