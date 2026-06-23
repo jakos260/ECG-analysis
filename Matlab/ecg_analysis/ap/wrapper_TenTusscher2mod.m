@@ -1,9 +1,9 @@
 function [t, V] = wrapper_TenTusscher2mod(HT, STOPTIME, CT, phases_mod, HR, ISO)
-% WRAPPER_TENTUSSCHER2MOD Wrapper dla modelu Ten Tusscher 2
-% Generuje kilka uderzeń dla zadanego HR, aby zasymulować zjawisko 
-% adaptacji komórki (restitution), a zwraca tylko OSTATNI potencjał.
+% WRAPPER_TENTUSSCHER2MOD Wrapper for the Ten Tusscher 2 model
+% Generates several beats for a given HR to simulate the cell 
+% adaptation phenomenon (restitution), and returns ONLY the LAST potential.
 
-    % --- Obsługa opcjonalnych argumentów ---
+    % --- Handling optional arguments ---
     if nargin < 5 || isempty(HR)
         HR = 60;
     end
@@ -12,42 +12,40 @@ function [t, V] = wrapper_TenTusscher2mod(HT, STOPTIME, CT, phases_mod, HR, ISO)
         ISO = 0;
     end
 
-    % --- Parametry stymulacji ---
-    % Liczba uderzeń (5 to świetny kompromis między dokładnością 
-    % fizjologiczną a szybkością responsywności UI)
+    % --- Pacing parameters ---
+    % Number of beats
     N_beats = 5; 
     
-    % Długość cyklu serca w milisekundach (BCL)
+    % Heart cycle length in milliseconds
     BCL = 60000 / HR; 
     
-    % Amplituda i czas trwania impulsów
+    % Impulse amplitude and duration
     Stim_I = ones(1, N_beats) * -52;   
     Stim_T = ones(1, N_beats) * 1;     
     
-    % Interwały: pierwszy impuls po 1 ms, kolejne co zadany BCL
+    % Intervals: first impulse after 1 ms, subsequent ones every given BCL
     Stim_Int = [1, ones(1, N_beats - 1) * BCL]; 
     
-    % Całkowity czas symulacji:
-    % Musi pomieścić N-1 interwałów BCL oraz czas (STOPTIME) dla ostatniego uderzenia.
-    % Dodajemy +2 ms marginesu bezpieczeństwa na przesunięcia początkowe.
+    % Total simulation time:
+    % Must accommodate N-1 BCL intervals and the time (STOPTIME) for the last beat.
+    % +2 ms safety margin for initial offsets.
     TOTAL_STOPTIME = (N_beats - 1) * BCL + STOPTIME + 2;
 
-    % --- Wywołanie głównej funkcji modelu ---
+    % --- Main model function call ---
     [t_full, V_full] = TenTusscher2mod(HT, TOTAL_STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, phases_mod);
 
-    % --- Wycięcie ostatniego uderzenia ---
-    % Bazowy czas, w którym rozpoczęło się ostatnie uderzenie
+    % --- Extraction of the last beat ---
+    % Base time when the last beat started
     last_beat_start = (N_beats - 1) * BCL;
     
-    % Znajdujemy indeksy odpowiadające ostatniemu przebiegowi
+    % Find indices corresponding to the last run
     idx = find(t_full >= last_beat_start);
     
-    % Resetujemy wektor czasu, żeby ostatnie uderzenie zaczynało się znów od ~0 ms
+    % Reset the time vector so the last beat starts from ~0 ms again
     t_last = t_full(idx) - last_beat_start;
     V_last = V_full(idx);
     
-    % Zapewnienie, że zwracany wektor pokrywa się DOKŁADNIE z okienkiem STOPTIME 
-    % (wymagane, by funkcje normalizujące w Twoim UI nie zwariowały)
+    % Ensuring that the returned vector aligns EXACTLY with the STOPTIME window
     idx_stop = find(t_last <= STOPTIME);
     
     t = t_last(idx_stop);
