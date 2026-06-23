@@ -10,16 +10,16 @@ STOPTIME = 500; % Duration of the simulation (ms)
 patient = 'normal_young_male'; offset = 169; % cut p-wave
 % patient = 'normal_male'; offset = 1;
 
-dep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.dep'));
-rep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.rep'));
+dep = loadmat(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/ventricular_beats/beat1/user.dep'));
+rep = loadmat(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/ventricular_beats/beat1/user.rep'));
 
-A       = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2standard_12.mat'));
+A       = loadmat(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/leads/ventricles2standard_12.mat'));
 % sig_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/standard_12.refECG'));
 % sig_ref = sig_ref(:, offset:offset+STOPTIME-1);
 
 % [ventri_ver, ventri_tri] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle.tri'));
-[ventri_epi_ver, ventri_epi_tri, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle_epi.tri'));
-[ventri_endo_ver, ventri_endo_tri, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle_endo.tri'));
+[ventri_epi_ver, ventri_epi_tri, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/model/ventricle_epi.tri'));
+[ventri_endo_ver, ventri_endo_tri, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/model/ventricle_endo.tri'));
 
 
 CT = ones(length(ventri_epi_ver_idx) + length(ventri_endo_ver_idx),1);
@@ -387,7 +387,7 @@ hold off;
 %% plot AP modifications
 close all
 
-y_labels = {'Epicardium', 'Endocardium'};
+y_labels = {'Epicardium', 'Mid-myocardial', 'Endocardium'};
 x_labels = {'Phase 1', 'Phase 2', 'Phase 3'};
 
 x_len = length(x_labels);
@@ -398,6 +398,11 @@ p = [1, 1, 1];
 figure("Name", "figure_1")
 
 t = linspace(HT,STOPTIME,STOPTIME/HT);
+params_mod = [
+    0.5 1.5,
+    0.8 1.2,
+    0.8 1.2,
+    ];
 
 for i = 1:x_len
     for j = 1:y_len
@@ -406,10 +411,11 @@ for i = 1:x_len
         hold on;
         grid on;
 
-        CT = 1;
-        if j == 2
-            CT = 3;
-        end
+        % CT = 1;
+        % if j == 2
+        %     CT = 3;
+        % end
+        CT = j;
 
         % ylim([-300, 500]);
         params = p;
@@ -419,14 +425,14 @@ for i = 1:x_len
             'LineWidth', 1.5, ...
             'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
 
-        params(i) = 1.2;
+        params(i) = params_mod(i, 1);
         [t_tmpl_mod_p, V_tmpl_mod_p] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
         h1 = plot( ...
             t_tmpl_mod_p, V_tmpl_mod_p, 'r', ...
             'LineWidth', 1.5, ...
             'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
 
-        params(i) = 0.8;
+        params(i) = params_mod(i, 2);
         [t_tmpl_mod_n, V_tmpl_mod_n] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
         h3 = plot( ...
             t_tmpl_mod_n, V_tmpl_mod_n, 'b', ...
@@ -434,7 +440,7 @@ for i = 1:x_len
             'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
 
         ylabel('Amplitude [mV]', 'FontSize', 10);
-        yticklabels({});
+        % yticklabels({});
     
         if i == x_len
             text(1.08, 0.5, y_labels{j}, 'Units', 'normalized', ...
@@ -445,7 +451,9 @@ for i = 1:x_len
             title(x_labels{i}, 'FontWeight', 'bold', 'FontSize', 12);
         end
         xlabel('Time [ms]', 'FontSize', 10);
-        xticklabels({});
+        % xticklabels({});
+
+        lgd = legend([h1, h0, h3], sprintf('x %.1f', params_mod(i, 1)), 'unchanged', sprintf('x %.1f', params_mod(i, 2)));
     end
 end
-lgd = legend([h1, h0, h3], '+', 'ref', '-');
+% lgd = legend([h1, h0, h3], '+', 'ref', '-');
