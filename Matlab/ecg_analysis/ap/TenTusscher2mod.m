@@ -317,7 +317,9 @@ while time < STOPTIME
     phase3_I_mod = phases_mod(3);
 
     Ito     = Ito   * phase1_I_mod;
+    INa     = INa   * phase1_I_mod;
     ICaL    = ICaL  * phase2_I_mod;
+    % IKur    = ???
     IKr     = IKr   * phase3_I_mod;
     IKs     = IKs   * phase3_I_mod;
     

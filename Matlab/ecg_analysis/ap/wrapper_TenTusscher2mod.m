@@ -14,7 +14,7 @@ function [t, V] = wrapper_TenTusscher2mod(HT, STOPTIME, CT, phases_mod, HR, ISO)
 
     % --- Pacing parameters ---
     % Number of beats
-    N_beats = 5; 
+    N_beats = 10; 
     
     % Heart cycle length in milliseconds
     BCL = 60000 / HR; 

@@ -3,8 +3,8 @@ function DATA = readGeomPeacsModelDataset(dirname,subject,varargin)
 modeldir = fullfile(dirname, subject, 'model');
 modeldir = [modeldir filesep];
 
-ecgdir = fullfile(dirname, subject, 'signals');
-ecgdir = [ecgdir filesep];
+signaldir = fullfile(dirname, subject, 'signals');
+signaldir = [signaldir filesep];
 
 leaddir = fullfile(dirname, subject, 'leads');
 leaddir = [leaddir filesep];
@@ -264,8 +264,15 @@ for i = 1:length(dd_leads)
     end        
 end
 
+% load signal info file
+jsonFileName = 'info.json';
+if exist([signaldir, jsonFileName], "file")
+    jsonStr = fileread([signaldir, jsonFileName]);
+    DATA.VENTR.SIGNALS.INFO = jsondecode(jsonStr);    
+end
+
 % Load signals and categorize by extensions
-dd_ecgs = [dir(fullfile(ecgdir, '*.bsm*')); dir(fullfile(ecgdir, '*.ecg*'))];
+dd_ecgs = [dir(fullfile(signaldir, '*.bsm*')); dir(fullfile(signaldir, '*.ecg*'))];
 for i = 1:length(dd_ecgs)
     filepath = fullfile(dd_ecgs(i).folder, dd_ecgs(i).name);
     filename = dd_ecgs(i).name;
@@ -283,11 +290,11 @@ for i = 1:length(dd_ecgs)
     
     % Route data to specific substructures based on extension
     if contains(filename, '.bsm.medianecg', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.BSMmedECG.(name) = sig;
+        DATA.VENTR.SIGNALS.BSMmedECG.(name) = removeBaseline(sig);
     elseif contains(filename, '.bsm', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.BSM.(name) = sig;
+        DATA.VENTR.SIGNALS.BSM.(name) = removeBaseline(sig);
     elseif contains(filename, '.ecg', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.ECG.(name) = sig;
+        DATA.VENTR.SIGNALS.ECG.(name) = removeBaseline(sig);
     end
 end
 
@@ -395,6 +402,10 @@ end
 %%=======================================================================
 %  HELPERS
 %%=======================================================================
+
+function s = removeBaseline(signal)
+    s = baselinecor(signal);
+end
 
 function name = clean_fieldname(filename, subject)
     name = filename;

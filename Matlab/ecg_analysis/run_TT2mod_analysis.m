@@ -4,7 +4,7 @@ close all
 
 % time setup
 HT = 0.1;                       % timestep (ms)
-STOPTIME = 500; % Duration of the simulation (ms)
+STOPTIME = 600; % Duration of the simulation (ms)
 
 % data read
 patient = 'normal_young_male'; offset = 169; % cut p-wave
@@ -384,7 +384,7 @@ grid on;
 hold off;
 
 
-%% plot AP modifications
+%% plot AP modifications - Aalborg 2026 presentation
 close all
 
 y_labels = {'Epicardium', 'Mid-myocardial', 'Endocardium'};
@@ -452,6 +452,7 @@ for i = 1:x_len
         end
         xlabel('Time [ms]', 'FontSize', 10);
         % xticklabels({});
+        xlim([-50, 750]);
 
         lgd = legend([h1, h0, h3], sprintf('x %.1f', params_mod(i, 1)), 'unchanged', sprintf('x %.1f', params_mod(i, 2)));
     end
