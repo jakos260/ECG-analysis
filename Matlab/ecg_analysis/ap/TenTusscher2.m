@@ -513,19 +513,19 @@ V = Vm(1:savecount);
 % 
 % plot(V(savecount-55000:savecount-20000), SIK1(savecount-55000:savecount-20000))
 
-figure;
-subplot(2,2,1); plot(t,V,'k'); title('Action potential');
-subplot(2,2,2); hold on; title('Na+ currents'); % Sodium currents
-plot(t,SINa(1:savecount),'k'); plot(t,SIbNa(1:savecount),'b');
-legend('INa','INaL');
-subplot(2,2,3); hold on; title('K+ currents'); % Potassium currents
-plot(t,SIKr(1:savecount),'k'); plot(t,SIKs(1:savecount),'b'); plot(t,SIK1(1:savecount),'r');
-plot(t,SIto(1:savecount),'g'); plot(t,SIpK(1:savecount),'m');
-legend('IKr','IKs','IK1','Ito','IpK');
-subplot(2,2,4); hold on; title('Ca2+ currents and NaK pump'); % Calcium etc
-plot(t,SICaL(1:savecount),'k'); plot(t,SINaCa(1:savecount),'b'); plot(t,SIpCa(1:savecount),'r');
-plot(t,SIbCa(1:savecount),'g'); plot(t,SINaK(1:savecount),'m');
-legend('ICa','INaCa','IpCa','IbCa','INaK');
+% figure;
+% subplot(2,2,1); plot(t,V,'k'); title('Action potential');
+% subplot(2,2,2); hold on; title('Na+ currents'); % Sodium currents
+% plot(t,SINa(1:savecount),'k'); plot(t,SIbNa(1:savecount),'b');
+% legend('INa','INaL');
+% subplot(2,2,3); hold on; title('K+ currents'); % Potassium currents
+% plot(t,SIKr(1:savecount),'k'); plot(t,SIKs(1:savecount),'b'); plot(t,SIK1(1:savecount),'r');
+% plot(t,SIto(1:savecount),'g'); plot(t,SIpK(1:savecount),'m');
+% legend('IKr','IKs','IK1','Ito','IpK');
+% subplot(2,2,4); hold on; title('Ca2+ currents and NaK pump'); % Calcium etc
+% plot(t,SICaL(1:savecount),'k'); plot(t,SINaCa(1:savecount),'b'); plot(t,SIpCa(1:savecount),'r');
+% plot(t,SIbCa(1:savecount),'g'); plot(t,SINaK(1:savecount),'m');
+% legend('ICa','INaCa','IpCa','IbCa','INaK');
 % figure;
 % plot(t,SItot(1:savecount),'k'); hold on;
 % plot(t(1:savecount-1),diff(-Vm(1:savecount)),'b'); hold off;

@@ -1,6 +1,6 @@
 function [t,V]=TenTusscher2mod(HT, STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, phases_mod)
 %% TENTUSSCHER2
-%     Ten Tusscher model, 2nd version, described in the article: KHWJ ten
+%     Ten Tusscher model, version for MODIFYING ION CURRENTS, described in the article: KHWJ ten
 %     Tusscher and AV Panfilov, "Alternans and spiral breakup in a human
 %     ventricular tissue model", Am J Physiol Heart Circ Physiol, 291:
 %     H1088-H1100, 2006. (Note that the parameter values for Vc, Vsr, Vss,

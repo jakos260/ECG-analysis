@@ -32,21 +32,18 @@ for CellType = 1:3 % epicardial, M-cell and endocardial
             title('Epicardial');
             xlabel('t (ms)');
             ylabel('Vmembrane (mV)');
-            save("AP_epicardial.txt","t_singleAP","V_singleAP","-ascii");
         case 2 % Mid-myocardial
             figure;
             plot(t_singleAP, V_singleAP,'k');
             title('Mid-myocardial');
             xlabel('t (ms)');
             ylabel('Vmembrane (mV)');
-            save("AP_midmyocardial.txt","t_singleAP","V_singleAP","-ascii");
         case 3 % Endocardial
             figure;
             plot(t_singleAP, V_singleAP,'k');
             title('Endocardial');
             xlabel('t (ms)');
             ylabel('Vmembrane (mV)');
-            save("AP_endocardial.txt","t_singleAP","V_singleAP","-ascii");
     end
 end
 
