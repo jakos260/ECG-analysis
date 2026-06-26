@@ -68,14 +68,11 @@ GEOM.SPECS.scaleAmpl = 15;
 
 %% Get action potential LUT
 load('inverseMy/TmpLut_niceApd.mat');
-% LUT = getTmpLut_niceApd(200, 460, 1);
+% LUT = getTmpLut_niceApd(130, 340, 1);
 % LUT = getTmpLut_HRmod(50, 200, 1);
+% save inverseMy/TmpLut_niceApd.mat LUT
 GEOM.LUT = LUT;
 
-%%
-close all
-figure(4)
-plot(GEOM.BSM(1,:));
 
 %% multifoci skan
 
@@ -88,13 +85,13 @@ t_wave_peak = mean(measinit.rep);
 [val, qrs_peak] = max(rms(abs(GEOM.BSM(:,1:STOPTIME))));
 
 apd = t_wave_peak - qrs_peak;
-alpha = 0.7;
+alpha = 1;
 
 init_rep = init_dep * alpha + apd;
 
 %% inverse modeling
-mudep = 1e-5;
-murep = 1e-5;
+mudep = 1e-11;
+murep = 2e-6;
 
 meas = my_inversefunc(GEOM, init_dep, init_rep, mudep, murep);
 

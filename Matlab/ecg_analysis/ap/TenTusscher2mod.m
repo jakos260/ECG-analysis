@@ -1,6 +1,6 @@
 function [t,V]=TenTusscher2mod(HT, STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, phases_mod)
 %% TENTUSSCHER2
-%     Ten Tusscher model, version for MODIFYING ION CURRENTS, described in the article: KHWJ ten
+%     Ten Tusscher model, 2nd version, described in the article: KHWJ ten
 %     Tusscher and AV Panfilov, "Alternans and spiral breakup in a human
 %     ventricular tissue model", Am J Physiol Heart Circ Physiol, 291:
 %     H1088-H1100, 2006. (Note that the parameter values for Vc, Vsr, Vss,
@@ -12,8 +12,6 @@ function [t,V]=TenTusscher2mod(HT, STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, 
 %     Ten Tusscher's website: http://www-binf.bio.uu.nl/khwjtuss/
 %
 % INPUT VARIABLES
-%     HT       : Timestep (ms)
-%     STOPTIME : Duration of the simulation (ms)
 %     Stim_I   : Array with the stimulus strengths of monophasic square
 %                stimulus pulses (A/F). One entry per pulse.
 %     Stim_T   : Array with the respective pulse durations (ms)
@@ -22,7 +20,6 @@ function [t,V]=TenTusscher2mod(HT, STOPTIME, Stim_I, Stim_T, ISO, Stim_Int, CT, 
 %                interval is the interval after the start of a pulse to the
 %                start of the next pulse or to the end of the simulation.
 %     CT       : Cell type: 1=epicardial, 2=mid-myocardial, 3=endocardial
-%     phase_mod   : Array of 3 factors modifing 3 phases currents
 %
 % OUTPUT VARIABLES
 %     t : Array of M points in time for each sample.
@@ -317,9 +314,7 @@ while time < STOPTIME
     phase3_I_mod = phases_mod(3);
 
     Ito     = Ito   * phase1_I_mod;
-    INa     = INa   * phase1_I_mod;
     ICaL    = ICaL  * phase2_I_mod;
-    % IKur    = ???
     IKr     = IKr   * phase3_I_mod;
     IKs     = IKs   * phase3_I_mod;
     
@@ -527,7 +522,7 @@ V = Vm(1:savecount);
 % figure
 % 
 % plot(V(savecount-55000:savecount-20000), SIK1(savecount-55000:savecount-20000))
-% 
+
 % figure;
 % subplot(2,2,1); plot(t,V,'k'); title('Action potential');
 % subplot(2,2,2); hold on; title('Na+ currents'); % Sodium currents

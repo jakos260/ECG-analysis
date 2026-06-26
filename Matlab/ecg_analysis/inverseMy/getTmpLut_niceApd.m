@@ -22,7 +22,7 @@ function LUT = getTmpLut_niceApd(start_apd, stop_apd, step_apd)
     % 2. Sweep through the modifier and generate all possible APs
     for i = 1:num_sweeps
         % Run the Ten Tusscher model with the current phase 3 modifier
-        [t, V] = wrapper_TenTusscher2mod(0.1, 500, 1, [1, 1, phases_sweep(i)], 60, 0);
+        [t, V] = wrapper_TenTusscher2mod(0.1, 500, 1, [1, 1, phases_sweep(i)], 150);
         
         % Normalize the action potential to [0, 1] range (required for AMA matrix)
         V_norm = (V - min(V)) / (max(V) - min(V));
@@ -46,7 +46,7 @@ function LUT = getTmpLut_niceApd(start_apd, stop_apd, step_apd)
         all_apds(i) = t(idx_rep) - t(idx_dep);
         
         % Print progress bar
-        printProgress(i, num_sweeps, 'Solving ODEs for templates');
+        printProgress(i, num_sweeps, sprintf('Solving ODEs for templates | raw APD: %.1f', all_apds(i)));
     end
     
     disp('Fine sweep complete. Filtering anomalies...');
@@ -59,7 +59,7 @@ function LUT = getTmpLut_niceApd(start_apd, stop_apd, step_apd)
     
     % Keep only templates that have the exact expected depolarization time
     % (Using a small tolerance 1e-4 for safe floating-point comparison)
-    valid_idx = find(abs(all_t_deps - expected_t_dep) < 1e-4);
+    valid_idx = find(abs(all_t_deps - expected_t_dep) < 1e-1);
     
     num_filtered = num_sweeps - length(valid_idx);
     disp(['Filtered out ', num2str(num_filtered), ' anomalous templates (distorted shapes).']);
