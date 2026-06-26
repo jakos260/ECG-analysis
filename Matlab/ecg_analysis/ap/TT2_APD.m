@@ -17,10 +17,12 @@ T = [1 1 1 1 1 1 1 1 1 1 1 1 1 ];
 RR = [0.1 1 1 1 1 1 1 1 1 1 1 1 1 ];
 % ( RR(1) is the starttime of the first pulse)
 
+ISO = 0;
+
 %% Run Ten Tusscher 2 model with the pulse train
 disp('TT2_APD running');
 for CellType = 1:3 % epicardial, M-cell and endocardial
-    [t, VAP] = TenTusscher2(I0*I, T0*T, RR0*RR, CellType);
+    [t, VAP] = TenTusscher2(I0*I, T0*T, ISO, RR0*RR, CellType);
     n1 = length(t)-55000;
     n2 = length(t)-25000;
     t_singleAP = t(n1:n2)-t(n1);
