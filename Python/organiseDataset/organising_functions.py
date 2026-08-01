@@ -121,7 +121,7 @@ def organise_dataset_from_IKEM(root_dir: str, base_dir: str, models_dir: str, ma
         patient_core_id = next((part for part in patient_name.split("_") if part.startswith("Pat")), patient_name)
         dest_patient_dir = os.path.join(output_dir, patient_name)
 
-        clean_patient_data(dest_patient_dir)
+        # clean_patient_data(dest_patient_dir)
         copy_model_files(src_model_dir, dest_patient_dir, patient_name)
         copy_mapper_files(mapper_dir, ecg_data_dir, dest_patient_dir, patient_core_id)
 
@@ -299,6 +299,34 @@ def remove_empty_dirs(dest_patient_dir: str) -> None:
             dir_path = os.path.join(root, d)
             if os.path.isdir(dir_path) and not os.listdir(dir_path):
                 os.rmdir(dir_path)
+
+
+def rename_signal_files(dest_patient_dir: str) -> None:
+    """Remove the "Conf" prefix from signal files in the patient signals directory.
+
+    Only files that actually start with "Conf" are renamed. Files that do not have
+    the prefix are left untouched.
+    """
+    signals_dir = os.path.join(dest_patient_dir, "signals")
+    if not os.path.isdir(signals_dir):
+        return
+
+    for file_name in os.listdir(signals_dir):
+        src_path = os.path.join(signals_dir, file_name)
+        if not os.path.isfile(src_path):
+            continue
+
+        if not file_name.startswith("Conf"):
+            continue
+
+        new_name = file_name[4:]
+        if not new_name:
+            continue
+
+        dst_path = os.path.join(signals_dir, new_name)
+        if os.path.exists(dst_path):
+            os.remove(dst_path)
+        os.rename(src_path, dst_path)
 
 
 def get_patient_data(dest_patient_dir: str, clean_patient_name: str) -> Dict:

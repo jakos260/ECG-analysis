@@ -6,6 +6,7 @@ import os
 import re
 import json
 from pathlib import Path
+from process_ecg import process_ecg, process_ecg_from_patient_folder
 from organising_functions import (
     copy_patient_files,
     clean_file_names,
@@ -17,7 +18,8 @@ from organising_functions import (
     move_lead_files_from_model,
     remove_empty_dirs,
     strip_file_prefix,
-    organise_dataset_from_IKEM
+    organise_dataset_from_IKEM,
+    rename_signal_files
 )
 
 
@@ -44,7 +46,9 @@ PROCESSING_STEPS = [
     # "create_info_json",
     # "create_model_xml",
     # "strip_file_prefix",
-    "organise_dataset_from_IKEM"
+    # "organise_dataset_from_IKEM",
+    # "process_ecg",
+    "rename_signal_files"
 ]
 
 # ============================================================================
@@ -112,6 +116,16 @@ STEP_REGISTRY = {
         "index": 10,
         "description": "Organising dataset from IKEM",
         "func": lambda model_path, clean_name, core_id, dest_dir: organise_dataset_from_IKEM(ROOT_DIR, BASE_DIR, MODELS_DIR, MAPPER_DIR, ECG_DATA_DIR, OUTPUT_DIR)
+    },
+    "rename_signal_files": {
+        "index": 11,
+        "description": "Renaming signal files in signals directory",
+        "func": lambda model_path, clean_name, core_id, dest_dir: rename_signal_files(dest_dir)
+    },
+    "process_ecg": {
+        "index": 12,
+        "description": "Processing ECG signals",
+        "func": lambda model_path, clean_name, core_id, dest_dir: process_ecg_from_patient_folder(clean_name, dest_dir)
     }
 }
 
@@ -190,7 +204,7 @@ def collect_patient_data(output_dir: str) -> None:
             global_geom_info["patients"].append(patient_data)
             print(f"  ✓ {patient_folder}")
         except Exception as e:
-            print(f"  ✗ {patient_folder}: {e}")
+            print(f"  ✗ {patient_folder}: {e} - {e.__traceback__}")
 
     # Save global info
     global_info_path = os.path.join(output_dir, "geom_info.json")
