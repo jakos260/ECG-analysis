@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 def gets(T, dep, rep, p, mode):
@@ -278,3 +280,65 @@ def load_multi_array(path):
         arrays.append(arr)
 
     return arrays
+
+def loadmat(file_path):
+    """
+    Pythonowa implementacja wczytywania sygnałów BSM (odpowiednik customowego loadmat.m).
+    Zwraca krotkę (sygnal_ecg, extra_informacje).
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Nie znaleziono pliku: {file_path}")
+
+    with open(file_path, 'rb') as f:
+        # Próba odczytu sygnatury ';;mbfmat'
+        magic = f.read(8)
+        
+        if magic == b';;mbfmat':
+            # --- Wariant 1: Binarny z sygnaturą ---
+            f.read(1) # pomiń 1 bajt (char)
+            _ = np.fromfile(f, dtype=np.int32, count=1)[0] # hs (long)
+            f.read(3) # pomiń 3 bajty (char)
+            
+            # Wymiary: N(1), N(2)
+            N = np.fromfile(f, dtype=np.int32, count=2) 
+            
+            # 'double' w MATLAB to float64
+            M_flat = np.fromfile(f, dtype=np.float64, count=N[0]*N[1])
+            
+        else:
+            # --- Wariant 2/3: Prosty binarny lub tekstowy ---
+            f.seek(0)
+            
+            # Próba odczytu wymiarów ('long' = int32)
+            N = np.fromfile(f, dtype=np.int32, count=2)
+            
+            # Zabezpieczenie (wariant tekstowy): jeśli początek pliku to znaki ASCII, 
+            # wczytanie ich jako int32 da nielogiczne wymiary matrycy.
+            if len(N) < 2 or N[0] <= 0 or N[1] <= 0 or N[0]*N[1] > 100_000_000:
+                f.seek(0)
+                try:
+                    data = np.loadtxt(f)
+                    N_ascii = data[:2].astype(int)
+                    M_flat = data[2 : 2 + N_ascii[0]*N_ascii[1]]
+                    # Odtworzenie macierzy i transpozycja
+                    M = M_flat.reshape((N_ascii[1], N_ascii[0]), order='F').T
+                    return M, ""
+                except Exception as e:
+                    raise ValueError(f"Błąd odczytu pliku ASCII/Binarnego: {e}")
+            
+            # Jeśli wymiary mają sens, to jest to plik binarny. 'float' w MATLAB to float32
+            M_flat = np.fromfile(f, dtype=np.float32, count=N[0]*N[1])
+
+        # MATLAB: M = fread(f, [N(2), N(1)], ...) -> odczyt kolumnowy (Fortran)
+        M = M_flat.reshape((N[1], N[0]), order='F')
+        
+        # MATLAB: M = M'
+        M = M.T
+        
+        # Odczyt reszty metadanych na końcu pliku (zastępuje blok 'extraresult')
+        try:
+            extra = f.read(1000).decode('ascii', errors='ignore').strip()
+        except:
+            extra = ""
+            
+    return M, extra
