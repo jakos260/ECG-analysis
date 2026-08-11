@@ -47,7 +47,7 @@ if sampT ~= 1/1000
     BSM = resample(BSM,1,size(BSM,2),size(BSM,2)*sampT*1000);   
 end
 
-waitfor( selectBSMbeat(BSM,'lay',varargin{2},'sampt',1/1000) );
+waitfor( selectBSMbeat_App(BSM,'lay',varargin{2},'sampt',1/1000) );
 
 
 %interpolate the badsigs with the laplacian and save the output

@@ -30,10 +30,10 @@ if useSurfLapl==1
 % 	end
 % 	REGOPREP=REGOPREP.^(-2);
 % 	REGOPREP(REGOPREP==Inf)=0;
-% 	scal=sum(REGOPREP,2);
-% 	scal=1./scal;
-% 	REGOPREP=diag(scal)*REGOPREP;
-% 	REGOPREP=(REGOPREP-eye(size(REGOPREP)));% scales the result to be of the same order of SL	
+	% scal=sum(REGOPREP,2);
+	% scal=1./scal;
+	% REGOPREP=diag(scal)*REGOPREP;
+	% REGOPREP=(REGOPREP-eye(size(REGOPREP)));% scales the result to be of the same order of SL	
 % 	fact=[];
 % 	for i=1:length(REGOPREP)
 % 		fact(i)=REGOP(i,i)/REGOPREP(i,i);
@@ -79,4 +79,19 @@ else %if useSurfLapl==2
 % 	REGOP=diag(scal)*REGOP;
 %     % 59.7
 % 	REGOP=70*(REGOP-eye(size(REGOP)));% scales the result to be of the same order of SL
+end
+% --- normalizacja macierzy Laplasjanu ---
+% 1. Pobieramy wartości z przekątnej
+diag_vals = diag(REGOPREP);
+% 2. Zabezpieczenie przed ewentualnym zerem (izolowane węzły na siatce)
+diag_vals(diag_vals == 0) = 1; 
+% 3. Skalujemy wiersze przez odwrotność wartości bezwzględnej z przekątnej
+scal_rep = 1 ./ abs(diag_vals);
+REGOPREP = diag(scal_rep) * REGOPREP;
+
+% To samo dla macierzy depolaryzacji
+diag_vals_dep = diag(REGOP);
+diag_vals_dep(diag_vals_dep == 0) = 1;
+scal_dep = 1 ./ abs(diag_vals_dep);
+REGOP = diag(scal_dep) * REGOP;
 end

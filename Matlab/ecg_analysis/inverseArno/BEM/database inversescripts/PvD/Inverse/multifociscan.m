@@ -1,4 +1,4 @@
-function [bestfoci,bestdep,outp]=my_multifociscan(GEOM,usecor,sinkScan)
+function [bestfoci,bestdep,outp]=multifociscan(GEOM,usecor,sinkScan)
 
 % use all foci found each round
 

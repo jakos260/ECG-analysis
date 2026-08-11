@@ -81,7 +81,9 @@ if length(varargin) < 1
     % 	error('This routine needs at least two parameters');
     readmatbutton_Callback(handles.readmatbutton,eventdata,handles); % read DATA from file
 else
-    set(handles.Exportbutton,'Visible','off'); % export handled by caller
+    if isfield(handles, 'Exportbutton')
+        set(handles.Exportbutton,'Visible','off'); % export handled by caller
+    end
     DATA.ORG = varargin{1};
     DATA.sampT=1/1000;
     
@@ -145,8 +147,10 @@ else
             siglist{end+1}=sprintf('egm%03d',i);
         end
     end
-    set(handles.OverlaySignal,'String',siglist)
-    set(handles.OverlaySignal,'Value',1);
+    if isfield(handles, 'OverlaySignal')
+        set(handles.OverlaySignal, 'String', siglist);
+        set(handles.OverlaySignal, 'Value', 1);
+    end
 
     % BSM = lowpassma(DATA.ORG,round(1/(40*DATA.sampT)));
     sumData = mean(abs(DATA.ORG -  lowpassma(DATA.ORG, round( 1/(0.1*DATA.sampT)) ) ),2);
@@ -189,7 +193,9 @@ else
     set(handles.sliderSignal,'Sliderstep',[0.1*slidstep slidstep],'Value',OPTIONS.viewt0);
     set(handles.sliderSignal,'max',size(DATA.ORG,2) - (OPTIONS.viewt1 - OPTIONS.viewt0))
     set(handles.checkboxZeromean,'value',OPTIONS.zeromean);
-    set(handles.zmchannels,'String','');
+    if isfield(handles, 'zmchannels')
+        set(handles.zmchannels, 'String', '');
+    end
     
     doBaseline(handles,1);
     
@@ -547,8 +553,13 @@ plot(rmst(beats),rrms(beats),'or','Markersize',10,'parent',handles.RMSaxes);
 axis([rmst(1) rmst(end) minA maxA]);
 
 % Overlay RMS with signal
-os=get(handles.OverlaySignal,'Value');
-siglist=get(handles.OverlaySignal,'String');
+if isfield(handles, 'OverlaySignal')
+    os = get(handles.OverlaySignal, 'Value');
+    siglist = get(handles.OverlaySignal, 'String');
+else
+    os = 1; % Domyślnie 1 oznacza '(none)'
+    siglist = {'(none)'};
+end
 if os>1 % 1 is none
     sig=os-1;;
     if sig<=size(DATA.ORG,1)
@@ -992,7 +1003,9 @@ slidstep = ((OPTIONS.viewt1 - OPTIONS.viewt0) / size(DATA.ORG,2));
 set(handles.sliderSignal,'Sliderstep',[0.1*slidstep slidstep],'Value',OPTIONS.viewt0);
 set(handles.sliderSignal,'max',size(DATA.ORG,2) - (OPTIONS.viewt1 - OPTIONS.viewt0))
 set(handles.checkboxZeromean,'value',OPTIONS.zeromean);
-set(handles.zmchannels,'String','');
+if isfield(handles, 'zmchannels')
+    set(handles.zmchannels, 'String', '');
+end
 
 %Init OverlaySignal list
 siglist=[{'(none)'};cellstr(num2str((1:size(DATA.ORG,1))'))];
@@ -1001,10 +1014,14 @@ if isfield(DATA,'EGM');
         siglist{end+1}=sprintf('egm%03d',i);
     end
 end
-set(handles.OverlaySignal,'String',siglist)
-set(handles.OverlaySignal,'Value',1);
+if isfield(handles, 'OverlaySignal')
+    set(handles.OverlaySignal, 'String', siglist);
+    set(handles.OverlaySignal, 'Value', 1);
+end
 
-set(handles.Exportbutton,'Visible','on');
+if isfield(handles, 'Exportbutton')
+    set(handles.Exportbutton,'Visible','on');
+end
 
 % plotBSM(handles);
 doBaseline(handles,0);
@@ -1075,6 +1092,18 @@ plotBSM(handles);
 % --- Executes during object creation, after setting all properties.
 function popupfiltertype_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to popupfiltertype (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes during object creation, after setting all properties.
+function zeromeansignals_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to zeromeansignals (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

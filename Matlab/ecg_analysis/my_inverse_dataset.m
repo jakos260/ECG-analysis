@@ -2,7 +2,15 @@ num_subjects = 1;
 
 subject = sprintf('IKEM_Pat%03d', num_subjects);
 path = 'C:\Users\Admin\Documents\Projects\ecg_project\Scripts\data\Dataset\';
-DATA = readGeomPeacsModelDataset(path, subject);
+DATA = readGeomPeacsModelDataset(path, subject );
+
+CineEcgResultPath = fullfile(path, subject, 'signals', sprintf('IKEM_Pat%03d.iecg', num_subjects));
+EcgDataPath = fullfile(path, subject, 'signals', 'ECG_DATA');
+
+cine_ecg = readCineEcgResults(CineEcgResultPath,'ecgdir', EcgDataPath, 'domedian'); 
+N = 3; % 3 or 4
+BSM = cine_ecg.MEDIANDATA.VENTRICULAR{N}.beats.ECGbeat;
+% BSM = DATA.VENTR.SIGNALS.BSM.(ref_signal)(:,beat_cut(1):beat_cut(2));
 
 %%
 STOPTIME = 500;
@@ -16,12 +24,12 @@ ref_signal = 'x3_2019_11_15_12_36_17';
 
 beat_no = 3;
 beat_time =  DATA.VENTR.SIGNALS.INFO.(ref_signal).beats(beat_no);
-beat_cut = [beat_time-60 beat_time+500];
+beat_cut = [beat_time-200 beat_time+400];
 
 GEOM.VER        = DATA.VENTR.geom.VER;
 GEOM.ITRI       = DATA.VENTR.geom.ITRI;
 GEOM.AMA        = DATA.VENTR.AMA.(lead_system);
-GEOM.BSM        = DATA.VENTR.SIGNALS.BSM.(ref_signal)(:,beat_cut(1):beat_cut(2));
+GEOM.BSM        = BSM;
 GEOM.DIST       = DATA.VENTR.DIST3D;
 GEOM.DISTsurf   = DATA.VENTR.DISTsurf;
 GEOM.DIST2W     = DATA.VENTR.DISTanis;
@@ -66,9 +74,15 @@ GEOM.SPECS.plateauslope = 0.02;
 GEOM.SPECS.repslope = 0.045;
 GEOM.SPECS.scaleAmpl = 15;
 
+
+maxAmpl = round(max(max(abs(GEOM.BSM))));
+figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
+
+
 %% Get action potential LUT
-load('inverseMy/TmpLut_niceApd.mat');
-% LUT = getTmpLut_niceApd(130, 340, 1);
+% load('inverseMy/TmpLut_niceApd.mat');
+% LUT = getTmpLut_niceApd(150, 500, 1);
+LUT = getTmpLut_ResizedApd(150, 475, 1);
 % LUT = getTmpLut_HRmod(50, 200, 1);
 % save inverseMy/TmpLut_niceApd.mat LUT
 GEOM.LUT = LUT;
@@ -81,19 +95,25 @@ disp('multifociscan');
 measinit.rep = initRep(GEOM, measinit.dep);
 
 init_dep = measinit.dep;
+% init_rep = measinit.rep;
 t_wave_peak = mean(measinit.rep);
 [val, qrs_peak] = max(rms(abs(GEOM.BSM(:,1:STOPTIME))));
 
 apd = t_wave_peak - qrs_peak;
-alpha = 1;
+alpha = 0.8;
 
 init_rep = init_dep * alpha + apd;
 
 %% inverse modeling
-mudep = 1e-11;
-murep = 2e-6;
+mudep = 1e-6;
+murep = 1e-5;
 
-meas = my_inversefunc(GEOM, init_dep, init_rep, mudep, murep);
+meas = my_inversefunc(GEOM, init_dep, init_rep, mudep, murep, true);
+%%
+maxAmpl = round(max(max(abs(GEOM.BSM))));
+figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
+hold on; 
+sigplot(meas.simulated_ecg,'',GEOM.LAY,1.3/maxAmpl,'r',1,0);	
 
 %%
 
@@ -137,12 +157,6 @@ q.values(init_rep - substract_from_rep_values);
 q.gradient_bins(gradient_bins);
 
 q.color_range(0, 350);
-
-%%
-maxAmpl = round(max(max(abs(GEOM.BSM))));
-figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
-hold on; 
-sigplot(meas.simulated_ecg,'',GEOM.LAY,1.3/maxAmpl,'r',1,0);	
 
 %%
 N = 1;
