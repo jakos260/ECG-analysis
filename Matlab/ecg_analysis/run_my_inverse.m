@@ -83,7 +83,7 @@ disp('Loading AHA segment definitions...');
 GEOM.RegionIdx = load(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles_labels_of_20.segments'));
 
 % Tworzymy słownik z idealnie równymi krokami od 200 do 350 ms z krokiem co 1 ms
-GEOM.LUT = getTmpLut_niceApd(200, 460, 1);
+GEOM.LUT = getApLut_niceApd(200, 460, 1);
 
 %% ESTYMACJA POCZĄTKOWA I PROBLEM ODWROTNY
 initialvelocity = 0.4;

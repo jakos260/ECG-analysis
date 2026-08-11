@@ -53,7 +53,7 @@ function meas = my_inversefunc(GEOM, initdep, initrep, mudep, murep, plot_en)
     best_iter = 0;
     
     %% WSTĘPNA WERYFIKACJA STANU POCZĄTKOWEGO (ITERACJA 0)
-    TST = gettres_v_from_TmpLut(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
+    TST = gettres_v_from_ApLut(INV, OPT.DEP, OPT.REP, OPT.NOT, OPT.AMP);
     
     if plot_en
         PLOT_STATE = update_progress_plot(PLOT_STATE, 0, TST, OPT.DEP, OPT.REP, GEOM.ITRI);
@@ -116,7 +116,7 @@ function meas = my_inversefunc(GEOM, initdep, initrep, mudep, murep, plot_en)
     
     % Restore best model
     disp(['Restoring best model from iteration ', num2str(best_iter), ' with RD = ', num2str(best_rd)]);
-    TST = gettres_v_from_TmpLut(INV, best_OPT_DEP, best_OPT_REP, OPT.NOT, OPT.AMP);
+    TST = gettres_v_from_ApLut(INV, best_OPT_DEP, best_OPT_REP, OPT.NOT, OPT.AMP);
     
     meas = struct();
     meas.depfinal = best_OPT_DEP.tims;

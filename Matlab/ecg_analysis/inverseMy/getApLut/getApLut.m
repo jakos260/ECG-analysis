@@ -1,4 +1,4 @@
-function LUT = getTmpLut(start, stop, step)
+function LUT = getApLut(start, stop, step)
     % phases_sweep = 0.8:0.02:1.2;
     phases_sweep = start:step:stop;
     LUT = struct();

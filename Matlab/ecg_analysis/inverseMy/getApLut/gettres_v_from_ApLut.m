@@ -1,4 +1,4 @@
-function TST = gettres_v_from_TmpLut(INV, opt, keepopt, notchopt, amplopt)
+function TST = gettres_v_from_ApLut(INV, opt, keepopt, notchopt, amplopt)
     wrd_param = 0.0010;
     
     % 1. Rozróżnienie czasów (dep i rep)

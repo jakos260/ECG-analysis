@@ -1,4 +1,4 @@
-function LUT = getTmpLut_HRmod(start_hr, stop_hr, step_hr)
+function LUT = getApLut_HRmod(start_hr, stop_hr, step_hr)
     % GETTMPLUT_HRMOD Generates a Lookup Table of Action Potentials
     % with APD modulated by an increasing Heart Rate (HR).
     % Utilizes wrapper_TenTusscher2mod to handle the pacing train 

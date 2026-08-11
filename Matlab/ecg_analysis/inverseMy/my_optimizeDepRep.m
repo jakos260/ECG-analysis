@@ -1,7 +1,7 @@
 function [score,opt,TST] = my_optimizeDepRep(INV,opt,keepopt,notchopt,amplopt)
 % MY_OPTIMIZEDEPREP - Corrected optimization function for dep/rep times.
 
-TST         = gettres_v_from_TmpLut(INV,opt,keepopt,notchopt,amplopt);
+TST         = gettres_v_from_ApLut(INV,opt,keepopt,notchopt,amplopt);
 starttres   = TST.tres;
 score       = 0;
 lamb        = opt.lambopt;
@@ -82,7 +82,7 @@ while 1
         testopt.tims = testopt.tims + keepopt.tims; 
     end
     
-    TST = gettres_v_from_TmpLut(INV, testopt, keepopt, notchopt, amplopt);
+    TST = gettres_v_from_ApLut(INV, testopt, keepopt, notchopt, amplopt);
     
     if TST.tres < starttres
         if (starttres - TST.tres) / starttres >= INV.stopcrit
@@ -103,6 +103,6 @@ end
 
 opt.lambopt = lamb / 4;
 
-TST = gettres_v_from_TmpLut(INV, opt, keepopt, notchopt, amplopt);
+TST = gettres_v_from_ApLut(INV, opt, keepopt, notchopt, amplopt);
 
 end

@@ -7,10 +7,9 @@ DATA = readGeomPeacsModelDataset(path, subject );
 CineEcgResultPath = fullfile(path, subject, 'signals', sprintf('IKEM_Pat%03d.iecg', num_subjects));
 EcgDataPath = fullfile(path, subject, 'signals', 'ECG_DATA');
 
+N = 3; % 3 for RV pacing or 4 for LV pacing
 cine_ecg = readCineEcgResults(CineEcgResultPath,'ecgdir', EcgDataPath, 'domedian'); 
-N = 3; % 3 or 4
 BSM = cine_ecg.MEDIANDATA.VENTRICULAR{N}.beats.ECGbeat;
-% BSM = DATA.VENTR.SIGNALS.BSM.(ref_signal)(:,beat_cut(1):beat_cut(2));
 
 %%
 STOPTIME = 500;
@@ -80,11 +79,11 @@ figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0);
 
 
 %% Get action potential LUT
-% load('inverseMy/TmpLut_niceApd.mat');
-% LUT = getTmpLut_niceApd(150, 500, 1);
-LUT = getTmpLut_ResizedApd(150, 475, 1);
-% LUT = getTmpLut_HRmod(50, 200, 1);
-% save inverseMy/TmpLut_niceApd.mat LUT
+% load('inverseMy/getAp/ApLut_niceApd.mat');
+% LUT = getApLut_niceApd(150, 500, 1);
+LUT = getApLut_ResizedApd(150, 475, 1);
+% LUT = getApLut_HRmod(50, 200, 1);
+% save inverseMy/getAp/ApLut_niceApd.mat LUT
 GEOM.LUT = LUT;
 
 
@@ -106,7 +105,7 @@ init_rep = init_dep * alpha + apd;
 
 %% inverse modeling
 mudep = 1e-6;
-murep = 1e-5;
+murep = 2e-6;
 
 meas = my_inversefunc(GEOM, init_dep, init_rep, mudep, murep, true);
 %%

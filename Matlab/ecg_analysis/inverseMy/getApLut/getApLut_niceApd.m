@@ -1,4 +1,4 @@
-function LUT = getTmpLut_niceApd(start_apd, stop_apd, step_apd)
+function LUT = getApLut_niceApd(start_apd, stop_apd, step_apd)
     % GETTMPLUT_NICEAPD Generates a Lookup Table of Action Potentials
     % with perfectly uniformly spaced APD values. Includes progress 
     % tracking and automatic filtering of unphysiological ODE anomalies.
