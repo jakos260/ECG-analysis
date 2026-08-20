@@ -264,15 +264,25 @@ for i = 1:length(dd_leads)
     end        
 end
 
-% load signal info file
+% load signal info file into a TEMPORARY variable
 jsonFileName = 'info.json';
+raw_info = struct();
 if exist([signaldir, jsonFileName], "file")
     jsonStr = fileread([signaldir, jsonFileName]);
-    DATA.VENTR.SIGNALS.INFO = jsondecode(jsonStr);    
+    raw_info = jsondecode(jsonStr);    
 end
+
+% Initialize the final INFO structure as empty
+DATA.VENTR.SIGNALS.INFO = struct();
 
 % Load signals and categorize by extensions
 dd_ecgs = [dir(fullfile(signaldir, '*.bsm*')); dir(fullfile(signaldir, '*.ecg*'))];
+
+% Inicjalizacja liczników i "pamięci" mapowania nazw
+s_count = 1;
+bsl_count = 1;
+name_map = struct();
+
 for i = 1:length(dd_ecgs)
     filepath = fullfile(dd_ecgs(i).folder, dd_ecgs(i).name);
     filename = dd_ecgs(i).name;
@@ -286,15 +296,58 @@ for i = 1:length(dd_ecgs)
         continue;
     end
 
-    name = clean_fieldname(filename, subject);
+    % Wyciągamy oryginalną nazwę bazową (bez rozszerzeń)
+    base_name = filename;
+    base_name = strrep(base_name, '.bsm.medianecg', '');
+    base_name = strrep(base_name, '.bsm', '');
+    base_name = strrep(base_name, '.ecg', '');
+    
+    % Używamy funkcji clean_fieldname, aby uzyskać znormalizowany klucz (stara nazwa)
+    map_key = clean_fieldname(filename, subject);
+    
+    % Sprawdzamy, czy ten sygnał dostał już nową nazwę w tej iteracji pacjenta
+    if isfield(name_map, map_key)
+        new_name = name_map.(map_key);
+    else
+        % Generujemy nową nazwę i zapisujemy ją w mapie
+        if startsWith(base_name, 'B', 'IgnoreCase', true) || ...
+           contains(base_name, 'Baseline', 'IgnoreCase', true) || ...
+           contains(base_name, 'BSL', 'IgnoreCase', true)
+            new_name = sprintf('sBSL%d', bsl_count);
+            bsl_count = bsl_count + 1;
+        else
+            new_name = sprintf('s%d', s_count);
+            s_count = s_count + 1;
+        end
+        
+        name_map.(map_key) = new_name;
+        
+        % --- Zapis do struktury INFO (wykonuje się tylko RAZ dla każdego przypadku) ---
+        DATA.VENTR.SIGNALS.INFO.(new_name) = struct();
+        DATA.VENTR.SIGNALS.INFO.(new_name).name = base_name;
+        
+        % Szukamy pola 'beats' w tymczasowej strukturze z JSONa
+        % UWAGA: jsondecode czasami zachowuje oryginalne nazwy literowe bez dodawania 'x',
+        % więc bezpieczniej jest sprawdzić dwie wersje klucza (z 'x' i bez 'x').
+        matched_key = '';
+        if isfield(raw_info, map_key)
+            matched_key = map_key;
+        elseif isfield(raw_info, map_key(2:end))
+            matched_key = map_key(2:end);
+        end
+        
+        if ~isempty(matched_key) && isfield(raw_info.(matched_key), 'beats')
+            DATA.VENTR.SIGNALS.INFO.(new_name).beats = raw_info.(matched_key).beats;
+        end
+    end
     
     % Route data to specific substructures based on extension
     if contains(filename, '.bsm.medianecg', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.BSMmedECG.(name) = removeBaseline(sig);
+        DATA.VENTR.SIGNALS.BSMmedECG.(new_name) = removeBaseline(sig);
     elseif contains(filename, '.bsm', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.BSM.(name) = removeBaseline(sig);
+        DATA.VENTR.SIGNALS.BSM.(new_name) = removeBaseline(sig);
     elseif contains(filename, '.ecg', 'IgnoreCase', true)
-        DATA.VENTR.SIGNALS.ECG.(name) = removeBaseline(sig);
+        DATA.VENTR.SIGNALS.ECG.(new_name) = removeBaseline(sig);
     end
 end
 
