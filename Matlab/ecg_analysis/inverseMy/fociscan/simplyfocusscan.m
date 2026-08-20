@@ -26,7 +26,7 @@ function result = simplyfocusscan(GEOM, velocity)
     pot_heart = GEOM.AMA' * GEOM.BSM(:, r_time);
     
     % Select the node with the maximum absolute value as the starting point
-    [~, focus_node] = max(abs(pot_heart));
+    [~, focus_node] = max(pot_heart);
     
     % 4. Calculate depolarization times based on distance
     % Velocity: 1 m/s = 1 mm/s = 1 mm/ms
