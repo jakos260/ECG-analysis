@@ -90,7 +90,8 @@ GEOM.LUT = LUT;
 %% multifoci skan
 
 disp('multifociscan');
-[measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
+% [measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
+measinit.dep = DATA.VENTR.HEARTDIST(:,1216);
 measinit.rep = initRep(GEOM, measinit.dep);
 
 init_dep = measinit.dep;
@@ -104,10 +105,38 @@ alpha = 0.8;
 init_rep = init_dep * alpha + apd;
 
 %% inverse modeling
-mudep = 1e-6;
-murep = 2e-6;
+mudep = 1e-8;
+murep = 2e-7;
 
 meas = my_inversefunc(GEOM, init_dep, init_rep, mudep, murep, true);
+%%
+mudep = 1e-3;
+murep = 2e-4;
+
+param_configs(1).name = 'Depolarization';
+param_configs(1).initial_value = init_dep;
+param_configs(1).mu = mudep;
+param_configs(1).bounds = [0, 150];
+
+param_configs(2).name = 'Repolarization';
+param_configs(2).initial_value = init_rep;
+param_configs(2).mu = murep;
+param_configs(2).bounds = [150, 400];
+
+settings = struct();
+settings.maxiter = 4;
+settings.plot_en = true;
+settings.lpass = 1;
+settings.mode = 4;
+settings.useWeighedRd = 0;
+settings.MINRD = 0.18;
+settings.stopcrit = 1e-4;
+
+opt_func = @gettres_v_nparams;
+
+inv_model   = INVERSE_MODEL(GEOM, param_configs, settings, opt_func);
+results     = inv_model.run_optimization();
+
 %%
 maxAmpl = round(max(max(abs(GEOM.BSM))));
 figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
@@ -115,6 +144,7 @@ hold on;
 sigplot(meas.simulated_ecg,'',GEOM.LAY,1.3/maxAmpl,'r',1,0);	
 
 %%
+[dep_final, rep_final] = results.final_params{:};
 
 transparency = 0.0;
 gradient_bins = 10;
@@ -131,9 +161,9 @@ q.background_color("white");
 q.set_active_panel(1, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(transparency);
-q.values(meas.depfinal - substract_from_dep_values);
+q.values(dep_final - substract_from_dep_values);
 q.gradient_bins(gradient_bins);
-q.text(sprintf("dep av=%.0f[ms]", mean(meas.depfinal)), [0.1, 0.95]);
+q.text(sprintf("dep av=%.0f[ms]", mean(dep_final)), [0.1, 0.95]);
 
 q.set_active_panel(1, 2);
 q.surface(GEOM.VER, GEOM.ITRI);
@@ -145,9 +175,9 @@ q.gradient_bins(gradient_bins);
 q.set_active_panel(2, 1);
 q.surface(GEOM.VER, GEOM.ITRI);
 q.transparency(transparency);
-q.values(meas.repfinal - substract_from_rep_values);
+q.values(rep_final - substract_from_rep_values);
 q.gradient_bins(gradient_bins);
-q.text(sprintf("rep av=%.0f[ms]", mean(meas.repfinal)), [0.6, 0.95]);
+q.text(sprintf("rep av=%.0f[ms]", mean(rep_final)), [0.6, 0.95]);
 
 q.set_active_panel(2, 2);
 q.surface(GEOM.VER, GEOM.ITRI);
@@ -155,7 +185,8 @@ q.transparency(transparency);
 q.values(init_rep - substract_from_rep_values);
 q.gradient_bins(gradient_bins);
 
-q.color_range(0, 350);
+max_color_range = max(max(rep_final, init_rep));
+q.color_range(0, max_color_range);
 
 %%
 N = 1;

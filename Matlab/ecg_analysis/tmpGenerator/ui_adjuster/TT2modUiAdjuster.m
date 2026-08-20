@@ -43,11 +43,11 @@ classdef TT2modUiAdjuster < handle
 
     methods (Access = private)
         function loadEcgSimData(obj, patient, offset)
-            obj.fig.UserData.A12 = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricles2standard_12.mat'));
-            STD_ref = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ecgs/standard_12.refECG'));
+            obj.fig.UserData.A12 = loadmat(append(DATA_PATH, ['ECGSIM_', patient], '\leads\ventricles2standard_12.mat'));
+            STD_ref = loadmat(append(DATA_PATH, ['ECGSIM_', patient], '\ecgs\standard_12.refECG'));
             obj.fig.UserData.STD_ref = STD_ref(:, offset:end);
-            obj.fig.UserData.dep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.dep'));
-            obj.fig.UserData.rep = loadmat(append(DATA_PATH, 'ECGsim_data/', patient, '/ventricular_beats/beat1/user.rep'));
+            obj.fig.UserData.dep = loadmat(append(DATA_PATH, ['ECGSIM_', patient], '\ventricular_beats\beat1\user.dep'));
+            obj.fig.UserData.rep = loadmat(append(DATA_PATH, ['ECGSIM_', patient], '\ventricular_beats\beat1\user.rep'));
             obj.fig.UserData.L = size(obj.fig.UserData.STD_ref, 2);
         end
 

@@ -4,8 +4,8 @@ clearvars
 patient = 'normal_young_male'; offset = 169;
 
 % --- ODCZYT CT (Potrzebne dla wrappera) ---
-[~, ~, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle_epi.tri'));
-[~, ~, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle_endo.tri'));
+[~, ~, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, ['ECGSIM_', patient], '\model\ventricle_epi.tri'));
+[~, ~, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'ECGSIM_', patient, '\model\ventricle_endo.tri'));
 
 CT = ones(length(ventri_epi_ver_idx) + length(ventri_endo_ver_idx), 1);
 for i = 1:length(ventri_endo_ver_idx)
