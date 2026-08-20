@@ -7,7 +7,7 @@ DATA = readGeomPeacsModelDataset(path, subject );
 CineEcgResultPath = fullfile(path, subject, 'signals', sprintf('IKEM_Pat%03d.iecg', num_subjects));
 EcgDataPath = fullfile(path, subject, 'signals', 'ECG_DATA');
 
-N = 3; % 3 for RV pacing or 4 for LV pacing
+N = 4; % 3 for LV pacing or 4 for RV pacing
 cine_ecg = readCineEcgResults(CineEcgResultPath,'ecgdir', EcgDataPath, 'domedian'); 
 BSM = cine_ecg.MEDIANDATA.VENTRICULAR{N}.beats.ECGbeat;
 
@@ -19,7 +19,7 @@ GEOM.subject = subject;
 GEOM.type = 'ventricles';
 
 lead_system = 'x99Prague'; %'x65Nijmegen' 'x12plus3leads';
-ref_signal = 'x3_2019_11_15_12_36_17';
+ref_signal = sprintf('s%d', N);
 
 beat_no = 3;
 beat_time =  DATA.VENTR.SIGNALS.INFO.(ref_signal).beats(beat_no);
@@ -72,37 +72,34 @@ GEOM.SPECS.initialSlope = 1;
 GEOM.SPECS.plateauslope = 0.02;
 GEOM.SPECS.repslope = 0.045;
 GEOM.SPECS.scaleAmpl = 15;
+GEOM.LUT = getApLut_ResizedApd(150, 475, 1);
 
 
 maxAmpl = round(max(max(abs(GEOM.BSM))));
 figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
 
 
-%% Get action potential LUT
-% load('inverseMy/getAp/ApLut_niceApd.mat');
-% LUT = getApLut_niceApd(150, 500, 1);
-LUT = getApLut_ResizedApd(150, 475, 1);
-% LUT = getApLut_HRmod(50, 200, 1);
-% save inverseMy/getAp/ApLut_niceApd.mat LUT
-GEOM.LUT = LUT;
-
-
 %% multifoci skan
 
-disp('multifociscan');
-% [measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
-measinit.dep = DATA.VENTR.HEARTDIST(:,1216);
-measinit.rep = initRep(GEOM, measinit.dep);
+% disp('multifociscan');
+% % [measinit.foci, measinit.dep, measinit.outp] = multifociscan(GEOM, 1, 0);
+% measinit.dep = DATA.VENTR.HEARTDIST(:,1216);
+% measinit.rep = initRep(GEOM, measinit.dep);
+% 
+% init_dep = measinit.dep;
+% % init_rep = measinit.rep;
+% t_wave_peak = mean(measinit.rep);
+% [val, qrs_peak] = max(rms(abs(GEOM.BSM)));
+% 
+% apd = t_wave_peak - qrs_peak;
+% alpha = 0.8;
+% 
+% init_rep = init_dep * alpha + apd;
 
-init_dep = measinit.dep;
-% init_rep = measinit.rep;
-t_wave_peak = mean(measinit.rep);
-[val, qrs_peak] = max(rms(abs(GEOM.BSM(:,1:STOPTIME))));
-
-apd = t_wave_peak - qrs_peak;
-alpha = 0.8;
-
-init_rep = init_dep * alpha + apd;
+velocity = 1; % m/s
+init = simplyfocusscan(GEOM, velocity);
+init_dep = init.dep;
+init_rep = init.rep;
 
 %% inverse modeling
 mudep = 1e-8;
@@ -137,13 +134,8 @@ opt_func = @gettres_v_nparams;
 inv_model   = INVERSE_MODEL(GEOM, param_configs, settings, opt_func);
 results     = inv_model.run_optimization();
 
-%%
-maxAmpl = round(max(max(abs(GEOM.BSM))));
-figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0); 
-hold on; 
-sigplot(meas.simulated_ecg,'',GEOM.LAY,1.3/maxAmpl,'r',1,0);	
 
-%%
+%% QTRIPLOT RESULTS
 [dep_final, rep_final] = results.final_params{:};
 
 transparency = 0.0;
