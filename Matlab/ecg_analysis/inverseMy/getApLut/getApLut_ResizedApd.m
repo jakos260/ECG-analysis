@@ -1,14 +1,19 @@
-function LUT = getApLut_ResizedApd(start_apd, stop_apd, step_apd)
+function LUT = getApLut_ResizedApd(start_apd, stop_apd, step_apd, CT)
     % GETTMPLUT_RESIZEDAPD Generates an Action Potential dictionary (LUT)
     % by generating one base AP and temporally interpolating it
     % to the desired widths (50% - 50% of amplitude).
+    % CT       : Cell type: 1=epicardial, 2=mid-myocardial, 3=endocardial
+
+    if nargin < 4 || isempty(CT)
+        CT = 1;
+    end
     
     % 1. Base simulation parameters
     dt = 0.1; % 1 ms = 10 samples (10 kHz sampling)
     sim_time = 1500; % Extended time (1500 ms) so that the signal is not clipped when stretching the AP
     
     % Call the base model for a rigid phase 3 modifier: [1, 1, 1]
-    [t_base, V_base] = wrapper_TenTusscher2mod(dt, sim_time, 1, [1, 1, 1], 150);
+    [t_base, V_base] = wrapper_TenTusscher2mod(dt, sim_time, CT, [1, 1, 1], 150);
     
     % Normalization to the [0, 1] range
     V_norm = (V_base - min(V_base)) / (max(V_base) - min(V_base));

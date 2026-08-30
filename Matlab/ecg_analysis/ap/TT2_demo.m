@@ -29,7 +29,7 @@ for i = 1:length(HRs)
         CT = cell_types(j);
         
         % Wywołanie modelu
-        [t, V] = TenTusscher2_IKr(Stim_I, Stim_T, ISO, Stim_Int, CT);
+        [t, V] = TenTusscher2(Stim_I, Stim_T, ISO, Stim_Int, CT);
         
         % Wyznaczanie czasu rozpoczęcia ostatniego impulsu
         % Zgodnie z konstrukcją funkcji, impulsy następują po sobie co Stim_Int

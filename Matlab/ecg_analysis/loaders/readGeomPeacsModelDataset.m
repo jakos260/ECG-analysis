@@ -1,5 +1,7 @@
 function DATA = readGeomPeacsModelDataset(dirname,subject,varargin)
 
+DATA.subject = subject;
+
 modeldir = fullfile(dirname, subject, 'model');
 modeldir = [modeldir filesep];
 

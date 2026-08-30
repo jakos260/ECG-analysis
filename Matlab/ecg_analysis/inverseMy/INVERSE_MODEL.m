@@ -100,7 +100,7 @@ classdef INVERSE_MODEL < handle
                 obj.INV.ROTRO_CELL = GEOM.ROTRO_CELL;
             else
                  try
-                     % POPRAWKA: Zapisujemy REGOP i REGOPREP bezpośrednio do struktury INV,
+                     % Zapisujemy REGOP i REGOPREP bezpośrednio do struktury INV,
                      % aby stara funkcja gettres_v_from_ApLut miała do nich dostęp.
                      [obj.INV.REGOP, obj.INV.REGOPREP] = calcREGOP(GEOM, 1);
                      obj.INV.ROTRO = obj.INV.REGOP' * obj.INV.REGOP;

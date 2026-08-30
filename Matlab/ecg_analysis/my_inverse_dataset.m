@@ -96,8 +96,8 @@ figure(99);clf; sigplot(GEOM.BSM,'',GEOM.LAY,1.3/maxAmpl,'b',1,0);
 % 
 % init_rep = init_dep * alpha + apd;
 
-velocity = 1; % m/s
-init = simplyfocusscan(GEOM, velocity);
+% velocity = 1; % m/s
+% init = simplyfocusscan(GEOM, velocity);
 init_dep = init.dep;
 init_rep = init.rep;
 
@@ -133,7 +133,6 @@ opt_func = @gettres_v_nparams;
 
 inv_model   = INVERSE_MODEL(GEOM, param_configs, settings, opt_func);
 results     = inv_model.run_optimization();
-
 
 %% QTRIPLOT RESULTS
 [dep_final, rep_final] = results.final_params{:};
