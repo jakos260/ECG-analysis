@@ -41,6 +41,9 @@ class QTripyCmd:
         cmd = f'text {pos[0]} {pos[1]} {text}'
         self.__send(cmd)
 
+    def angle(self, x_angle, y_angle, z_angle):
+        self.__send(f"angle {x_angle} {y_angle} {z_angle}")
+
 
 class QTripy(QTripyCmd):
     def __init__(self, path = None):
