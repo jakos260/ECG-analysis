@@ -286,8 +286,8 @@ A       = loadmat(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/leads/ventricl
 % sig_ref = sig_ref(:, offset:offset+STOPTIME-1);
 
 % [ventri_ver, ventri_tri] = loadtri_ecgsim(append(DATA_PATH, 'ECGsim_data/', patient, '/model/ventricle.tri'));
-[ventri_epi_ver, ventri_epi_tri, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/model/ventricle_epi.tri'));
-[ventri_endo_ver, ventri_endo_tri, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '/model/ventricle_endo.tri'));
+[ventri_epi_ver, ventri_epi_tri, ventri_epi_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '\model\ventricle_epi.tri'));
+[ventri_endo_ver, ventri_endo_tri, ventri_endo_ver_idx] = loadtri_ecgsim(append(DATA_PATH, 'Dataset\ECGSIM_', patient, '\model\ventricle_endo.tri'));
 
 
 CT = ones(length(ventri_epi_ver_idx) + length(ventri_endo_ver_idx),1);
@@ -598,7 +598,7 @@ for layer_idx = 1:3 % 1: Epicardium, 2: Global, 3: Endocardium
         end
         
         if layer_idx == 3 && phase_idx == 3
-            legend([h_p, h_0, h_n], '+', 'ref', '-', 'Location', 'northeast');
+            legend([h_p, h_0, h_n], '+', 'unchanged', '-', 'Location', 'northeast');
         end
         
     end
@@ -796,14 +796,14 @@ for i = 1:x_len
         params(i) = params_mod(i, 1);
         [t_tmpl_mod_p, V_tmpl_mod_p] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
         h1 = plot( ...
-            t_tmpl_mod_p, V_tmpl_mod_p, 'r', ...
+            t_tmpl_mod_p, V_tmpl_mod_p, 'b', ...
             'LineWidth', 1.5, ...
             'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
 
         params(i) = params_mod(i, 2);
         [t_tmpl_mod_n, V_tmpl_mod_n] = wrapper_TenTusscher2mod(HT, STOPTIME, j, params);
         h3 = plot( ...
-            t_tmpl_mod_n, V_tmpl_mod_n, 'b', ...
+            t_tmpl_mod_n, V_tmpl_mod_n, 'r', ...
             'LineWidth', 1.5, ...
             'DisplayName', sprintf("params= %f %f %f", params(1), params(2), params(3)));
 
@@ -861,7 +861,7 @@ for i = 1:size(subjects,2)
 
     heart_ver = [heart_ver, DATA.VENTR.geom.VER];
     heart_tri = [heart_tri, DATA.VENTR.geom.ITRI];
-    heart_val = [heart_val, init_values(2)];
+    heart_val = [heart_val, init_values(1)];
     thorax_ver = [thorax_ver, DATA.GEOM.thorax.VER];
     thorax_tri = [thorax_tri, DATA.GEOM.thorax.ITRI];
     thorax_val = [thorax_val, diff];
@@ -877,7 +877,7 @@ q.disable_debounce();
 q.background_color("white");
 q.set_panels_number(1,size(subjects,2));
 
-if true % thorax
+if false % thorax
     q.text(sprintf("ref - sim"), [0.78, 0.95]);
     for i = 1:size(subjects, 2)
         q.text(sprintf("RD=%.3f", rd(i)), [0.05, i/size(subjects, 2) - 0.1]);
@@ -896,8 +896,8 @@ if true % thorax
     q.color_range(-1, 1);
 end
 
-if false % heart
-    q.text(sprintf("rep time [ms]"), [0.65, 0.95]);
+if true % heart
+    q.text(sprintf("dep time [ms]"), [0.65, 0.95]);
     for i = 1:size(subjects, 2)
         q.set_active_panel(1,i);
 
@@ -918,7 +918,177 @@ if false % heart
     q.color_range(min_val, max_val);
 end
 
+%% ------------------------------------------------------------------------
+% -------------------- CINC2026 subject analysis --------------------------
+% -------------------------------------------------------------------------
 
+subject_num = 1;
+subject = sprintf('IKEM_Pat%03d', subject_num);
+fprintf('\n_________ processing %s ________\n', subject);
+
+path = 'C:\Users\Admin\Documents\Projects\ecg_project\Scripts\data\Dataset\';
+DATA = readGeomPeacsModelDataset(path, subject);
+CineEcgResultPath = fullfile(path, subject, 'signals', sprintf('IKEM_Pat%03d.iecg', subject_num));
+EcgDataPath = fullfile(path, subject, 'signals', 'ECG_DATA');
+
+N = 4;
+cine_ecg = readCineEcgResults(CineEcgResultPath, 'ecgdir', EcgDataPath, 'domedian');
+BSM = cine_ecg.MEDIANDATA.VENTRICULAR{N}.beats.ECGbeat;
+LAY = loadmat('C:\Users\Admin\Documents\Projects\ecg_project\Scripts\Matlab\ecg_analysis\inverseArno\BEM\inverse\mla\prague99.mla');
+
+[TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, BSM);
+
+% Rozpakowanie wyników dla geometrii
+init_dep    = init_values{1};
+init_rep    = init_values{2};
+phase2_map  = init_values{3};
+phase3_map  = init_values{4};
+
+heart_ver = DATA.VENTR.geom.VER;
+heart_tri = DATA.VENTR.geom.ITRI;
+thorax_ver = DATA.GEOM.thorax.VER;
+thorax_tri = DATA.GEOM.thorax.ITRI;
+
+heart_offset = mean(heart_ver, 1);
+heart_ver = heart_ver - heart_offset;
+
+% 4. Wizualizacja przestrzenna w Qtripy
+q = initQtripy();
+q.reset();
+q.disable_debounce();
+q.background_color("white");
+% q.set_panels_number(1,2);
+
+if false % heart
+    % --- Serce (Kolumna 1) ---
+    % Wiersz 1: Front
+    q.set_active_panel(1, 1);
+    q.text("Repolarization [ms]", [0.1, 0.95]);
+    % q.text("FRONT | Repolarization [ms]", [0.1, 0.95]);
+    q.surface(heart_ver, heart_tri);
+    q.transparency(0.0);
+    q.values(init_rep);
+    q.gradient_bins(15);
+    q.angle(0, 110, -50); % Kąt dla widoku front
+    
+    % Wiersz 2: Back
+    % q.set_active_panel(1,2);
+    % q.text("BACK", [0.1, 0.5]);
+    % q.surface(heart_ver, heart_tri);
+    % q.transparency(0.0);
+    % q.values(init_rep);
+    % q.gradient_bins(15);
+    % q.color_range(min(init_rep(:)), max(init_rep(:)));
+    % q.angle(180, 110, -50); % Przykładowy obrót dla widoku z tyłu
+end
+
+if false % heart - mapy fazy 2 i 3
+    % Panel 1 (Lewy) - Modyfikator fazy 2 (ICaL)
+    q.set_active_panel(1, 1);
+    q.text(sprintf("Phase 2 Factor (ICa)"), [0.1, 0.97]);
+    q.surface(heart_ver, heart_tri);
+    q.transparency(0.0);
+    q.values(phase2_map);
+    q.gradient_bins(15);
+    q.cmd("angle 0 110 -50");
+    q.color_range(min(min(phase2_map(:), phase3_map(:))), max(max(phase2_map(:), phase3_map(:))));
+
+    % Panel 2 (Prawy) - Modyfikator fazy 3 (IKr, IKs)
+    q.set_active_panel(1,2);
+    q.text("Phase 3 Factor (IKr, IKs)", [0.1, 0.5]);
+    q.surface(heart_ver, heart_tri);
+    q.transparency(0.0);
+    q.values(phase3_map);
+    q.gradient_bins(15);
+    q.cmd("angle 0 110 -50");
+end
+
+if false % thorax
+    % --- Klatka piersiowa (Kolumna 2) ---
+    % Wiersz 1: Front
+    q.set_active_panel(2, 1);
+    % q.text(sprintf("Front | ref - sim | RD = %.3f", TST.rd), [0.1, 0.95]);
+    q.surface(thorax_ver, thorax_tri);
+    q.transparency(0.0);
+    q.values(thorax_pot{1});
+    q.gradient_bins(10);
+    q.markers(thorax_leads, 'black', 10);
+    q.color_range(-1, 1);
+    % q.cmd("angle 0 0 0"); % Domyślny kąt kamery dla klatki piersiowej
+
+    % Wiersz 2: Back
+    % q.set_active_panel(2, 2);
+    % q.text(sprintf("Back"), [0.1, 0.95]);
+    % q.surface(thorax_ver, thorax_tri);
+    % q.transparency(0.0);
+    % q.values(diff_v);
+    % q.gradient_bins(10);
+    % q.markers(thorax_leads, 'black', 10);
+    % q.color_range(-1, 1);
+    % q.cmd("angle 180 0 0"); % Przykładowy obrót dla widoku z tyłu klatki
+end
+
+plot_ecg_signals(BSM, TST.PHIA, LAY, TST.rd);
+
+[~, idx_earliest] = min(init_dep); % Najwcześniejszy (prawa strona, bo RV pacing)
+[~, idx_latest]   = max(init_dep); % Najpóźniejszy (lewa strona)
+
+% Zaznaczenie punktów na pierwszym panelu Qtripy (repolaryzacja FRONT)
+% Używamy tego samego obiektu 'q', który zdefiniowano wcześniej w kodzie.
+q.set_active_panel(1, 1);
+q.marker(heart_ver(idx_earliest, :), 'red', 5); % Oznaczony na czerwono
+q.angle(0, 110, -50);
+q.marker(heart_ver(idx_latest, :), 'blue', 5);  % Oznaczony na niebiesko
+q.angle(0, 110, -50);
+
+% Wyodrębnienie zrekonstruowanych Transmembrane Potentials (TMP) 
+% Sygnały znajdują się w TST.S. Oś czasu musi uwzględniać krok próbkowania.
+HT = 1; % Z reguły w BSM czas jest w krokach 1 ms (do ewentualnego dostosowania)
+time_axis = (0 : size(TST.S, 2) - 1) * HT;
+
+TMP_earliest = TST.S(idx_earliest, :);
+TMP_latest   = TST.S(idx_latest, :);
+
+% -----------------
+% Inicjalizacja nowej figury dla wykresów
+% -----------------
+figure(12); clf;
+set(gcf, 'Name', 'Action Potentials and BSM Evaluation', 'Position', [100, 100, 1200, 500]);
+
+% --- Lewy subplot: Action Potentials ---
+subplot(1, 2, 1);
+hold on; grid on;
+% Kolory dopasowane do znaczników z Qtripy
+plot(time_axis, TMP_earliest, 'r', 'LineWidth', 2, 'DisplayName', sprintf('Earliest (Node %d, dep=%.0f ms)', idx_earliest, init_dep(idx_earliest)));
+plot(time_axis, TMP_latest, 'b', 'LineWidth', 2, 'DisplayName', sprintf('Latest (Node %d, dep=%.0f ms)', idx_latest, init_dep(idx_latest)));
+
+xlabel('Time [ms]', 'FontWeight', 'bold');
+ylabel('Transmembrane Potential (TMP)', 'FontWeight', 'bold');
+title('Simulated Action Potentials (Extreme Nodes)', 'FontWeight', 'bold');
+legend('Location', 'best');
+ylim([-0.1, 1.1]); % Zazwyczaj TMP jest znormalizowane w TST.S do [0, 1]
+
+% --- Prawy subplot: Sygnały EKG (Pierwszy kanał z BSM) ---
+subplot(1, 2, 2);
+hold on; grid on;
+
+% Pobranie sygnału pierwszego odprowadzenia (lead 1)
+lead_idx = 1; 
+ref_signal_bsm = BSM(lead_idx, :);
+sim_signal_bsm = TST.PHIA(lead_idx, :);
+
+plot(time_axis, ref_signal_bsm, 'b', 'LineWidth', 2, 'DisplayName', 'Reference (Measured)');
+plot(time_axis, sim_signal_bsm, 'r', 'LineWidth', 2, 'DisplayName', 'Simulated');
+
+xlabel('Time [ms]', 'FontWeight', 'bold');
+ylabel('Amplitude [\mu V]', 'FontWeight', 'bold');
+title(sprintf('BSM Signal Comparison (Lead %d)', lead_idx), 'FontWeight', 'bold');
+legend('Location', 'best');
+
+% Pozostawienie standardowego wezwania plot_ecg_signals, jeśli potrzebny jest pełny układ
+LAY_path = 'C:\Users\Admin\Documents\Projects\ecg_project\Scripts\Matlab\ecg_analysis\inverseArno\BEM\inverse\mla\prague99.mla';
+LAY = loadmat(LAY_path);
+plot_ecg_signals(BSM, TST.PHIA, LAY, TST.rd);
 
 %% HELPERS
 
@@ -945,7 +1115,7 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     GEOM.subject = DATA.subject;
     GEOM.type = 'ventricles';
     
-    lead_system = 'x99Prague'; %'x65Nijmegen' 'x12plus3leads';
+    lead_system = 'x99Prague';
     
     GEOM.VER        = DATA.VENTR.geom.VER;
     GEOM.ITRI       = DATA.VENTR.geom.ITRI;
@@ -954,9 +1124,9 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     GEOM.DIST       = DATA.VENTR.DIST3D;
     GEOM.DISTsurf   = DATA.VENTR.DISTsurf;
     GEOM.DIST2W     = DATA.VENTR.DISTanis;
-    GEOM.ADJ2W      = DATA.VENTR.ADJanis;   % ventricles.adjanis; 
-    GEOM.neigh      = DATA.VENTR.ADJneigh;  % ventricle.adjneigh
-    GEOM.ADJ        = DATA.VENTR.ADJ3D;     % ventricle.adj3d
+    GEOM.ADJ2W      = DATA.VENTR.ADJanis;
+    GEOM.neigh      = DATA.VENTR.ADJneigh;
+    GEOM.ADJ        = DATA.VENTR.ADJ3D;
     GEOM.LAY        = loadmat('C:\Users\Admin\Documents\Projects\ecg_project\Scripts\Matlab\ecg_analysis\inverseArno\BEM\inverse\mla\prague99.mla');
     GEOM.RegionIdx  = DATA.GEOM.ventr.segments;
     
@@ -968,21 +1138,16 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     GEOM.Rfreewallver   = zeros(num_nodes, 1);
     GEOM.endoVER        = DATA.GEOM.ventr.endoVER;
     
-    
     GEOM.pS = [];
-    GEOM.anisotropyRatio = 0.5; % value only to save in logs
+    GEOM.anisotropyRatio = 0.5;
     
-    % GEOM.specs(2) - początek analizowanego sygnału (np. początek QRS)
-    % GEOM.specs(3) - koniec QRS (na tej podstawie liczone jest qrsduration)
-    % GEOM.specs(4) - używane do estymacji repolaryzacji
-    % GEOM.specs(5) - koniec analizowanego sygnału (koniec załamka T)
     GEOM.specs = [0, 1, 100, 200, STOPTIME];
     GEOM.SPECS = struct();
     GEOM.SPECS.onsetqrs = GEOM.specs(2);
-    GEOM.SPECS.onsetp = 0; % used only in atria mode
+    GEOM.SPECS.onsetp = 0;
     GEOM.SPECS.qrstduration = GEOM.specs(5) - GEOM.specs(2) + 1;
     GEOM.SPECS.time_Jpoint = GEOM.specs(3);
-    GEOM.SPECS.time_Vstim = 1; % used only in stim mode
+    GEOM.SPECS.time_Vstim = 1;
     GEOM.SPECS.time_apexT = 275;
     GEOM.SPECS.depSlope = 1.0;
     GEOM.SPECS.repCorrection = 0;
@@ -992,39 +1157,72 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     GEOM.SPECS.plateauslope = 0.02;
     GEOM.SPECS.repslope = 0.045;
     GEOM.SPECS.scaleAmpl = 15;
-    GEOM.LUT_EPI = getApLut_ResizedApd(150, 475, 1, 1);
-    GEOM.LUT_ENDO = getApLut_ResizedApd(150, 475, 1, 3);
+    
+    % GEOM.LUT_EPI =  getApLut_niceApd(155, 475, 1, 1);
+    % GEOM.LUT_ENDO = getApLut_niceApd(155, 475, 1, 3);
+    tmp_lut_epi     = load("inverseMy\getApLut\ApLut_niceApd_CT1.mat");
+    tmp_lut_endo    = load("inverseMy\getApLut\ApLut_niceApd_CT3.mat");
+    GEOM.LUT_EPI    = tmp_lut_epi.LUT;
+    GEOM.LUT_ENDO   = tmp_lut_endo.LUT;
     GEOM.LUT = GEOM.LUT_EPI;
 
     % fociscan
-    velocity = 1.0; % m/s
+    velocity = 1.0;
     init = simplyfocusscan(GEOM, velocity);
     init_dep = init.dep;
-    
-    % ___ LINEAR GRADIENT ___
-    % rep_results = get_init_rep_lineargradient(GEOM, [-1, 0, 0], 0.5);
-    % init_rep = rep_results.init_rep;
-
-    % ___ EPI ENDO ___
-    % rep_results = get_init_rep_epiendo(GEOM, init_dep);
-    % init_rep = rep_results.init_rep;
 
     % ___ COMBINED ___
-    rep_results = get_init_rep_combined(GEOM, init_dep, [-1, 0, 0], 0.5);
+    MODE = 1;
+    if MODE == 1
+        rep_results = get_init_rep_epiendo(GEOM, init_dep);
+    elseif MODE == 2
+        rep_results = get_init_rep_lineargradient(GEOM, [-1, 0, 0], 0.5);
+    elseif MODE == 3
+        rep_results = get_init_rep_combined(GEOM, init_dep, [-1, 0, 0], 0.5);
+    else
+        warning("Unrecognised MODE")
+    end
     init_rep = rep_results.init_rep;
+    assigned_LUT = rep_results.assigned_LUT;
 
-    init_values = {init_dep, init_rep};
+    % --- Mapowanie modyfikatorów fazy 2 i 3 dla każdego węzła ---
+    phase2_map = zeros(num_nodes, 1);
+    phase3_map = zeros(num_nodes, 1);
+
+    for i = 1:num_nodes
+        % Obliczamy docelowy czas trwania APD dla danego węzła
+        target_apd = init_rep(i) - init_dep(i);
+
+        % Pobieramy LUT przypisany do tego konkretnego węzła (EPI lub ENDO)
+        LUT_node = assigned_LUT{i};
+        
+        % POPRAWKA: Rozpakowanie zagnieżdżonej struktury, jeśli pole 'LUT' istnieje
+        if isfield(LUT_node, 'LUT')
+            LUT_array = LUT_node.LUT;
+        else
+            LUT_array = LUT_node;
+        end
+        
+        % Znajdujemy indeks najbliższego przebiegu
+        all_apds = [LUT_array.APD];
+        [~, best_idx] = min(abs(all_apds - target_apd));
+        
+        % Pobieramy wartość modyfikatorów
+        mods = LUT_array(best_idx).phase_mod;
+        phase2_map(i) = mods(1);
+        phase3_map(i) = mods(2);
+    end
+
+    % Zwracamy poszerzone parametry początkowe
+    init_values = {init_dep, init_rep, phase2_map, phase3_map};
     
     INV = struct();
     INV.AMA   = GEOM.AMA;
     INV.SPECS = GEOM.SPECS;
     INV.RegionIdx = DATA.GEOM.ventr.segments;
-    INV.lpass = 1; % Default lowpass filter setting
+    INV.lpass = 1;
     INV.useWeighedRd = 0;
     INV.LUT = GEOM.LUT;
-
-    % INV.LUT = fixed_rep_results.assigned_LUT; % get_init_rep_epiendo
-    
     INV.BSM = GEOM.BSM;
     INV.PHIREF = INV.BSM;
     INV.normphi = norm(INV.PHIREF, 'fro');
@@ -1033,14 +1231,12 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     INV.T = ones(size(INV.AMA, 2), 1) * (0 : usetimes - 1);
     
     [INV.REGOP, INV.REGOPREP] = calcREGOP(GEOM, 1);
-    INV.MuValues = [0, 0]; % Dummy mu values
+    INV.MuValues = [0, 0];
     
-    % Pack initial times into a cell array and setup defaults for notch/ampl
     params_cell = {init_dep, init_rep};
     notchopt    = struct('pot', zeros(size(GEOM.VER,1),1));
     amplopt     = struct('pot', ones(size(GEOM.VER,1),1));
     
-    % forward model
     TST = gettres_v_nparams(INV, params_cell, notchopt, amplopt);
 
     half_time = round(size(INV.PHIREF, 2) / 2);
@@ -1048,21 +1244,14 @@ function [TST, init_values, thorax_pot] = get_results_for_single_patient(DATA, B
     [~, t_peak_offset] = max(rms_ref(half_time:end));
     t_peak = half_time + t_peak_offset - 1;
     
-    % 2. Pobranie wektorów potencjałów dla znalezionego czasu
-    pot_ref_99 = INV.PHIREF(:, t_peak); % Potencjały referencyjne (99 odprowadzeń)
-    pot_sim = DATA.VENTR.THORAX * TST.S(:, t_peak); % Symulacja na pełnej klatce
+    pot_ref_99 = INV.PHIREF(:, t_peak);
+    pot_sim = DATA.VENTR.THORAX * TST.S(:, t_peak);
     
-    % Wykonujemy błyskawiczną estymację potencjałów serca z 99 elektrod
-    % przy użyciu macierzy INV.AMA i regularyzacji Tichonowa
-    lambda_vis = 1e-2; 
+    lambda_vis = 1e-2;
     pot_heart_est = (INV.AMA' * INV.AMA + lambda_vis * eye(size(INV.AMA, 2))) \ (INV.AMA' * pot_ref_99);
-    
-    % Rzutujemy uzyskane potencjały serca na PEŁNĄ siatkę klatki piersiowej
     pot_ref_full = DATA.VENTR.THORAX * pot_heart_est;
-    % ---------------------------------------
     
     thorax_pot = {pot_sim, pot_ref_full};
-    
 end
 
 % function forward_ecg_with_modified_params(DATA, params)
