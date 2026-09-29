@@ -957,7 +957,7 @@ q = initQtripy();
 q.reset();
 q.disable_debounce();
 q.background_color("white");
-% q.set_panels_number(1,2);
+q.set_panels_number(1,2);
 
 if false % heart
     % --- Serce (Kolumna 1) ---
@@ -982,7 +982,7 @@ if false % heart
     % q.angle(180, 110, -50); % Przykładowy obrót dla widoku z tyłu
 end
 
-if false % heart - mapy fazy 2 i 3
+if true % heart - mapy fazy 2 i 3
     % Panel 1 (Lewy) - Modyfikator fazy 2 (ICaL)
     q.set_active_panel(1, 1);
     q.text(sprintf("Phase 2 Factor (ICa)"), [0.1, 0.97]);
@@ -991,7 +991,7 @@ if false % heart - mapy fazy 2 i 3
     q.values(phase2_map);
     q.gradient_bins(15);
     q.cmd("angle 0 110 -50");
-    q.color_range(min(min(phase2_map(:), phase3_map(:))), max(max(phase2_map(:), phase3_map(:))));
+    q.color_range(0.5, 2.5);
 
     % Panel 2 (Prawy) - Modyfikator fazy 3 (IKr, IKs)
     q.set_active_panel(1,2);
@@ -1084,6 +1084,7 @@ xlabel('Time [ms]', 'FontWeight', 'bold');
 ylabel('Amplitude [\mu V]', 'FontWeight', 'bold');
 title(sprintf('BSM Signal Comparison (Lead %d)', lead_idx), 'FontWeight', 'bold');
 legend('Location', 'best');
+ylim([-0.5, 0.1]);
 
 % Pozostawienie standardowego wezwania plot_ecg_signals, jeśli potrzebny jest pełny układ
 LAY_path = 'C:\Users\Admin\Documents\Projects\ecg_project\Scripts\Matlab\ecg_analysis\inverseArno\BEM\inverse\mla\prague99.mla';
