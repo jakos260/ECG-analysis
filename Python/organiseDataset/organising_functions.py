@@ -4,6 +4,8 @@ Utility functions for organizing patient ECG dataset.
 import os
 import shutil
 import json
+import re
+import stat
 from pathlib import Path
 from typing import Dict, Tuple, Optional
 
@@ -327,6 +329,106 @@ def rename_signal_files(dest_patient_dir: str) -> None:
         if os.path.exists(dst_path):
             os.remove(dst_path)
         os.rename(src_path, dst_path)
+
+
+def move_ecg_data_to_map(dest_patient_dir: str) -> None:
+    """Move a patient's signals/ECG_DATA directory into map/ECG_DATA."""
+    signals_dir = os.path.join(dest_patient_dir, "signals")
+    source_dir = os.path.join(signals_dir, "ECG_DATA")
+    map_dir = os.path.join(dest_patient_dir, "map")
+    destination_dir = os.path.join(map_dir, "ECG_DATA")
+
+    if os.path.isdir(source_dir):
+        if os.path.exists(destination_dir):
+            raise FileExistsError(f"Destination already exists: {destination_dir}")
+
+        os.makedirs(map_dir, exist_ok=True)
+        shutil.move(source_dir, destination_dir)
+
+    if os.path.isdir(signals_dir):
+        def make_writable_and_retry(func, path, exc_info):
+            os.chmod(path, stat.S_IWRITE | stat.S_IREAD | stat.S_IXUSR)
+            func(path)
+
+        shutil.rmtree(signals_dir, onerror=make_writable_and_retry)
+
+
+def split_map_into_bsm_and_12ecg(dest_patient_dir: str) -> None:
+    """Split map metadata and ECG data into BSM and 12ECG directories."""
+    map_dir = os.path.join(dest_patient_dir, "map")
+    if not os.path.isdir(map_dir):
+        return
+
+    source_data_dir = os.path.join(map_dir, "ECG_DATA")
+    bsm_data_dir = os.path.join(map_dir, "BSM", "ECG_DATA")
+    ecg12_data_dir = os.path.join(map_dir, "12ECG", "ECG_DATA")
+    moves = []
+    removals = []
+
+    def classify_signal_file(file_name: str) -> str:
+        lower_name = file_name.lower()
+        if lower_name.endswith(".bsm") or re.fullmatch(r".*\.bsm_\d\.[a-z]medianecg", lower_name):
+            return bsm_data_dir
+        if lower_name.endswith(".ecg"):
+            return ecg12_data_dir
+        raise ValueError(f"Unrecognized ECG_DATA file: {file_name}")
+
+    def plan_data_file(file_path: str) -> None:
+        file_name = os.path.basename(file_path)
+        if file_name.lower().endswith(".iecg"):
+            removals.append(file_path)
+            return
+        destination_dir = classify_signal_file(file_name)
+        moves.append((file_path, os.path.join(destination_dir, file_name)))
+
+    if os.path.isdir(source_data_dir):
+        for file_name in os.listdir(source_data_dir):
+            source_path = os.path.join(source_data_dir, file_name)
+            if not os.path.isfile(source_path):
+                raise ValueError(f"Unexpected directory in ECG_DATA: {source_path}")
+            plan_data_file(source_path)
+
+    for file_name in os.listdir(map_dir):
+        source_path = os.path.join(map_dir, file_name)
+        if not os.path.isfile(source_path):
+            continue
+
+        lower_name = file_name.lower()
+        if lower_name.endswith(".iecg"):
+            removals.append(source_path)
+        elif lower_name.endswith(".imap") or lower_name.endswith(".imaplog"):
+            normalized_name = "".join(character for character in lower_name if character.isalnum())
+            lead_type = "12ECG" if "12ecg" in normalized_name or "ecg12" in normalized_name else "BSM"
+            moves.append((source_path, os.path.join(map_dir, lead_type, file_name)))
+        elif lower_name.endswith((".bsm", ".ecg")) or re.fullmatch(r".*\.bsm_\d\.[a-z]medianecg", lower_name):
+            plan_data_file(source_path)
+
+    destinations = set()
+    for source_path, destination_path in moves:
+        if destination_path in destinations or os.path.exists(destination_path):
+            raise FileExistsError(f"Destination already exists: {destination_path}")
+        destinations.add(destination_path)
+
+    os.makedirs(bsm_data_dir, exist_ok=True)
+    os.makedirs(ecg12_data_dir, exist_ok=True)
+
+    for source_path, destination_path in moves:
+        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+        shutil.move(source_path, destination_path)
+
+    for file_path in removals:
+        try:
+            os.remove(file_path)
+        except PermissionError:
+            os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
+            os.remove(file_path)
+
+    if os.path.isdir(source_data_dir) and not os.listdir(source_data_dir):
+        try:
+            os.rmdir(source_data_dir)
+        except PermissionError:
+            os.chmod(source_data_dir, stat.S_IWRITE | stat.S_IREAD | stat.S_IXUSR)
+            os.rmdir(source_data_dir)
 
 
 def get_patient_data(dest_patient_dir: str, clean_patient_name: str) -> Dict:

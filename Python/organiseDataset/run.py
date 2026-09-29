@@ -19,7 +19,9 @@ from organising_functions import (
     remove_empty_dirs,
     strip_file_prefix,
     organise_dataset_from_IKEM,
-    rename_signal_files
+    rename_signal_files,
+    move_ecg_data_to_map,
+    split_map_into_bsm_and_12ecg
 )
 
 
@@ -48,7 +50,7 @@ PROCESSING_STEPS = [
     # "strip_file_prefix",
     # "organise_dataset_from_IKEM",
     # "process_ecg",
-    "rename_signal_files"
+    "split_map_into_bsm_and_12ecg"
 ]
 
 # ============================================================================
@@ -122,8 +124,18 @@ STEP_REGISTRY = {
         "description": "Renaming signal files in signals directory",
         "func": lambda model_path, clean_name, core_id, dest_dir: rename_signal_files(dest_dir)
     },
-    "process_ecg": {
+    "move_ecg_data_to_map": {
         "index": 12,
+        "description": "Moving signals/ECG_DATA into map/ECG_DATA",
+        "func": lambda model_path, clean_name, core_id, dest_dir: move_ecg_data_to_map(dest_dir)
+    },
+    "split_map_into_bsm_and_12ecg": {
+        "index": 13,
+        "description": "Splitting map into BSM and 12ECG",
+        "func": lambda model_path, clean_name, core_id, dest_dir: split_map_into_bsm_and_12ecg(dest_dir)
+    },
+    "process_ecg": {
+        "index": 14,
         "description": "Processing ECG signals",
         "func": lambda model_path, clean_name, core_id, dest_dir: process_ecg_from_patient_folder(clean_name, dest_dir)
     }
@@ -216,7 +228,7 @@ def collect_patient_data(output_dir: str) -> None:
 
 def main():
     """Main execution function."""
-    destination_only_steps = {"move_leads_loc_files", "move_leads_loc_files_back", "move_lead_files_from_model", "remove_empty_dirs", "strip_file_prefix"}
+    destination_only_steps = {"move_leads_loc_files", "move_leads_loc_files_back", "move_lead_files_from_model", "remove_empty_dirs", "strip_file_prefix", "move_ecg_data_to_map", "split_map_into_bsm_and_12ecg"}
     dataset_wide_steps = {"organise_dataset_from_IKEM"}
     dataset_only_mode = len(PROCESSING_STEPS) > 0 and all(step in destination_only_steps for step in PROCESSING_STEPS)
     dataset_wide_mode = len(PROCESSING_STEPS) > 0 and all(step in dataset_wide_steps for step in PROCESSING_STEPS)
