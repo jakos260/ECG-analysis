@@ -11,7 +11,7 @@ import stat
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_ROOT = SCRIPT_DIR.parents[1] / "data"
-DEFAULT_INSTRUCTION_FILE = SCRIPT_DIR / "dataset_cartographer_instructions.json"
+DEFAULT_INSTRUCTION_FILE = SCRIPT_DIR / "dataset_rebuild_instructions.json"
 PATIENT_PATTERN = re.compile(r"Pat\d{3}", re.IGNORECASE)
 TIMESTAMP_PATTERN = re.compile(
     r"\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}"
@@ -21,12 +21,27 @@ BASELINE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 MEDIAN_BSM_PATTERN = re.compile(r".*\.bsm_\d\.[a-z]medianecg", re.IGNORECASE)
+MODEL_WORD_PATTERN = re.compile(r"model", re.IGNORECASE)
+SIGNAL_FAMILY_SUFFIX_PATTERN = re.compile(
+    r"\.(?:bsm|ecg)(?:_\d)?(?:\.(?:medianecg|amedianecg|pmedianecg|vmedianecg))?$",
+    re.IGNORECASE,
+)
 
 
 def normalize_baseline_name(name: str) -> str:
     """Normalize Baseline/BSL number tokens while preserving the rest of a name."""
     return BASELINE_PATTERN.sub(
         lambda match: f"BSL{match.group(1) or '1'}", name
+    )
+
+
+def normalize_ventricle_name(name: str) -> str:
+    """Pluralize singular ventricle tokens without changing ventricles already plural."""
+    return re.sub(
+        r"ventricle(?!s)",
+        lambda match: match.group() + "s",
+        name,
+        flags=re.IGNORECASE,
     )
 
 
@@ -305,8 +320,248 @@ def generate_instructions(data_root: Path) -> dict:
     }
 
 
+def cleaned_model_name(file_name: str, source_subject_name: str, patient_id: str | None) -> str:
+    cleaned = re.sub(re.escape(source_subject_name), "", file_name, count=1, flags=re.IGNORECASE)
+    if patient_id:
+        cleaned = re.sub(re.escape(patient_id), "", cleaned, flags=re.IGNORECASE)
+    cleaned = MODEL_WORD_PATTERN.sub("", cleaned)
+
+    if cleaned.casefold() == ".xml":
+        cleaned = "subject" + cleaned
+    else:
+        cleaned = cleaned.lstrip(" ._-").rstrip(" _-")
+    return normalize_ventricle_name(cleaned or "subject_file")
+
+
+def mapper_signal_destination(file_name: str) -> tuple[str, str] | None:
+    patient_id = patient_id_from_name(file_name)
+    timestamp_match = TIMESTAMP_PATTERN.search(file_name)
+    key = recording_key(file_name, is_source=True)
+    if not patient_id or not timestamp_match or not key:
+        return None
+
+    suffix = file_name[timestamp_match.end():]
+    if suffix.lower().startswith(".bsm"):
+        group = "BSM"
+    elif suffix.lower().startswith(".ecg"):
+        group = "12ECG"
+    else:
+        return None
+
+    return group, normalize_ventricle_name(key + suffix)
+
+
+def metadata_group(file_name: str) -> str:
+    normalized = "".join(character for character in file_name.lower() if character.isalnum())
+    return "12ECG" if "12ecg" in normalized or "ecg12" in normalized else "BSM"
+
+
+def signal_name_without_extension(file_name: str) -> str:
+    return SIGNAL_FAMILY_SUFFIX_PATTERN.sub("", Path(file_name).name)
+
+
+def cleaned_metadata_name(file_name: str, patient_id: str) -> str:
+    cleaned = re.sub(re.escape(patient_id), "", file_name, flags=re.IGNORECASE)
+    return normalize_ventricle_name(normalize_baseline_name(cleaned.lstrip(" _-")))
+
+
+def generate_rebuild_instructions(data_root: Path) -> dict:
+    data_root = data_root.resolve()
+    models_root = data_root / "raw" / "Models"
+    mapper_root = data_root / "raw" / "Mapper"
+    dataset_root = data_root / "Dataset"
+    if not models_root.is_dir():
+        raise FileNotFoundError(f"Models directory not found: {models_root}")
+    if not mapper_root.is_dir():
+        raise FileNotFoundError(f"Mapper directory not found: {mapper_root}")
+
+    model_subjects = sorted(
+        (path for path in models_root.iterdir() if path.is_dir()),
+        key=lambda path: path.name.casefold(),
+    )
+    if not model_subjects:
+        raise ValueError(f"No subject model directories found: {models_root}")
+
+    operations: list[dict] = [operation("rm", destination=str(dataset_root))]
+    warnings: list[str] = []
+    subject_registry: dict[str, dict[str, str]] = {}
+    subjects_by_patient: dict[str, tuple[str, Path, str]] = {}
+    reserved_destinations: set[Path] = set()
+    signal_names: dict[str, dict[str, dict[str, str]]] = {}
+
+    for index, source_subject in enumerate(model_subjects, start=1):
+        subject_name = f"subject_{index:03d}"
+        original_name = source_subject.name
+        display_name = normalize_ventricle_name(
+            re.sub(r"_model$", "", original_name, flags=re.IGNORECASE)
+        )
+        patient_id = patient_id_from_name(original_name)
+        subject_registry[subject_name] = {
+            "subject_name": display_name,
+            "source_model_dir": str(source_subject.relative_to(data_root)),
+        }
+        if patient_id:
+            if patient_id in subjects_by_patient:
+                warnings.append(
+                    f"Duplicate model directories for {patient_id}: "
+                    f"{subjects_by_patient[patient_id][1]} and {source_subject}"
+                )
+            else:
+                subjects_by_patient[patient_id] = (subject_name, source_subject, original_name)
+
+        operations.append(
+            {
+                "op": "write_json",
+                "path": str(dataset_root / subject_name / "subject.json"),
+                "data": {"subject_name": display_name},
+            }
+        )
+
+        model_files = sorted(path for path in source_subject.rglob("*") if path.is_file())
+        for source_path in model_files:
+            relative_parts = list(source_path.relative_to(source_subject).parts)
+            if relative_parts[0].casefold() == "ecgs":
+                relative_parts.pop(0)
+                cleaned_parts = [
+                    cleaned_model_name(part, original_name, patient_id)
+                    for part in relative_parts[:-1]
+                ]
+                cleaned_file = cleaned_model_name(relative_parts[-1], original_name, patient_id)
+                destination = (
+                    dataset_root / subject_name / "signals" / "ecgs"
+                    / Path(*cleaned_parts) / cleaned_file
+                )
+                if destination in reserved_destinations:
+                    warnings.append(f"Model ecg copy skipped due to duplicate destination: {destination}")
+                    continue
+                reserved_destinations.add(destination)
+                operations.append(
+                    operation("cp", source=str(source_path), destination=str(destination))
+                )
+                continue
+
+            if relative_parts and relative_parts[0].casefold() == "model":
+                relative_parts.pop(0)
+            cleaned_parts = [
+                cleaned_model_name(part, original_name, patient_id)
+                for part in relative_parts[:-1]
+            ]
+            cleaned_file = cleaned_model_name(relative_parts[-1], original_name, patient_id)
+            destination = dataset_root / subject_name / "model" / Path(*cleaned_parts) / cleaned_file
+            if destination in reserved_destinations:
+                warnings.append(f"Model copy skipped due to duplicate destination: {destination}")
+                continue
+            reserved_destinations.add(destination)
+            operations.append(
+                operation("cp", source=str(source_path), destination=str(destination))
+            )
+
+    loose_model_files = sorted(path for path in models_root.iterdir() if path.is_file())
+    for source_path in loose_model_files:
+        patient_id = patient_id_from_name(source_path.name)
+        subject_record = subjects_by_patient.get(patient_id or "")
+        if not subject_record:
+            warnings.append(f"Unassigned Models root file skipped: {source_path.name}")
+            continue
+        subject_name, _, original_name = subject_record
+        destination_name = cleaned_model_name(source_path.name, original_name, patient_id)
+        destination = dataset_root / subject_name / "model" / destination_name
+        if destination in reserved_destinations:
+            warnings.append(f"Model copy skipped due to duplicate destination: {destination}")
+            continue
+        reserved_destinations.add(destination)
+        operations.append(
+            operation("cp", source=str(source_path), destination=str(destination))
+        )
+
+    mapper_files = sorted(path for path in mapper_root.rglob("*") if path.is_file())
+    mappings_by_subject: dict[str, dict[str, dict[str, str]]] = {}
+    for source_path in mapper_files:
+        relative_path = source_path.relative_to(mapper_root)
+        patient_id = patient_id_from_name(source_path.name)
+        subject_record = subjects_by_patient.get(patient_id or "")
+        if not patient_id or not subject_record:
+            warnings.append(f"Unassigned Mapper file skipped: {relative_path.as_posix()}")
+            continue
+
+        subject_name, _, _ = subject_record
+        subject_mapper_root = dataset_root / subject_name / "mapper"
+        subject_signals_root = dataset_root / subject_name / "signals"
+        if source_path.suffix.lower() == ".iecg":
+            destination_name = cleaned_metadata_name(source_path.name, patient_id)
+            destination = subject_signals_root / destination_name
+        elif relative_path.parts and relative_path.parts[0].casefold() == "ecg_data":
+            classified = mapper_signal_destination(source_path.name)
+            if not classified:
+                warnings.append(f"Unrecognized Mapper ECG_DATA file skipped: {relative_path.as_posix()}")
+                continue
+
+            group, destination_name = classified
+            destination = subject_signals_root / "ECG_DATA" / group / destination_name
+            mapping_group = mappings_by_subject.setdefault(
+                subject_name, {"BSM": {}, "12ECG": {}}
+            )[group]
+            new_name = signal_name_without_extension(destination_name)
+            old_name = signal_name_without_extension(source_path.name)
+            if new_name in mapping_group and mapping_group[new_name] != old_name:
+                warnings.append(
+                    f"signal_names collision for {subject_name}/{group}/{new_name}; "
+                    f"file skipped: {relative_path.as_posix()}"
+                )
+                continue
+            mapping_group[new_name] = old_name
+        else:
+            destination_name = cleaned_metadata_name(source_path.name, patient_id)
+            destination = subject_mapper_root / destination_name
+
+        if destination in reserved_destinations:
+            warnings.append(f"Mapper copy skipped due to duplicate destination: {destination}")
+            continue
+        reserved_destinations.add(destination)
+        operations.append(
+            operation("cp", source=str(source_path), destination=str(destination))
+        )
+
+    for subject_name, names_by_group in sorted(mappings_by_subject.items()):
+        operations.append(
+            {
+                "op": "write_json",
+                "path": str(dataset_root / subject_name / "signals" / "signal_names.json"),
+                "data": names_by_group,
+            }
+        )
+
+    operation_counts = {
+        op: sum(item["op"] == op for item in operations)
+        for op in ("rm", "cp", "write_json")
+    }
+    for item in operations:
+        for key in ("source", "destination", "path"):
+            if key in item:
+                item[key] = str(Path(item[key]).relative_to(data_root))
+
+    model_file_count = sum(
+        1 for subject in model_subjects for path in subject.rglob("*") if path.is_file()
+    ) + len(loose_model_files)
+    return {
+        "name": "Dataset Rebuild Instructions",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "data_root": str(data_root),
+        "subject_registry": subject_registry,
+        "signal_names": mappings_by_subject,
+        "operations": operations,
+        "warnings": warnings,
+        "summary": {
+            "subjects": len(model_subjects),
+            "model_files_scanned": model_file_count,
+            "mapper_files_scanned": len(mapper_files),
+            "operations": operation_counts,
+        },
+    }
+
+
 def write_instruction_file(data_root: Path, output_path: Path) -> dict:
-    instructions = generate_instructions(data_root)
+    instructions = generate_rebuild_instructions(data_root)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(instructions, indent=2), encoding="utf-8")
     return instructions
@@ -363,9 +618,20 @@ def apply_instructions(instruction_path: Path, dry_run: bool = False) -> int:
             print(f"rm {destination}")
             if dry_run:
                 continue
-            if not destination.is_file():
+            if destination == (data_root / "Dataset").resolve():
+                if destination.exists():
+                    if not destination.is_dir():
+                        raise NotADirectoryError(f"Dataset removal target is not a directory: {destination}")
+
+                    def make_writable_and_retry(func, path, exc_info):
+                        os.chmod(path, stat.S_IWRITE | stat.S_IREAD | stat.S_IXUSR)
+                        func(path)
+
+                    shutil.rmtree(destination, onerror=make_writable_and_retry)
+            elif destination.is_file():
+                remove_file(destination)
+            else:
                 raise FileNotFoundError(f"Removal target is not a file: {destination}")
-            remove_file(destination)
         elif op == "write_json":
             destination = resolve_instruction_path(item["path"], data_root)
             print(f"write_json {destination}")
