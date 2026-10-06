@@ -45,6 +45,10 @@ def normalize_ventricle_name(name: str) -> str:
     )
 
 
+def normalize_destination_name(name: str) -> str:
+    return normalize_ventricle_name(name.replace("(", "").replace(")", ""))
+
+
 def patient_id_from_name(name: str) -> str | None:
     match = PATIENT_PATTERN.search(name)
     return match.group().upper() if match else None
@@ -321,7 +325,25 @@ def generate_instructions(data_root: Path) -> dict:
 
 
 def cleaned_model_name(file_name: str, source_subject_name: str, patient_id: str | None) -> str:
-    cleaned = re.sub(re.escape(source_subject_name), "", file_name, count=1, flags=re.IGNORECASE)
+    subject_prefix = re.sub(r"_model$", "", source_subject_name, flags=re.IGNORECASE)
+    subject_parts = subject_prefix.split("_")
+    prefix_candidates = {source_subject_name, subject_prefix}
+    prefix_candidates.update(
+        "_".join(subject_parts[index:])
+        for index in range(1, len(subject_parts))
+    )
+    cleaned = file_name
+    for prefix in sorted(prefix_candidates, key=len, reverse=True):
+        cleaned_candidate = re.sub(
+            rf"^{re.escape(prefix)}(?=$|[ _.-])",
+            "",
+            cleaned,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        if cleaned_candidate != cleaned:
+            cleaned = cleaned_candidate
+            break
     if patient_id:
         cleaned = re.sub(re.escape(patient_id), "", cleaned, flags=re.IGNORECASE)
     cleaned = MODEL_WORD_PATTERN.sub("", cleaned)
@@ -330,7 +352,7 @@ def cleaned_model_name(file_name: str, source_subject_name: str, patient_id: str
         cleaned = "subject" + cleaned
     else:
         cleaned = cleaned.lstrip(" ._-").rstrip(" _-")
-    return normalize_ventricle_name(cleaned or "subject_file")
+    return normalize_destination_name(cleaned or "subject_file")
 
 
 def mapper_signal_destination(file_name: str) -> tuple[str, str] | None:
@@ -348,7 +370,7 @@ def mapper_signal_destination(file_name: str) -> tuple[str, str] | None:
     else:
         return None
 
-    return group, normalize_ventricle_name(key + suffix)
+    return group, normalize_destination_name(key + suffix)
 
 
 def metadata_group(file_name: str) -> str:
@@ -362,7 +384,7 @@ def signal_name_without_extension(file_name: str) -> str:
 
 def cleaned_metadata_name(file_name: str, patient_id: str) -> str:
     cleaned = re.sub(re.escape(patient_id), "", file_name, flags=re.IGNORECASE)
-    return normalize_ventricle_name(normalize_baseline_name(cleaned.lstrip(" _-")))
+    return normalize_destination_name(normalize_baseline_name(cleaned.lstrip(" _-")))
 
 
 def generate_rebuild_instructions(data_root: Path) -> dict:
@@ -392,7 +414,7 @@ def generate_rebuild_instructions(data_root: Path) -> dict:
     for index, source_subject in enumerate(model_subjects, start=1):
         subject_name = f"subject_{index:03d}"
         original_name = source_subject.name
-        display_name = normalize_ventricle_name(
+        display_name = normalize_destination_name(
             re.sub(r"_model$", "", original_name, flags=re.IGNORECASE)
         )
         patient_id = patient_id_from_name(original_name)
