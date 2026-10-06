@@ -1,6 +1,6 @@
 {
   "name": "Dataset Rebuild Instructions",
-  "generated_at": "2026-10-06T13:07:56.638325+00:00",
+  "generated_at": "2026-10-06T13:17:09.740876+00:00",
   "data_root": "C:\\Users\\Admin\\Documents\\Projects\\ecg_project\\Scripts\\data",
   "subject_registry": {
     "subject_001": {
@@ -1740,7 +1740,7 @@
     {
       "op": "cp",
       "source": "raw\\Models\\ECGSIM_PPD1_model\\12 + 3 leads.lead",
-      "destination": "Dataset\\subject_008\\model\\12 + 3 leads.lead"
+      "destination": "Dataset\\subject_008\\model\\12 plus 3 leads.lead"
     },
     {
       "op": "cp",
@@ -1940,7 +1940,7 @@
     {
       "op": "cp",
       "source": "raw\\Models\\ECGSIM_PPD1_model\\thorax12_+_3_leads.tri",
-      "destination": "Dataset\\subject_008\\model\\thorax12_+_3_leads.tri"
+      "destination": "Dataset\\subject_008\\model\\thorax12_plus_3_leads.tri"
     },
     {
       "op": "cp",
@@ -2051,83 +2051,83 @@
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_atria.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_atria.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_atria.tri",
+      "destination": "Dataset\\subject_009\\model\\atria.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_atria.typ",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_atria.typ"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_atria.typ",
+      "destination": "Dataset\\subject_009\\model\\atria.typ"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_lcav.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_lcav.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_lcav.tri",
+      "destination": "Dataset\\subject_009\\model\\lcav.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_lcav.typ",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_lcav.typ"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_lcav.typ",
+      "destination": "Dataset\\subject_009\\model\\lcav.typ"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_llung.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_llung.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_llung.tri",
+      "destination": "Dataset\\subject_009\\model\\llung.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_modelinfo.txt",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_info.txt"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_modelinfo.txt",
+      "destination": "Dataset\\subject_009\\model\\info.txt"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_rcav.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_rcav.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_rcav.tri",
+      "destination": "Dataset\\subject_009\\model\\rcav.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_rcav.typ",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_rcav.typ"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_rcav.typ",
+      "destination": "Dataset\\subject_009\\model\\rcav.typ"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_rlung.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_rlung.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_rlung.tri",
+      "destination": "Dataset\\subject_009\\model\\rlung.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_thorax.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_thorax.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_thorax.tri",
+      "destination": "Dataset\\subject_009\\model\\thorax.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricles.scar",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricles.scar"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricles.scar",
+      "destination": "Dataset\\subject_009\\model\\ventricles.scar"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricles.segments",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricles.segments"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricles.segments",
+      "destination": "Dataset\\subject_009\\model\\ventricles.segments"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricles.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricles.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricles.tri",
+      "destination": "Dataset\\subject_009\\model\\ventricles.tri"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricles.typ",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricles.typ"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricles.typ",
+      "destination": "Dataset\\subject_009\\model\\ventricles.typ"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricles.walls",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricles.walls"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricles.walls",
+      "destination": "Dataset\\subject_009\\model\\ventricles.walls"
     },
     {
       "op": "cp",
-      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\PPD1_ECGSIM_NEW_ventricularpericardium.tri",
-      "destination": "Dataset\\subject_009\\model\\PPD1_ECGSIM_NEW_ventricularpericardium.tri"
+      "source": "raw\\Models\\ECGSIM_PPD1_NEW_model\\ECGSIM_PPD1_NEW_model_ventricularpericardium.tri",
+      "destination": "Dataset\\subject_009\\model\\ventricularpericardium.tri"
     },
     {
       "op": "write_json",

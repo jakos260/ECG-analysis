@@ -46,7 +46,8 @@ def normalize_ventricle_name(name: str) -> str:
 
 
 def normalize_destination_name(name: str) -> str:
-    return normalize_ventricle_name(name.replace("(", "").replace(")", ""))
+    """Remove parentheses and spell plus signs out in generated destination names."""
+    return name.replace("(", "").replace(")", "").replace("+", "plus")
 
 
 def patient_id_from_name(name: str) -> str | None:
@@ -352,7 +353,7 @@ def cleaned_model_name(file_name: str, source_subject_name: str, patient_id: str
         cleaned = "subject" + cleaned
     else:
         cleaned = cleaned.lstrip(" ._-").rstrip(" _-")
-    return normalize_destination_name(cleaned or "subject_file")
+    return normalize_destination_name(normalize_ventricle_name(cleaned or "subject_file"))
 
 
 def mapper_signal_destination(file_name: str) -> tuple[str, str] | None:
@@ -370,7 +371,7 @@ def mapper_signal_destination(file_name: str) -> tuple[str, str] | None:
     else:
         return None
 
-    return group, normalize_destination_name(key + suffix)
+    return group, normalize_destination_name(normalize_ventricle_name(key + suffix))
 
 
 def metadata_group(file_name: str) -> str:
@@ -384,7 +385,9 @@ def signal_name_without_extension(file_name: str) -> str:
 
 def cleaned_metadata_name(file_name: str, patient_id: str) -> str:
     cleaned = re.sub(re.escape(patient_id), "", file_name, flags=re.IGNORECASE)
-    return normalize_destination_name(normalize_baseline_name(cleaned.lstrip(" _-")))
+    return normalize_destination_name(
+        normalize_ventricle_name(normalize_baseline_name(cleaned.lstrip(" _-")))
+    )
 
 
 def generate_rebuild_instructions(data_root: Path) -> dict:
@@ -414,7 +417,7 @@ def generate_rebuild_instructions(data_root: Path) -> dict:
     for index, source_subject in enumerate(model_subjects, start=1):
         subject_name = f"subject_{index:03d}"
         original_name = source_subject.name
-        display_name = normalize_destination_name(
+        display_name = normalize_ventricle_name(
             re.sub(r"_model$", "", original_name, flags=re.IGNORECASE)
         )
         patient_id = patient_id_from_name(original_name)
