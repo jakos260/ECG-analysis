@@ -1,4 +1,25 @@
-function DATA = readGeomPeacsModelDataset(dirname,subject,varargin)
+function DATA = readGeomPeacsResults(arg1, varargin)
+
+% Wymuszenie konwersji ze string ("") na char ('') aby naprawić błąd łączenia ścieżek w nawiasach [...]
+arg1 = char(arg1);
+
+% --- OBSŁUGA ARGUMENTÓW WEJŚCIOWYCH ---
+if nargin == 1 || (nargin == 2 && ~ischar(varargin{1}) && ~isstring(varargin{1}))
+    % Tryb 1: arg1 to pełna ścieżka do folderu subject (opcjonalnie z argumentem WCT)
+    subject_folder = arg1;
+    if endsWith(subject_folder, filesep)
+        subject_folder = subject_folder(1:end-1);
+    end
+    [dirname, subject, ext] = fileparts(subject_folder);
+    subject = [subject ext]; % Na wypadek, gdyby nazwa folderu zawierała kropkę
+    
+    opt_args = varargin;
+else
+    % Tryb 2 (Legacy): dirname, subject, [opcjonalne argumenty]
+    dirname = arg1;
+    subject = char(varargin{1}); % Dodatkowe zabezpieczenie dla drugiego argumentu
+    opt_args = varargin(2:end);
+end
 
 DATA.subject = subject;
 
@@ -8,8 +29,8 @@ modeldir = [modeldir filesep];
 signaldir = fullfile(dirname, subject, 'signals');
 signaldir = [signaldir filesep];
 
-leaddir = fullfile(dirname, subject, 'leads');
-leaddir = [leaddir filesep];
+% Katalog leads wskazuje teraz bezpośrednio na modeldir
+leaddir = modeldir;
 
 if exist([modeldir 'atria.adj2d'], 'file')
     [DATA.GEOM.atria.VER, DATA.GEOM.atria.ITRI] = loadtri([modeldir  'atria.tri']);
@@ -67,8 +88,8 @@ if exist([modeldir  'coil.tri'], 'file')
     [DATA.GEOM.coil.VER,DATA.GEOM.coil.ITRI]   = loadtri([modeldir  'coil.tri']);
 end
 
-if nargin ==3 && ischar(varargin{end})
-    lead_path = varargin{end};
+if length(opt_args) == 1 && (ischar(opt_args{1}) || isstring(opt_args{1}))
+    lead_path = char(opt_args{1});
 else
     lead_path = leaddir;
 end
@@ -77,8 +98,8 @@ if isempty(dir(fullfile(lead_path, '*.lead'))) && isempty(dir(fullfile(lead_path
     lead_path = fullfile(lead_path, subject);
 end
 
-if nargin == 3 && ~ischar(varargin{end})
-    wct = varargin{end};
+if length(opt_args) == 1 && ~(ischar(opt_args{1}) || isstring(opt_args{1}))
+    wct = opt_args{1};
     wct_arg = true;
 else
     wct_arg = false;
@@ -90,7 +111,7 @@ if ~wct_arg
           dir(fullfile(lead_path, '*lead12*'))];
     
     if ~isempty(dd)
-        idx_12lead = 1; % default if first file if there is no standard12lead
+        idx_12lead = 1; 
         for i = 1:length(dd)
             if contains(dd(i).name, 'lead12', 'IgnoreCase', true) || ...
                contains(dd(i).name, 'standard12lead', 'IgnoreCase', true) || ...
@@ -269,8 +290,8 @@ end
 % load signal info file into a TEMPORARY variable
 jsonFileName = 'info.json';
 raw_info = struct();
-if exist([signaldir, jsonFileName], "file")
-    jsonStr = fileread([signaldir, jsonFileName]);
+if exist(fullfile(signaldir, jsonFileName), "file")
+    jsonStr = fileread(fullfile(signaldir, jsonFileName));
     raw_info = jsondecode(jsonStr);    
 end
 
@@ -324,13 +345,10 @@ for i = 1:length(dd_ecgs)
         
         name_map.(map_key) = new_name;
         
-        % --- Zapis do struktury INFO (wykonuje się tylko RAZ dla każdego przypadku) ---
+        % --- Zapis do struktury INFO ---
         DATA.VENTR.SIGNALS.INFO.(new_name) = struct();
         DATA.VENTR.SIGNALS.INFO.(new_name).name = base_name;
         
-        % Szukamy pola 'beats' w tymczasowej strukturze z JSONa
-        % UWAGA: jsondecode czasami zachowuje oryginalne nazwy literowe bez dodawania 'x',
-        % więc bezpieczniej jest sprawdzić dwie wersje klucza (z 'x' i bez 'x').
         matched_key = '';
         if isfield(raw_info, map_key)
             matched_key = map_key;
