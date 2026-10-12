@@ -16,10 +16,14 @@ PATIENT_PATTERN = re.compile(r"Pat\d{3}", re.IGNORECASE)
 TIMESTAMP_PATTERN = re.compile(
     r"\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}"
 )
-BASELINE_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9])(?:baseline|baeline|bsl)(?:[-_ ]?([12])(?=$|[^0-9]))?",
+SIGNAL_IDENTIFIER_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9])(?:(?P<baseline>baseline|baeline|bsl)"
+    r"(?:[-_ ]?(?P<baseline_number>[12]))?|"
+    r"(?P<signal>conf|signal)[-_ ]?(?P<signal_number>\d+))(?=$|[^0-9])",
     re.IGNORECASE,
 )
+NUMBERED_RECORDING_PATTERN = re.compile(r"(?<=_nr_)\d+(?=[_-])", re.IGNORECASE)
+LEADING_SIGNAL_NUMBER_PATTERN = re.compile(r"^(\d+)(?=[_-])")
 MEDIAN_BSM_PATTERN = re.compile(r".*\.bsm_\d\.[a-z]medianecg", re.IGNORECASE)
 MODEL_WORD_PATTERN = re.compile(r"model", re.IGNORECASE)
 SIGNAL_FAMILY_SUFFIX_PATTERN = re.compile(
@@ -28,11 +32,32 @@ SIGNAL_FAMILY_SUFFIX_PATTERN = re.compile(
 )
 
 
-def normalize_baseline_name(name: str) -> str:
-    """Normalize Baseline/BSL number tokens while preserving the rest of a name."""
-    return BASELINE_PATTERN.sub(
-        lambda match: f"BSL{match.group(1) or '1'}", name
+def normalize_signal_name(name: str) -> str:
+    """Normalize recording identifiers to baseline_<number> or signal_<number>."""
+    normalized = SIGNAL_IDENTIFIER_PATTERN.sub(
+        normalized_recording_key,
+        name,
     )
+    normalized = NUMBERED_RECORDING_PATTERN.sub(
+        lambda match: f"signal_{match.group()}",
+        normalized,
+    )
+    return LEADING_SIGNAL_NUMBER_PATTERN.sub(
+        lambda match: f"signal_{match.group(1)}",
+        normalized,
+        count=1,
+    )
+
+
+def normalized_recording_key(match: re.Match[str]) -> str:
+    if match.group("baseline"):
+        return f"baseline_{match.group('baseline_number') or '1'}"
+    return f"signal_{match.group('signal_number')}"
+
+
+def normalize_baseline_name(name: str) -> str:
+    """Keep the legacy helper name for callers using the earlier normalization API."""
+    return normalize_signal_name(name)
 
 
 def normalize_ventricle_name(name: str) -> str:
@@ -71,17 +96,12 @@ def recording_key(name: str, is_source: bool = False) -> str | None:
     if is_source:
         stem = re.sub(r"^Pat\d{3}_nr_", "", stem, flags=re.IGNORECASE)
 
-    baseline_match = BASELINE_PATTERN.search(stem)
-    if baseline_match:
-        return f"BSL{baseline_match.group(1) or '1'}"
-
-    if is_source:
-        configuration_match = re.match(r"Conf[-_ ]?(\d+)", stem, re.IGNORECASE)
-        if configuration_match:
-            return configuration_match.group(1)
+    signal_match = SIGNAL_IDENTIFIER_PATTERN.search(stem)
+    if signal_match:
+        return normalized_recording_key(signal_match)
 
     number_match = re.match(r"(\d+)", stem)
-    return number_match.group(1) if number_match else None
+    return f"signal_{number_match.group(1)}" if number_match else None
 
 
 def compact_recording_stem(name: str, is_source: bool = False) -> str | None:
@@ -97,14 +117,13 @@ def canonical_recording_label(name: str, is_source: bool = False) -> str:
     stem = TIMESTAMP_PATTERN.sub("", stem)
     if is_source:
         stem = re.sub(r"^Pat\d{3}_nr_", "", stem, flags=re.IGNORECASE)
-        stem = re.sub(r"^Conf[-_ ]?(\d+)[ _-]*", r"\1_", stem, flags=re.IGNORECASE)
-    stem = normalize_baseline_name(stem)
+    stem = normalize_signal_name(stem)
     return re.sub(r"[^a-z0-9]+", "", stem.lower())
 
 
 def source_fallback_stem(source_name: str) -> str:
     stem = compact_recording_stem(source_name, is_source=True)
-    return stem or normalize_baseline_name(Path(source_name).stem)
+    return stem or normalize_signal_name(Path(source_name).stem)
 
 
 def bsm_index(subject_root: Path, patient_id: str) -> dict[tuple[str, str], list[Path]]:
@@ -213,7 +232,7 @@ def generate_instructions(data_root: Path) -> dict:
             if len(relative_path.parts) == 1 and lower_name.endswith((".imap", ".imaplog")):
                 normalized = "".join(character for character in lower_name if character.isalnum())
                 group = "12ECG" if "12ecg" in normalized or "ecg12" in normalized else "BSM"
-                new_name = normalize_baseline_name(current_path.name)
+                new_name = normalize_signal_name(current_path.name)
                 destination = active_root / group / new_name
                 operations.append(
                     operation("mv", source=str(target_path), destination=str(destination))
@@ -224,13 +243,13 @@ def generate_instructions(data_root: Path) -> dict:
                 lower_name.endswith((".bsm", ".ecg")) or MEDIAN_BSM_PATTERN.fullmatch(lower_name)
             ):
                 group = "12ECG" if lower_name.endswith(".ecg") else "BSM"
-                data_destination = active_root / group / "ECG_DATA" / normalize_baseline_name(current_path.name)
+                data_destination = active_root / group / "ECG_DATA" / normalize_signal_name(current_path.name)
                 operations.append(
                     operation("mv", source=str(target_path), destination=str(data_destination))
                 )
                 continue
 
-            normalized_name = normalize_baseline_name(current_path.name)
+            normalized_name = normalize_signal_name(current_path.name)
             if normalized_name != current_path.name:
                 destination = active_root / relative_path.parent / normalized_name
                 operations.append(
@@ -386,7 +405,7 @@ def signal_name_without_extension(file_name: str) -> str:
 def cleaned_metadata_name(file_name: str, patient_id: str) -> str:
     cleaned = re.sub(re.escape(patient_id), "", file_name, flags=re.IGNORECASE)
     return normalize_destination_name(
-        normalize_ventricle_name(normalize_baseline_name(cleaned.lstrip(" _-")))
+        normalize_ventricle_name(normalize_signal_name(cleaned.lstrip(" _-")))
     )
 
 
