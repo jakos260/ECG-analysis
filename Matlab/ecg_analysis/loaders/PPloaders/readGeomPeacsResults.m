@@ -143,7 +143,7 @@ if ~wct_arg
             end
         end
     else
-        fprintf('[WARNING] No leads files found for WCT.\n');
+        % fprintf('[WARNING] No leads files found for WCT.\n');
     end
 end
 
