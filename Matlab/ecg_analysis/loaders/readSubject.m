@@ -1,0 +1,708 @@
+function DATA = readSubject(arg1, varargin)
+
+% Wymuszenie konwersji ze string ("") na char ('') aby naprawić błąd łączenia ścieżek w nawiasach [...]
+arg1 = char(arg1);
+
+% --- OBSŁUGA ARGUMENTÓW WEJŚCIOWYCH ---
+if nargin == 1 || (nargin == 2 && ~ischar(varargin{1}) && ~isstring(varargin{1}))
+    % Tryb 1: arg1 to pełna ścieżka do folderu subject (opcjonalnie z argumentem WCT)
+    subject_folder = arg1;
+    if endsWith(subject_folder, filesep)
+        subject_folder = subject_folder(1:end-1);
+    end
+    [dirname, subject, ext] = fileparts(subject_folder);
+    subject = [subject ext]; % Na wypadek, gdyby nazwa folderu zawierała kropkę
+    
+    opt_args = varargin;
+else
+    % Tryb 2 (Legacy): dirname, subject, [opcjonalne argumenty]
+    dirname = arg1;
+    subject = char(varargin{1}); % Dodatkowe zabezpieczenie dla drugiego argumentu
+    opt_args = varargin(2:end);
+end
+
+DATA.subject = subject;
+
+modeldir = fullfile(dirname, subject, 'model');
+modeldir = [modeldir filesep];
+
+signaldir = fullfile(dirname, subject, 'signals');
+signaldir = [signaldir filesep];
+
+% Katalog leads wskazuje teraz bezpośrednio na modeldir
+leaddir = modeldir;
+
+if exist([modeldir 'atria.adj2d'], 'file')
+    [DATA.GEOM.atria.VER, DATA.GEOM.atria.ITRI] = loadtri([modeldir  'atria.tri']);
+    [DATA.ATRIA.geom.VER, DATA.ATRIA.geom.ITRI] = loadtri([modeldir  'atria.tri']);
+    DATA.ATRIA.ADJsurf = loadmat([modeldir  'atria.adj2d']);
+    DATA.ATRIA.ADJ3D = loadmat([modeldir  'atria.adj3d']);
+    DATA.ATRIA.DISTsurf = loadmat([modeldir  'atria.dst2d']);
+    DATA.ATRIA.DIST3D = loadmat([modeldir  'ATRIA.dst3d']);
+    DATA.ATRIA.ADJANIS = loadmat([modeldir  'ATRIA.adjanis']);
+    DATA.ATRIA.DISTANIS = loadmat([modeldir  'ATRIA.dstanis']);
+    DATA.GEOM.atria.geomtyp = loadmat([modeldir  'atria.typ']);
+end
+
+[DATA.VENTR.geom.VER, DATA.VENTR.geom.ITRI] = loadtri([modeldir  'ventricles.tri']);
+
+DATA.VENTR.ADJsurf          = loadmat([modeldir  'ventricles.adj2d']);
+DATA.VENTR.ADJ3D            = loadmat([modeldir  'ventricles.adj3d']);
+DATA.VENTR.ADJanis          = loadmat([modeldir  'ventricles.adjanis']);
+DATA.VENTR.ADJneigh         = loadmat([modeldir  'ventricles.adjneigh']);
+DATA.VENTR.DISTsurf         = loadmat([modeldir  'ventricles.dst2d']);
+DATA.VENTR.DIST3D           = loadmat([modeldir  'ventricles.dst3d']);
+DATA.VENTR.DISTanis         = loadmat([modeldir  'ventricles.dstanis']);
+DATA.VENTR.HEARTDIST        = loadmat([modeldir  'ventricles.heartdist']);
+DATA.GEOM.ventr.geomtyp     = loadmat([modeldir  'ventricles.typ']);
+DATA.GEOM.ventr.scar        = loadmat([modeldir  'ventricles.scar']);
+DATA.GEOM.ventr.walls       = loadmat([modeldir  'ventricles.walls']);
+DATA.GEOM.ventr.segments    = loadmat([modeldir  'ventricles.segments']);
+
+[DATA.GEOM.ventr.VER, DATA.GEOM.ventr.ITRI]    = loadtri([modeldir  'ventricles.tri']);
+[DATA.GEOM.lcav.VER, DATA.GEOM.lcav.ITRI]      = loadtri([modeldir  'lcav.tri']);
+[DATA.GEOM.rcav.VER, DATA.GEOM.rcav.ITRI]      = loadtri([modeldir  'rcav.tri']);
+
+if exist([modeldir  'llung.tri'], 'file')
+    [DATA.GEOM.llung.VER,DATA.GEOM.llung.ITRI] = loadtri([modeldir  'llung.tri']);
+end
+if exist( [modeldir  'rlung.tri'], 'file')
+    [DATA.GEOM.rlung.VER,DATA.GEOM.rlung.ITRI] = loadtri([modeldir  'rlung.tri']);
+end
+
+[DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI]   = loadtri([modeldir  'thorax.tri']);
+
+if exist([modeldir  'liver.tri'], 'file')
+    [DATA.GEOM.liver.VER,DATA.GEOM.liver.ITRI] = loadtri([modeldir  'liver.tri']);
+end
+if exist([modeldir  'ribcage.tri'], 'file')
+    [DATA.GEOM.ribcage.VER,DATA.GEOM.ribcage.ITRI] = loadtri([modeldir  'ribcage.tri']);
+end
+if exist([modeldir  'fatpad_1.tri'], 'file')
+    [DATA.GEOM.fatpad_1.VER,DATA.GEOM.fatpad_1.ITRI] = loadtri([modeldir  'fatpad_1.tri']);
+end
+if exist([modeldir  'fatpad_2.tri'], 'file')
+    [DATA.GEOM.fatpad_2.VER,DATA.GEOM.fatpad_2.ITRI] = loadtri([modeldir  'fatpad_2.tri']);
+end
+if exist([modeldir  'coil.tri'], 'file')
+    [DATA.GEOM.coil.VER,DATA.GEOM.coil.ITRI]   = loadtri([modeldir  'coil.tri']);
+end
+
+if length(opt_args) == 1 && (ischar(opt_args{1}) || isstring(opt_args{1}))
+    lead_path = char(opt_args{1});
+else
+    lead_path = leaddir;
+end
+
+if isempty(dir(fullfile(lead_path, '*.lead'))) && isempty(dir(fullfile(lead_path, '*.leads'))) && isempty(dir(fullfile(lead_path, '*lead12*'))) && exist(fullfile(lead_path, subject), 'dir')
+    lead_path = fullfile(lead_path, subject);
+end
+
+if length(opt_args) == 1 && ~(ischar(opt_args{1}) || isstring(opt_args{1}))
+    wct = opt_args{1};
+    wct_arg = true;
+else
+    wct_arg = false;
+end
+        
+if ~wct_arg
+    dd = [dir(fullfile(lead_path, '*.lead')); ...
+          dir(fullfile(lead_path, '*.leads')); ...
+          dir(fullfile(lead_path, '*lead12*'))];
+    
+    if ~isempty(dd)
+        idx_12lead = 1; 
+        for i = 1:length(dd)
+            if contains(dd(i).name, 'lead12', 'IgnoreCase', true) || ...
+               contains(dd(i).name, 'standard12lead', 'IgnoreCase', true) || ...
+               contains(dd(i).name, '12lead', 'IgnoreCase', true)
+                idx_12lead = i;
+                break;
+            end
+        end
+        
+        wct_file = fullfile(dd(idx_12lead).folder, dd(idx_12lead).name);
+        
+        ver = loadmat(wct_file);
+        
+        if size(ver, 2) >= 4
+            ver = ver(:, 2:4);
+        end
+        
+        if isfield(DATA, 'GEOM') && isfield(DATA.GEOM, 'thorax')
+            meanTh = mean(DATA.GEOM.thorax.VER);
+            wct = [];
+            for i = 1:3
+                TRIS = linetris(DATA.GEOM.thorax.VER, DATA.GEOM.thorax.ITRI, ver(i,:), [meanTh(1) meanTh(2) ver(i,3)]);
+                if isempty(TRIS)
+                    TRIS = linetris(DATA.GEOM.thorax.VER, DATA.GEOM.thorax.ITRI, ver(i,:), meanTh);
+                    TRIS(TRIS(:,2)<0, :) = [];
+                end
+                TRIS(abs(TRIS(:,end)) > min(abs(TRIS(:,end))), :) = [];
+                wct = [wct DATA.GEOM.thorax.ITRI(TRIS(1),1)];
+            end
+        end
+    else
+        % fprintf('[WARNING] No leads files found for WCT.\n');
+    end
+end
+
+if exist('wct', 'var') && ~isempty(wct)
+    if exist([modeldir 'all.aedl'], 'file')
+        AA = 40 * loadmat([modeldir 'all.aedl']);
+    elseif exist([modeldir 'thorax.aedl'], 'file') 
+        AA = 40 * loadmat([modeldir 'thorax.aedl']);
+    else
+        AA=[];
+    end
+    
+    if exist([modeldir 'all.vedl'], 'file')
+        AV = 40*loadmat([modeldir 'all.vedl']);
+    elseif exist([modeldir 'thorax.vedl'], 'file')
+        AV = 40*loadmat([modeldir 'thorax.vedl']);
+    else
+        AV=[];
+    end
+    
+    if ~isempty(AV)
+        n = length(DATA.GEOM.thorax.VER);
+        DATA.VENTR.THORAX = AV(1:n,:);
+        AV = doWCT(AV,calcAwct(DATA.VENTR.THORAX,wct));
+
+        DATA.VENTR.THORAX = AV(1:n,:);
+        if size(AV,1)>n
+            DATA.VENTR.LCAV= (AV(n+1: n + length(DATA.GEOM.lcav.VER),:));
+            n = n + length(DATA.GEOM.lcav.VER);
+        end
+        if size(AV,1)>n
+            DATA.VENTR.RCAV= (AV(n+1: n + length(DATA.GEOM.rcav.VER),:));
+            n = n + length(DATA.GEOM.rcav.VER);
+        end
+
+        if size(AV,1)>n && isfield(DATA.GEOM,'rlung')
+            DATA.VENTR.RLUNG= (AV(n+1: n + length(DATA.GEOM.rlung.VER),:));
+            n = n + length(DATA.GEOM.rlung.VER);
+        end
+        if size(AV,1)>n && isfield(DATA.GEOM,'llung')
+            DATA.VENTR.LLUNG= (AV(n+1: n + length(DATA.GEOM.llung.VER),:));
+            n = n + length(DATA.GEOM.llung.VER);
+        end
+
+        if isfield(DATA.GEOM,'liver') 
+            DATA.VENTR.LIVER= (AV(n+1: n + length(DATA.GEOM.liver.VER),:));
+            n = n + length(DATA.GEOM.liver.VER);
+        end
+
+        if isfield(DATA.GEOM,'ribcage') 
+            DATA.VENTR.RIBCAGE= (AV(n+1: n + length(DATA.GEOM.ribcage.VER),:));
+            n = n + length(DATA.GEOM.ribcage.VER);
+        end
+        if isfield(DATA.GEOM,'fatpad_1') 
+
+            DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_1.VER),:));
+            n = n + length(DATA.GEOM.fatpad_1.VER);
+        end
+
+        if isfield(DATA.GEOM,'fatpad_2') 
+
+            DATA.VENTR.FATPAD_1= (AV(n+1: n + length(DATA.GEOM.fatpad_2.VER),:));
+            n = n + length(DATA.GEOM.fatpad_2.VER);
+        end
+        if isfield(DATA.GEOM,'coil') 
+            DATA.VENTR.COIL= (AV(n+1: n + length(DATA.GEOM.coil.VER),:));
+            n = n + length(DATA.GEOM.coil.VER);
+        end
+        
+        if size(AV,1)>n
+            DATA.VENTR.VENTRICLES = (AV(end-length(DATA.GEOM.ventr.VER)+1:end,:));
+        end
+    end
+    
+    if size(AA,1) > n
+        n = length(DATA.GEOM.thorax.VER);
+        DATA.ATRIA.THORAX = AA(1:n,:);
+        AA = doWCT(AA,calcAwct(DATA.ATRIA.THORAX,wct));
+        DATA.ATRIA.THORAX = AA(1:n,:);
+        DATA.ATRIA.LCAV= (AA(n+1: n + length(DATA.GEOM.lcav.VER),:));
+        n = n + length(DATA.GEOM.lcav.VER);
+
+        DATA.ATRIA.RCAV= (AA(n+1: n + length(DATA.GEOM.rcav.VER),:));
+        n = n + length(DATA.GEOM.rcav.VER);
+        if isfield(DATA.GEOM,'rlung')
+            DATA.ATRIA.RLUNG= (AA(n+1: n + length(DATA.GEOM.rlung.VER),:));
+            n = n + length(DATA.GEOM.rlung.VER);
+        end
+        if isfield(DATA.GEOM,'llung')                    
+            DATA.ATRIA.LLUNG= (AA(n+1: n + length(DATA.GEOM.llung.VER),:));
+            n = n + length(DATA.GEOM.llung.VER);
+        end
+        if isfield(DATA.GEOM,'liver')
+            DATA.VENTR.LIVER= (AV(n+1: n + length(DATA.GEOM.liver.VER),:));
+            n = n + length(DATA.GEOM.liver.VER);
+        end
+
+        if isfield(DATA.GEOM,'ribcage')
+            DATA.ATRIA.RIBCAGE= (AA(n+1: n + length(DATA.GEOM.ribcage.VER),:));
+            n = n + length(DATA.GEOM.ribcage.VER);
+        end
+        if isfield(DATA.GEOM,'fatpad_1')
+            DATA.ATRIA.FATPAD_1= (AA(n+1: n + length(DATA.GEOM.fatpad_1.VER),:));
+            n = n + length(DATA.GEOM.fatpad_1.VER);
+        end
+        if isfield(DATA.GEOM,'fatpad_2')
+            DATA.ATRIA.FATPAD_2= (AA(n+1: n + length(DATA.GEOM.fatpad_2.VER),:));
+            n = n + length(DATA.GEOM.fatpad_2.VER);
+        end
+        if isfield(DATA.GEOM,'coil') 
+            DATA.ATRIA.COIL= (AV(n+1: n + length(DATA.GEOM.coil.VER),:));
+            n = n + length(DATA.GEOM.coil.VER);
+        end
+        DATA.ATRIA.ATRIA = (AA(end-length(DATA.GEOM.atria.VER)+1: end,:));
+    end
+end
+
+dd_leads = [dir(fullfile(lead_path, '*.lead')); dir(fullfile(lead_path, '*.leads'))];
+for i = 1:length(dd_leads)
+    filepath = fullfile(dd_leads(i).folder, dd_leads(i).name);
+    
+    ver = loadmat(filepath);
+    if isempty(ver)
+        continue;
+    end
+
+    if size(ver, 2) >= 4
+        ver = ver(:, 2:4);
+    end
+
+    name = clean_fieldname(dd_leads(i).name, subject);
+
+    [AMA_A, AMA_V] = getAMA(DATA, ver);
+    
+    DATA.VENTR.LEADPOS.(name) = ver;
+    DATA.VENTR.AMA.(name) = AMA_V;
+
+    if ~isempty(AMA_A) && isfield(DATA, 'ATRIA')
+        DATA.ATRIA.LEADPOS.(name) = ver;
+        DATA.ATRIA.AMA.(name) = AMA_A;
+    end        
+end
+
+% load signal info file into a TEMPORARY variable
+jsonFileName = 'info.json';
+raw_info = struct();
+if exist(fullfile(signaldir, jsonFileName), "file")
+    jsonStr = fileread(fullfile(signaldir, jsonFileName));
+    raw_info = jsondecode(jsonStr);    
+end
+
+% Ścieżki do nowej struktury danych
+ecg_data_dir = fullfile(signaldir, 'ECG_DATA');
+dir_12ecg = fullfile(ecg_data_dir, '12ECG');
+dir_bsm = fullfile(ecg_data_dir, 'BSM');
+
+% Wczytywanie mapy nazw z signal_names.json (poprawiona ścieżka na signaldir)
+jsonFileName = fullfile(signaldir, 'signal_names.json');
+name_map = struct();
+if exist(jsonFileName, 'file')
+    jsonStr = fileread(jsonFileName);
+    name_map = jsondecode(jsonStr);
+else
+    warning('Brak pliku %s. Mapowanie nazw sygnałów nie będzie dostępne.', jsonFileName);
+end
+
+% Sprawdzenie dostępności map i geometrii dla danego pacjenta
+if ~isfield(name_map, 'BSM')
+    warning('W pliku mapowania brakuje sekcji "BSM" dla pacjenta %s.', subject);
+end
+if ~isfield(name_map, 'x12ECG') % MATLAB dodaje 'x' przed cyfrą
+    warning('W pliku mapowania brakuje sekcji "12ECG" dla pacjenta %s.', subject);
+end
+if ~isfield(DATA.GEOM, 'ventr') || isempty(DATA.GEOM.ventr.VER)
+    warning('Nie wczytano geometrii komór (ventricles) dla pacjenta %s. Upewnij się, że pliki .tri istnieją.', subject);
+end
+
+% Inicjalizacja ostatecznej struktury INFO w nowym miejscu (bez NAME_MAP)
+DATA.SIGNALS.INFO = struct();
+
+% Zebranie wszystkich plików z podfolderów 12ECG oraz BSM
+dd_ecgs = [];
+if exist(dir_12ecg, 'dir')
+    dd_ecgs = [dd_ecgs; dir(fullfile(dir_12ecg, '*.*'))];
+end
+if exist(dir_bsm, 'dir')
+    dd_ecgs = [dd_ecgs; dir(fullfile(dir_bsm, '*.*'))];
+end
+
+% Odfiltrowanie folderów
+if ~isempty(dd_ecgs)
+    dd_ecgs = dd_ecgs(~[dd_ecgs.isdir]);
+end
+
+for i = 1:length(dd_ecgs)
+    filepath = fullfile(dd_ecgs(i).folder, dd_ecgs(i).name);
+    filename = dd_ecgs(i).name;
+    
+    % Pomijanie plików konfiguracyjnych i map
+    if contains(filename, '.iecg', 'IgnoreCase', true) || ...
+       contains(filename, '.imap', 'IgnoreCase', true) || ...
+       contains(filename, '.json', 'IgnoreCase', true)
+        continue;
+    end
+    
+    sig = loadmat(filepath);
+    if isempty(sig)
+        continue;
+    end
+
+    % ---------------------------------------------------------
+    % Nowy mechanizm parsowania nazwy (bez regexp)
+    % Rozpoznaje schemat: [basename].[ecg/bsm]_[beat].[ext]
+    % ---------------------------------------------------------
+    % Znajdź miejsce rozszerzenia .ecg lub .bsm
+    type_idx = regexpi(filename, '\.(ecg|bsm)');
+    if isempty(type_idx)
+        continue; % Pomijamy pliki, które nie są sygnałami
+    end
+    
+    base_name = filename(1:type_idx(1)-1);
+    rest = filename(type_idx(1):end); % np. '.ecg_1.vmedianecg' lub '.ecg'
+    
+    % Rozpoznanie typu głównego (ECG / BSM) i ucięcie go z reszty ciągu
+    if startsWith(rest, '.ecg', 'IgnoreCase', true)
+        sig_type = 'ECG';
+        rest = rest(5:end); 
+    elseif startsWith(rest, '.bsm', 'IgnoreCase', true)
+        sig_type = 'BSM';
+        rest = rest(5:end);
+    else
+        continue;
+    end
+    
+    % Parsowanie reszty (beat i opcjonalne rozszerzenie)
+    beat_str = '';
+    ext_str = '';
+    
+    if startsWith(rest, '_')
+        % Mamy do czynienia z beatem (np. '_1.vmedianecg' lub '_1')
+        dot_idx = strfind(rest, '.');
+        if isempty(dot_idx)
+            beat_str = rest(2:end);
+        else
+            beat_str = rest(2:dot_idx(1)-1);
+            ext_str = upper(rest(dot_idx(1)+1:end));
+        end
+    elseif startsWith(rest, '.')
+        % Mamy do czynienia z rozszerzeniem ogólnym bez beatu (np. '.medianecg')
+        ext_str = upper(rest(2:end));
+    end
+
+    % Zabezpieczenie nazw pól - jeśli nazwa nie zaczyna się od litery, wymuszamy przedrostek 's'
+    if ~isletter(base_name(1))
+        out_name = ['s' base_name];
+        json_key = ['x' base_name];
+    else
+        out_name = base_name;
+        json_key = base_name;
+    end
+    
+    % Rozpoznanie czy plik jest z folderu BSM czy 12ECG
+    is_bsm = contains(filepath, 'BSM', 'IgnoreCase', true);
+    is_12ecg = contains(filepath, '12ECG', 'IgnoreCase', true);
+    
+    % Próba znalezienia oryginalnej nazwy w zagnieżdżonej mapie
+    original_name = '';
+    fallback_json_key = '';
+    if contains(base_name, '_')
+        parts = strsplit(base_name, '_');
+        suffix = parts{end};
+        if ~isletter(suffix(1))
+            fallback_json_key = ['x' suffix];
+        else
+            fallback_json_key = suffix;
+        end
+    end
+
+    % Przeszukiwanie JSONa w odpowiedniej gałęzi
+    if is_bsm && isfield(name_map, 'BSM')
+        if isfield(name_map.BSM, json_key)
+            original_name = name_map.BSM.(json_key);
+        elseif ~isempty(fallback_json_key) && isfield(name_map.BSM, fallback_json_key)
+            original_name = name_map.BSM.(fallback_json_key);
+        end
+    elseif is_12ecg && isfield(name_map, 'x12ECG')
+        if isfield(name_map.x12ECG, json_key)
+            original_name = name_map.x12ECG.(json_key);
+        elseif ~isempty(fallback_json_key) && isfield(name_map.x12ECG, fallback_json_key)
+            original_name = name_map.x12ECG.(fallback_json_key);
+        end
+    end
+    
+    % Aktualizacja struktury INFO dla tego sygnału
+    if ~isfield(DATA.SIGNALS.INFO, out_name)
+        DATA.SIGNALS.INFO.(out_name) = struct();
+        DATA.SIGNALS.INFO.(out_name).original_name = original_name;
+        DATA.SIGNALS.INFO.(out_name).file_name = base_name;
+    end
+    
+    % ---------------------------------------------------------
+    % Dystrybucja danych do odpowiednich pól
+    % ---------------------------------------------------------
+    if ~isempty(beat_str)
+        % 1. Mamy do czynienia z sygnałem pojedynczego beatu
+        beat_num = str2double(beat_str);
+        beat_cat = [sig_type '_BEATS']; % Tworzy nazwę 'ECG_BEATS' lub 'BSM_BEATS'
+        
+        if isempty(ext_str)
+            ext_str = 'ALL'; 
+        end
+        
+        % Zapisanie bezpośrednio do standardowej macierzy 3D 
+        % (wymaga by wymiary 'sig' we wszystkich beatach były równe)
+        DATA.SIGNALS.(beat_cat).(ext_str).(out_name)(:, :, beat_num) = sig;
+        
+    else
+        % 2. Mamy do czynienia z ogólnym sygnałem
+        if isempty(ext_str)
+            DATA.SIGNALS.(sig_type).ALL.(out_name) = sig;
+        else
+            DATA.SIGNALS.(sig_type).(ext_str).(out_name) = sig;
+        end
+    end
+end
+
+
+% CLASSIFICATION LOGIC
+if isfield(DATA, 'VENTR') && isfield(DATA.GEOM, 'ventr') && isfield(DATA.GEOM.ventr, 'VER')
+    DATA.GEOM.ventr.endoVER=zeros(1,length(DATA.GEOM.ventr.VER));
+    for i=1:length(DATA.GEOM.ventr.VER)
+        if any(DATA.GEOM.lcav.VER(:,1)==DATA.GEOM.ventr.VER(i,1) & ...
+                DATA.GEOM.lcav.VER(:,2)==DATA.GEOM.ventr.VER(i,2) & ...
+                DATA.GEOM.lcav.VER(:,3)==DATA.GEOM.ventr.VER(i,3))
+            DATA.GEOM.ventr.endoVER(i) = 2;
+        end
+    end
+
+    for i=1:length(DATA.GEOM.ventr.VER)
+        if any(DATA.GEOM.rcav.VER(:,1)==DATA.GEOM.ventr.VER(i,1) & ...
+                DATA.GEOM.rcav.VER(:,2)==DATA.GEOM.ventr.VER(i,2) & ...
+                DATA.GEOM.rcav.VER(:,3)==DATA.GEOM.ventr.VER(i,3))
+            DATA.GEOM.ventr.endoVER(i) = 1;
+        end
+    end
+
+    DATA.GEOM.ventr.type = DATA.GEOM.ventr.endoVER;
+
+    if isfield(DATA.VENTR, 'ADJ3D')
+        ADJ = DATA.VENTR.ADJ3D;
+        if size(ADJ,1) == length(DATA.GEOM.ventr.VER)
+            ADJ(DATA.VENTR.ADJsurf>0)=0;
+            for i=1:length(DATA.GEOM.ventr.VER)
+                lvD = min(ADJ(i,DATA.GEOM.ventr.endoVER==2 & ADJ(i,:)>0 & ADJ(i,:)< 35));
+                rvD = min(ADJ(i,DATA.GEOM.ventr.endoVER==1 & ADJ(i,:)>0 & ADJ(i,:)< 35));
+                evD = min(ADJ(i,DATA.GEOM.ventr.endoVER==0 & ADJ(i,:)>0 & ADJ(i,:)< 35));
+                if isempty(evD) && DATA.GEOM.ventr.endoVER(i) ~= 0
+                    if DATA.GEOM.ventr.endoVER(i) ==1
+                        DATA.GEOM.ventr.type(i) = 3;% rvseptum endo
+                    else
+                        DATA.GEOM.ventr.type(i) = 4;% lvseptum endo
+                    end
+                elseif isempty(lvD) && DATA.GEOM.ventr.endoVER(i) ~= 2
+                    if DATA.GEOM.ventr.endoVER(i) == 0
+                        DATA.GEOM.ventr.type(i) = 5;% rvfree epi
+                    else
+                        DATA.GEOM.ventr.type(i) = 6;% rvfree endo
+                    end
+                elseif isempty(rvD) && DATA.GEOM.ventr.endoVER(i) ~= 1
+                    if DATA.GEOM.ventr.endoVER(i) == 0
+                        DATA.GEOM.ventr.type(i) = 7;% lvfree epi
+                    else
+                        DATA.GEOM.ventr.type(i) = 8;% lvfree endo
+                    end
+                else
+                    if lvD < rvD * 3 % this is lv
+                        if DATA.GEOM.ventr.endoVER(i) == 0 %epi
+                            DATA.GEOM.ventr.type(i) = 7;% lvfree epi
+                        elseif DATA.GEOM.ventr.endoVER(i) == 1 %rv endo
+                            DATA.GEOM.ventr.type(i) = 3;% rvseptum endo
+                        else
+                            DATA.GEOM.ventr.type(i) = 4;% lvseptum endo
+                        end
+                    else
+                        if DATA.GEOM.ventr.endoVER(i) == 0 %epi
+                            DATA.GEOM.ventr.type(i) = 5;% rvfree epi
+                        elseif DATA.GEOM.ventr.endoVER(i) == 1 %rv endo
+                            if isempty(lvD)
+                                DATA.GEOM.ventr.type(i) = 6;% rvfree endo
+                            else
+                                DATA.GEOM.ventr.type(i) = 3;% rvfree endo
+                            end
+                        else
+                            if isempty(rvD)
+                                DATA.GEOM.ventr.type(i) = 8;% lvfree endo
+                            else
+                                DATA.GEOM.ventr.type(i) = 4;% lvseptum
+                            end
+                        end
+                    end
+                end
+            end
+            
+        end
+    end
+end
+
+if isfield(DATA.GEOM,'atria') && isfield(DATA.GEOM.atria, 'VER')
+    DATA.GEOM.atria.endoVER=zeros(1,length(DATA.GEOM.atria.VER));
+    for i=1:length(DATA.GEOM.atria.VER)
+        if any(DATA.GEOM.lcav.VER(:,1)==DATA.GEOM.atria.VER(i,1) & ...
+                DATA.GEOM.lcav.VER(:,2)==DATA.GEOM.atria.VER(i,2) & ...
+                DATA.GEOM.lcav.VER(:,3)==DATA.GEOM.atria.VER(i,3))
+            DATA.GEOM.atria.endoVER(i) = 2;
+        end
+    end
+    for i=1:length(DATA.GEOM.atria.VER)
+        if any(DATA.GEOM.rcav.VER(:,1)==DATA.GEOM.atria.VER(i,1) & ...
+                DATA.GEOM.rcav.VER(:,2)==DATA.GEOM.atria.VER(i,2) & ...
+                DATA.GEOM.rcav.VER(:,3)==DATA.GEOM.atria.VER(i,3))
+            DATA.GEOM.atria.endoVER(i) = 1;
+        end
+    end
+end
+
+end
+
+%%=======================================================================
+%  HELPERS
+%%=======================================================================
+
+function s = removeBaseline(signal)
+    s = baselinecor(signal);
+end
+
+function name = clean_fieldname(filename, subject)
+    name = filename;
+    name = strrep(name, '.leads', '');
+    name = strrep(name, '.lead', '');
+    name = strrep(name, '.medianecg', '');
+    name = strrep(name, '.bsm', '');
+    name = strrep(name, '.ecg', '');
+    name = strrep(name, ' ', '');
+    name = strrep(name, subject, '');
+    name = strrep(name, '-', '_');
+    name = strrep(name, '.', '_');
+    
+    if isempty(name)
+        name = 'Signal';
+    end
+    
+    % Prepends 'x' to keep the field name legal in MATLAB
+    name = ['x' name];
+end
+
+function A = doWCT(Ain,Awct)
+if ~isempty(Ain)
+    A = Ain - ones(size(Ain,1),1) * Awct;
+else
+    A= Ain;
+end
+end
+
+function Awct = calcAwct(AthorsoIn,wct)
+Awct = mean(AthorsoIn(wct,:));
+end
+
+%%=======================================================================
+function [M, extraresult]=loadmat(name)
+f=fopen(name);
+if (f==-1)
+    M=[];
+    extraresult='';
+    return;
+end
+[N,nr]=fscanf(f,'%d',2);
+if (nr~=2)
+    fclose(f);
+    f=fopen(name);
+    [magic ,nr]=fread(f,8,'char');
+    if (char(magic')==';;mbfmat')
+        fread(f,1,'char');
+        hs=fread(f,1,'long');
+        fread(f,1,'char');
+        fread(f,1,'char');
+        fread(f,1,'char');
+        N=fread(f,2,'long');
+        M=fread(f,[N(2),N(1)],'double');
+    else
+        fclose(f);
+        f=fopen(name);
+        N=fread(f,2,'long');
+        M=fread(f,[N(2),N(1)],'float');
+    end
+else
+    M=fscanf(f,'%f',[N(2) N(1)]);
+end
+[extra,nextra]=fread(f,1000,'char');
+fclose(f);
+extra = char(extra);
+if ~all(isspace(extra))
+else
+    extra=[];
+end
+M=M';
+extraresult=extra;
+end
+
+%%========================================================================
+function [pnt, dhk] = loadtri(fn)
+fid = fopen(fn, 'rt');
+if fid~=-1
+    Npnt = fscanf(fid, '%d', 1);
+    pnt  = fscanf(fid, '%f', [4, Npnt]);
+    pnt  = pnt(2:4,:)';
+    if (~(feof(fid)))
+        [Ndhk, count] = fscanf(fid, '%d', 1);
+        if (count ~= 0)
+            dhk = fscanf(fid, '%d', [4, Ndhk]);
+            dhk = dhk(2:4,:)';
+        end
+    else
+        dhk = [];
+    end
+    fclose(fid);
+else
+    error(['unable to open file: ' fn]);
+end
+end
+
+%%========================================================================
+function [AMA_A,AMA_V] = getAMA(DATA,ver)
+    if ~isfield(DATA, 'GEOM') || ~isfield(DATA.GEOM, 'thorax') || ~isfield(DATA.GEOM.thorax, 'VER')
+        AMA_A = []; AMA_V = []; return;
+    end
+    
+    meanTh = mean(DATA.GEOM.thorax.VER);
+    if isfield(DATA,'ATRIA') && isfield(DATA.ATRIA,'THORAX')
+        AMA_A = zeros(size(ver,1),size(DATA.ATRIA.THORAX,2));
+    else
+        AMA_A = [];
+    end
+    
+    if isfield(DATA, 'VENTR') && isfield(DATA.VENTR, 'THORAX')
+        AMA_V = zeros(size(ver,1),size(DATA.VENTR.THORAX,2));
+        for i=1:size(ver,1)
+            TRIS= linetris(DATA.GEOM.thorax.VER,DATA.GEOM.thorax.ITRI,ver(i,:),[meanTh(1) meanTh(2) ver(i,3)]);
+            TRIS(abs(TRIS(:,end))> min(abs(TRIS(:,end))),:)=[];
+            itri = DATA.GEOM.thorax.ITRI(TRIS(1),:);
+            if isfield(DATA,'ATRIA') && isfield(DATA.ATRIA,'THORAX')
+                AMA_A(i,:) = DATA.ATRIA.THORAX(itri(1),:) + ...
+                    (DATA.ATRIA.THORAX(itri(2),:) - DATA.ATRIA.THORAX(itri(1),:)) * TRIS(1,3) + ...
+                    (DATA.ATRIA.THORAX(itri(3),:) - DATA.ATRIA.THORAX(itri(1),:)) * TRIS(1,4);
+            end
+            AMA_V(i,:) = DATA.VENTR.THORAX(itri(1),:) + ...
+                (DATA.VENTR.THORAX(itri(2),:) - DATA.VENTR.THORAX(itri(1),:)) * TRIS(1,3) + ...
+                (DATA.VENTR.THORAX(itri(3),:) - DATA.VENTR.THORAX(itri(1),:)) * TRIS(1,4);
+        end
+    else
+        AMA_V = [];
+    end
+end
