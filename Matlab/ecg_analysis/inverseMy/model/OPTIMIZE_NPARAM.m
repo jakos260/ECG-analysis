@@ -10,17 +10,12 @@ classdef OPTIMIZE_NPARAM < handle
         MaxIter         % Maximum number of optimization iterations
         Bounds          % Cell array (1xN) of [min, max] bounds
         Lambdas         % Array (1xN) of current LM damping factors
+        OptFunc         % Function handle for generic cost and forward model evaluation
     end
     
     methods
-        function obj = OPTIMIZE_NPARAM(initial_params, mu_values, param_names, maxiter, bounds)
-            % Constructor
-            % Inputs:
-            %   initial_params - Cell array of vectors containing initial times
-            %   mu_values      - Array of mu weights for each parameter
-            %   param_names    - (Optional) Cell array of strings for parameter names
-            %   maxiter        - (Optional) Maximum global iterations (default = 25)
-            %   bounds         - (Optional) Cell array of [min, max] for physiological clamping
+        function obj = OPTIMIZE_NPARAM(initial_params, mu_values, param_names, maxiter, bounds, opt_func)
+            % Constructor updated to receive opt_func
             
             if ~iscell(initial_params)
                 error('initial_params must be a cell array of parameter vectors.');
@@ -29,6 +24,7 @@ classdef OPTIMIZE_NPARAM < handle
             obj.NumParams = length(initial_params);
             obj.Params = initial_params;
             obj.MuValues = mu_values;
+            obj.OptFunc = opt_func; % Assign the custom evaluation function
             
             % Handle optional param_names
             if nargin < 3 || isempty(param_names)
@@ -65,20 +61,11 @@ classdef OPTIMIZE_NPARAM < handle
         end
         
         function [score, TST] = optimize(obj, INV, notchopt, amplopt)
-            % OPTIMIZE - Sequentially optimizes all N parameters.
-            % 
-            % Note: This method calls generic wrapper functions:
-            %  - gettres_v_Nparam(INV, params_cell, notchopt, amplopt)
-            %  - my_regional_Smode_Nparam(INV, params_cell)
-            % You will need to implement these wrappers in your project to map
-            % the generic cell array (obj.Params) back to your specific structural 
-            % layout (e.g., separating it back into opt, keepopt, etc.).
-            
             score = 0;
             dif_tims = 1;
             
-            % Initial evaluation
-            TST = gettres_v_nparams(INV, obj.Params, notchopt, amplopt);
+            % Initial evaluation using the generic OptFunc
+            TST = obj.OptFunc(INV, obj.Params, notchopt, amplopt);
             
             for iter = 1:obj.MaxIter
                 improvement_in_iter = false;
@@ -94,15 +81,17 @@ classdef OPTIMIZE_NPARAM < handle
                     params_plus{p} = params_plus{p} + dif_tims;
                     params_min{p}  = params_min{p} - dif_tims;
                     
-                    % 2. Calculate temporal derivative (Jacobian approximation)
-                    Splus = my_regional_Smode(INV, params_plus{:});
-                    Smin  = my_regional_Smode(INV, params_min{:});
+                    % 2. Calculate temporal derivative (Jacobian approximation) using OptFunc
+                    TST_plus = obj.OptFunc(INV, params_plus, notchopt, amplopt);
+                    TST_min  = obj.OptFunc(INV, params_min, notchopt, amplopt);
+                    
+                    Splus = TST_plus.S;
+                    Smin  = TST_min.S;
                     
                     Sprime = (Splus - Smin) / (dif_tims * 2);
                     SST    = Sprime * Sprime';
                     
                     % 3. Compute regularization matrix
-                    % Attempt to dynamically find the correct regularization matrix in INV
                     ROTRO_IN = [];
                     rotro_field_name = ['ROTRO_', upper(obj.ParamNames{p})];
                     if isfield(INV, rotro_field_name)
@@ -146,18 +135,16 @@ classdef OPTIMIZE_NPARAM < handle
                         
                         newtime = obj.Params{p} + deltau;
                         
-                        % =========================================================================
-                        % PHYSIOLOGICAL CLAMPING (BOUNDS)
-                        % =========================================================================
+                        % Physiological Clamping (Bounds)
                         min_b = obj.Bounds{p}(1);
                         max_b = obj.Bounds{p}(2);
                         newtime = max(min_b, min(newtime, max_b));
-                        % =========================================================================
                         
                         test_params = obj.Params;
                         test_params{p} = newtime;
                         
-                        test_TST = gettres_v_nparams(INV, test_params, notchopt, amplopt);
+                        % Evaluate the step using the generic OptFunc
+                        test_TST = obj.OptFunc(INV, test_params, notchopt, amplopt);
                         
                         if test_TST.tres < starttres
                             if (starttres - test_TST.tres) / starttres >= INV.stopcrit

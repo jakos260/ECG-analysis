@@ -76,11 +76,11 @@ classdef INVERSE_MODEL < handle
             end
             
             % Przygotowanie sygnału referencyjnego i macierzy czasu T
-            if isfield(GEOM, 'BSM') && isfield(GEOM.SPECS, 'onsetqrs') && isfield(GEOM.SPECS, 'endtwave')
+            if isfield(GEOM, 'BSM') && isfield(GEOM.SPECS, 'onsetqrs') && isfield(GEOM.SPECS, 'signalLength')
                 try
-                    obj.INV.BSM = baselinecor(lowpassma(GEOM.BSM(:, GEOM.SPECS.onsetqrs:GEOM.SPECS.endtwave), obj.INV.lpass));
+                    obj.INV.BSM = baselinecor(lowpassma(GEOM.BSM(:, GEOM.SPECS.onsetqrs:GEOM.SPECS.signalLength), obj.INV.lpass));
                 catch
-                     obj.INV.BSM = GEOM.BSM(:, GEOM.SPECS.onsetqrs:GEOM.SPECS.endtwave); % Fallback
+                    obj.INV.BSM = GEOM.BSM(:, GEOM.SPECS.onsetqrs:GEOM.SPECS.signalLength); % Fallback
                 end
                 obj.INV.PHIREF = obj.INV.BSM;
                 obj.INV.normphi = norm(obj.INV.PHIREF, 'fro');
@@ -93,7 +93,7 @@ classdef INVERSE_MODEL < handle
             
             % Inicjalizacja N-parametrowego optymalizatora
             obj.Optimizer = OPTIMIZE_NPARAM(...
-                initial_params, mu_values, param_names, obj.INV.maxiter, bounds);
+                initial_params, mu_values, param_names, obj.INV.maxiter, bounds, obj.OptFunc);
             
             % Mapowanie macierzy regularyzacji
             if isfield(GEOM, 'ROTRO_CELL')
