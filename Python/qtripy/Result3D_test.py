@@ -59,19 +59,26 @@ def main() -> None:
 
     vertices = arrays[0][:, 1:4]
     triangles = arrays[1][:, 1:4]
-    random_values = np.arange(0, 100, 100/len(vertices))
-    # random_values = np.random.default_rng(args.seed).uniform(0, 100, len(vertices))
+    ordered_values = np.arange(0, 100, 100/len(vertices))
+    random_values = np.random.default_rng(args.seed).uniform(0, 100, len(vertices))
 
     viewer = Result3D()
     viewer.begin()
     viewer.reset()
-    viewer.surface(vertices, triangles, name="ventricle")
-    viewer.transparency(0.8)
-    viewer.values(random_values)
-    viewer.gradient_bins()
-    viewer.text("Ventricle - reproducible random values", (0.03, 0.95))
     viewer.background_color("white")
-    viewer.property_on_mouse_click("coor")
+    viewer.gradient_bins()
+    viewer.set_panels_number(1,2)
+    viewer.transparency(0.8)
+
+    viewer.set_active_panel(1,1)
+    viewer.surface(vertices, triangles, name="ventricle")
+    viewer.values(ordered_values)
+    viewer.text("Nodes number values", (0.03, 0.45))
+
+    viewer.set_active_panel(1,2)
+    viewer.surface(vertices, triangles, name="ventricle")
+    viewer.values(random_values)
+    viewer.text("Ventricle - reproducible random values", (0.03, 0.95))
 
     print(f"Displaying {len(vertices)} vertices from: {mesh_path}")
     print("Close the Result3D window to exit.")
