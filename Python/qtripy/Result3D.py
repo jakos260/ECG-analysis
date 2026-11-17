@@ -42,7 +42,7 @@ class Result3D(QTripy):
         self._text_color = "black"
         self._edge_color: str | None = None
         self._opacity = 1.0
-        self._color_map = "jet"
+        self._color_map = "jet_r"
         self._color_limits: tuple[float, float] | None = None
         self._data_range: tuple[float, float] | None = None
         self._manual_color_limits = False
