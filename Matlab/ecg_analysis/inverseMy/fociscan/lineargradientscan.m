@@ -76,11 +76,11 @@ function result = lineargradientscan(GEOM, direction_vector, vel_or_range)
     result.vector = u';
     
     % Minimal logging
-    if strcmp(mode, 'velocity')
-        fprintf('LINEARGRADIENTSCAN | Vel: %.2f m/s | DEP min/max: %4.1f / %4.1f ms | REP min/max: %4.1f / %4.1f ms\n', ...
-                velocity, min(dep), max(dep), min(rep), max(rep));
-    else
-        fprintf('LINEARGRADIENTSCAN | Range mode | DEP min/max: %4.1f / %4.1f ms | REP min/max: %4.1f / %4.1f ms\n', ...
-                min(dep), max(dep), min(rep), max(rep));
-    end
+    % if strcmp(mode, 'velocity')
+    %     fprintf('LINEARGRADIENTSCAN | Vel: %.2f m/s | DEP min/max: %4.1f / %4.1f ms | REP min/max: %4.1f / %4.1f ms\n', ...
+    %             velocity, min(dep), max(dep), min(rep), max(rep));
+    % else
+    %     fprintf('LINEARGRADIENTSCAN | Range mode | DEP min/max: %4.1f / %4.1f ms | REP min/max: %4.1f / %4.1f ms\n', ...
+    %             min(dep), max(dep), min(rep), max(rep));
+    % end
 end

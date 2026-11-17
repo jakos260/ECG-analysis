@@ -29,10 +29,11 @@ else:
 class Result3D(QTripy):
     """Display triangulated models and scalar results in a PyVistaQt window."""
 
-    def __init__(self, bins: int = 15) -> None:
-        """Create a viewer with a default of 15 discrete scalar color bins."""
+    def __init__(self, bins: int = 15, center_models: bool = True) -> None:
+        """Create a viewer with centered models and 15 discrete scalar color bins."""
         self._validate_bins(bins)
         super().__init__(path=sys.executable)
+        self._center_models = bool(center_models)
         self.plotter: Any = None
         self._mesh_records: list[dict[str, Any]] = []
         self._text_records: list[dict[str, Any]] = []
@@ -84,12 +85,26 @@ class Result3D(QTripy):
         self.plotter = BackgroundPlotter(
             title="Result3D",
             shape=(vertical, horizontal),
+            border=False,
             auto_update=1,
         )
         self._create_controls_dock()
         self.plotter.set_background(self._background)
+        self._select_panel((1, vertical))
         self.plotter.add_axes()
         self.plotter.link_views()
+        reset_action = next(
+            (
+                action
+                for action in self.plotter.default_camera_tool_bar.actions()
+                if action.text() == "Reset"
+            ),
+            None,
+        )
+        if reset_action is None:
+            raise RuntimeError("PyVistaQt camera toolbar has no Reset action")
+        reset_action.triggered.disconnect()
+        reset_action.triggered.connect(lambda checked=False: self._fit_camera())
         self._apply_transparency_mode()
         for record in self._mesh_records:
             self._draw_mesh(record)
@@ -98,9 +113,10 @@ class Result3D(QTripy):
         self._create_scalar_bar()
         self._update_controls()
         self.set_active_panel(*self.active_panel)
+        if self._mesh_records:
+            self._fit_camera()
 
-    @staticmethod
-    def _make_polydata(vertices: Any, triangles: Any):
+    def _make_polydata(self, vertices: Any, triangles: Any):
         import pyvista as pv
 
         points = np.asarray(vertices, dtype=float)
@@ -109,6 +125,8 @@ class Result3D(QTripy):
             raise ValueError("vertices must have shape (N, 3)")
         if not np.isfinite(points).all():
             raise ValueError("vertices must contain only finite coordinates")
+        if self._center_models and len(points):
+            points = points - points.mean(axis=0)
         if faces_in.size == 0:
             return pv.PolyData(points)
         if faces_in.ndim != 2 or faces_in.shape[1] != 3:
@@ -146,10 +164,13 @@ class Result3D(QTripy):
     def _refresh_plotter(self) -> None:
         if self.plotter is None:
             return
+        from qtpy.QtCore import QTimer
+
         self._dispose_controls_dock()
         self.plotter.close()
         self.plotter = None
         self._create_plotter()
+        QTimer.singleShot(0, self._fit_camera)
 
     def _create_controls_dock(self) -> None:
         from qtpy import QtCore, QtGui, QtWidgets
@@ -270,6 +291,7 @@ class Result3D(QTripy):
             "cmap": self._color_map,
             "n_colors": self._bins,
             "show_scalar_bar": False,
+            "reset_camera": False,
         }
         if scalar_name is not None:
             options["scalars"] = scalar_name
@@ -281,6 +303,30 @@ class Result3D(QTripy):
         record["actor"] = self.plotter.add_mesh(mesh, **options)
         if scalar_name is not None and self._lookup_table is not None:
             record["actor"].mapper.lookup_table = self._lookup_table
+
+    def _fit_camera(self) -> None:
+        if self.plotter is None:
+            return
+        bounds = [
+            record["mesh"].bounds
+            for record in self._mesh_records
+            if record["mesh"].n_points > 0
+        ]
+        if not bounds:
+            self.plotter.renderer.reset_camera(render=False)
+        else:
+            combined_bounds = tuple(
+                min(item[index] for item in bounds)
+                if index % 2 == 0
+                else max(item[index] for item in bounds)
+                for index in range(6)
+            )
+            self.plotter.renderer.reset_camera(
+                render=False,
+                bounds=combined_bounds,
+            )
+        self.plotter.camera.is_set = True
+        self.plotter.render()
 
     def _draw_text(self, record: dict[str, Any]) -> None:
         self._select_panel(record["panel"])
@@ -345,6 +391,7 @@ class Result3D(QTripy):
         self._mesh_records.append(record)
         self._objects.append(object_name)
         self._draw_mesh(record)
+        self._fit_camera()
         if enable_print:
             print(f"Surface: {mesh.n_points} verts, {mesh.n_cells} cells")
 
@@ -475,7 +522,7 @@ class Result3D(QTripy):
             if self._scalar_bar_added:
                 self.plotter.update_scalar_bar_range(
                     self._color_limits,
-                    name="Result values",
+                    name="",
                 )
             self.plotter.render()
         self._sync_display_fields()
@@ -495,15 +542,16 @@ class Result3D(QTripy):
             return
         self._select_panel((1, 1))
         self.plotter.add_scalar_bar(
-            title="Result values",
+            title="",
             mapper=record["actor"].mapper,
-            n_labels=5,
+            n_labels=2,
             n_colors=self._bins,
             vertical=False,
             width=0.5,
             height=0.08,
             position_x=0.25,
-            position_y=0.88,
+            position_y=0.78,
+            fmt="%g",
             interactive=False,
             render=False,
         )
@@ -655,7 +703,7 @@ class Result3D(QTripy):
 
     def _remove_scalar_bar(self) -> None:
         if self.plotter is not None and self._scalar_bar_added:
-            self.plotter.remove_scalar_bar(title="Result values", render=False)
+            self.plotter.remove_scalar_bar(title="", render=False)
         self._scalar_bar_added = False
 
     def _refresh_scalar_meshes(self) -> None:
@@ -702,15 +750,22 @@ class Result3D(QTripy):
             )
         self._refresh_plotter()
 
-    def text(self, text: str, pos: tuple[float, float] = (0, 0)) -> None:
+    def text(
+        self,
+        text: str,
+        pos: tuple[float, float] = (0, 0),
+        font_size: int = 16,
+    ) -> None:
         if any(value < 0 or value > 1 for value in pos):
             raise ValueError("pos must be in (0,1) range for both x and y")
+        if isinstance(font_size, bool) or int(font_size) != font_size or font_size < 1:
+            raise ValueError("font_size must be a positive integer")
         self._ensure_started()
         record = {
             "text": str(text),
             "position": tuple(pos),
             "color": self._text_color,
-            "font_size": 16,
+            "font_size": int(font_size),
             "panel": self.active_panel,
             "actor": None,
         }
@@ -816,6 +871,18 @@ class Result3D(QTripy):
             self._dispose_controls_dock()
             self.plotter.close()
             self.plotter = None
+
+    def process_events(self) -> bool:
+        """Process pending Qt UI events; return whether the viewer is still open."""
+        if self.plotter is None or not self.plotter.app_window.isVisible():
+            return False
+        from qtpy.QtWidgets import QApplication
+
+        application = QApplication.instance()
+        if application is None:
+            raise RuntimeError("The Result3D Qt application is not available")
+        application.processEvents()
+        return bool(self.plotter.app_window.isVisible())
 
     def cmd(self, cmd: str, enable_print: bool = False) -> None:
         self._ensure_started()

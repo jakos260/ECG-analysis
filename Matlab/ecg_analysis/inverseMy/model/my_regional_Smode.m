@@ -14,6 +14,7 @@ function S = my_regional_Smode(INV, dep, rep)
     for r = 1:num_regions
         % Wyizoluj węzły z obecnego klastra (AHA)
         nodes_in_region = find(INV.RegionIdx == r);
+        nodes_in_region = nodes_in_region(nodes_in_region <= length(dep));
         if isempty(nodes_in_region), continue; end
         
         % 1. Znajdź średnie oczekiwane APD dla całego klastra

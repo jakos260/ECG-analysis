@@ -17,14 +17,21 @@ classdef INVERSE_MODEL < handle
     methods
         function obj = INVERSE_MODEL(GEOM, param_configs, settings, opt_func)
             % Constructor
-            disp('-------------------------------------------------------------------------');
-            disp('Initializing generalized inverse_model...');
+            
+            % Setup verbose flag with a default fallback
+            if ~isfield(settings, 'verbose')
+                settings.verbose = true; 
+            end
+            obj.Settings = settings;
+            
+            obj.log_msg('-------------------------------------------------------------------------');
+            obj.log_msg('Initializing generalized inverse_model...');
+            
             obj.GEOM = GEOM;
             obj.ParamConfigs = param_configs;
-            obj.Settings = settings;
             obj.OptFunc = opt_func;
             
-            % Wypakowanie tablicy struktur (param_configs) do formatu cell
+            % Extract structure array (param_configs) to cell format
             num_params = length(param_configs);
             initial_params = cell(1, num_params);
             mu_values      = zeros(1, num_params);
@@ -38,7 +45,7 @@ classdef INVERSE_MODEL < handle
                 bounds{i}         = param_configs(i).bounds;
             end
             
-            % Konfiguracja struktury INV (bezpieczne, matlabowe przypisanie wartości domyślnych)
+            % Configure INV structure (safe default assignments)
             obj.INV = struct();
             obj.INV.MuValues = mu_values;
 
@@ -65,7 +72,7 @@ classdef INVERSE_MODEL < handle
             
             obj.INV.lambdamax = 500;
             
-            % Pozostałe parametry z geometrii
+            % Remaining geometry parameters
             obj.INV.SPECS = GEOM.SPECS;
             obj.INV.AMA = GEOM.AMA;
             obj.INV.ATA = obj.INV.AMA' * obj.INV.AMA;
@@ -75,7 +82,7 @@ classdef INVERSE_MODEL < handle
                 obj.INV.LUT = GEOM.LUT;
             end
             
-            % Przygotowanie sygnału referencyjnego i macierzy czasu T
+            % Prepare reference signal and time matrix T
             if isfield(GEOM, 'BSM') && isfield(GEOM.SPECS, 'onsetqrs') && isfield(GEOM.SPECS, 'signalLength')
                 try
                     obj.INV.BSM = baselinecor(lowpassma(GEOM.BSM(:, GEOM.SPECS.onsetqrs:GEOM.SPECS.signalLength), obj.INV.lpass));
@@ -88,25 +95,24 @@ classdef INVERSE_MODEL < handle
                 usetimes = size(obj.INV.PHIREF, 2);
                 obj.INV.T = ones(size(obj.INV.AMA, 2), 1) * (0 : usetimes - 1);
             else
-                error('GEOM must contain BSM and SPECS.onsetqrs / endtwave');
+                error('GEOM must contain BSM and SPECS.onsetqrs / signalLength');
             end
             
-            % Inicjalizacja N-parametrowego optymalizatora
+            % Initialize N-parameter optimizer
             obj.Optimizer = OPTIMIZE_NPARAM(...
                 initial_params, mu_values, param_names, obj.INV.maxiter, bounds, obj.OptFunc);
             
-            % Mapowanie macierzy regularyzacji
+            % Map regularization matrices
             if isfield(GEOM, 'ROTRO_CELL')
                 obj.INV.ROTRO_CELL = GEOM.ROTRO_CELL;
             else
                  try
-                     % Zapisujemy REGOP i REGOPREP bezpośrednio do struktury INV,
-                     % aby stara funkcja gettres_v_from_ApLut miała do nich dostęp.
+                     % Save REGOP and REGOPREP directly to INV structure
                      [obj.INV.REGOP, obj.INV.REGOPREP] = calcREGOP(GEOM, 1);
                      obj.INV.ROTRO = obj.INV.REGOP' * obj.INV.REGOP;
                      obj.INV.ROTROREP = obj.INV.REGOPREP' * obj.INV.REGOPREP;
                  catch
-                     disp('Warning: calcREGOP failed or not found, regularization might fail.');
+                     obj.log_msg('Warning: calcREGOP failed or not found, regularization might fail.');
                  end
             end
         end
@@ -122,7 +128,7 @@ classdef INVERSE_MODEL < handle
                 PLOT_STATE = obj.init_progress_plot();
             end
             
-            % Startowa ewaluacja
+            % Initial evaluation
             TST = obj.OptFunc(obj.INV, obj.Optimizer.Params, notchopt, amplopt);
             
             obj.BestRD = TST.rd;
@@ -133,11 +139,13 @@ classdef INVERSE_MODEL < handle
                 PLOT_STATE = obj.update_progress_plot(PLOT_STATE, 0, TST, obj.Optimizer.Params, obj.GEOM.ITRI);
                 obj.plot_ecg_signals(0, obj.INV.PHIREF, TST.PHIA, obj.GEOM.LAY);
             end
+
+            init_simulated_signal = TST.PHIA;
             
-            % Główna pętla
+            % Main loop
             for iter = 1:obj.INV.maxiter
                 if TST.rd <= obj.INV.MINRD
-                    disp(['Target RD (', num2str(obj.INV.MINRD), ') reached. Stopping.']);
+                    obj.log_msg(['Target RD (', num2str(obj.INV.MINRD), ') reached. Stopping.']);
                     break;
                 end
                 
@@ -152,7 +160,7 @@ classdef INVERSE_MODEL < handle
                 param_means = cellfun(@mean, obj.Optimizer.Params);
                 param_stds = cellfun(@std, obj.Optimizer.Params);
                 msg = sprintf('ITER: %d | RD: %7.4f | Tres: %7.4f | DEP/REP Means: %4.0f %4.0f | DEP/REP Std: %4.0f %4.0f |', iter, TST.rd, TST.tres, param_means, param_stds);
-                disp(msg);
+                obj.log_msg(msg);
                 
                 if plot_en
                     PLOT_STATE = obj.update_progress_plot(PLOT_STATE, iter, TST, obj.Optimizer.Params, obj.GEOM.ITRI);
@@ -160,13 +168,13 @@ classdef INVERSE_MODEL < handle
                 end
                 
                 if score == 0
-                    disp('Optimization stalled, no parameters improved.');
+                    obj.log_msg('Optimization stalled, no parameters improved.');
                     break; 
                 end
             end
             
-            disp('-------------------------------------------------------------------------');
-            disp(['Restoring best model from iteration ', num2str(obj.BestIter), ' with RD = ', num2str(obj.BestRD)]);
+            obj.log_msg('-------------------------------------------------------------------------');
+            obj.log_msg(['Restoring best model from iteration ', num2str(obj.BestIter), ' with RD = ', num2str(obj.BestRD)]);
             
             obj.Optimizer.Params = obj.BestParams;
             TST = obj.OptFunc(obj.INV, obj.BestParams, notchopt, amplopt);
@@ -181,15 +189,17 @@ classdef INVERSE_MODEL < handle
             meas.corfinal = COR(2,1);
             meas.iterfinal = obj.BestIter;
             meas.simulated_ecg = TST.PHIA;
+
+            meas.simulated_ecg_init = init_simulated_signal;
             
-            disp(['Optimization completed. Best achieved RD = ', num2str(meas.rdfinal)]);
+            obj.log_msg(['Optimization completed. Best achieved RD = ', num2str(meas.rdfinal)]);
         end
         
         function result = predict(obj, new_params, notchopt, amplopt)
              if nargin < 3; notchopt = struct('pot', zeros(size(obj.GEOM.VER,1),1)); end
              if nargin < 4; amplopt = struct('pot', ones(size(obj.GEOM.VER,1),1)); end
              
-             disp('Running prediction (forward model) on provided parameters...');
+             obj.log_msg('Running prediction (forward model) on provided parameters...');
              TST = obj.OptFunc(obj.INV, new_params, notchopt, amplopt);
              
              result = struct();
@@ -203,8 +213,15 @@ classdef INVERSE_MODEL < handle
         end
     end
     
-    %% PRIVATE PLOTTING METHODS
+    %% PRIVATE LOGGING AND PLOTTING METHODS
     methods (Access = private)
+        function log_msg(obj, msg)
+            % Wrapper method to control console output based on verbose setting
+            if isfield(obj.Settings, 'verbose') && obj.Settings.verbose
+                disp(msg);
+            end
+        end
+        
         function PLOT_STATE = init_progress_plot(obj)
             maxiter = obj.INV.maxiter;
             numP = obj.Optimizer.NumParams;
